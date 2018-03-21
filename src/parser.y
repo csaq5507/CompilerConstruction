@@ -25,7 +25,7 @@ void mCc_parser_error();
 
 %token <long>   INT_LITERAL   "integer literal"
 %token <double> FLOAT_LITERAL "float literal"
-%token <boolean> BOOLEAN_LITERAL "boolean literal"
+%token <bool> BOOLEAN_LITERAL "boolean literal"
 %token <char*> STRING_LITERAL "string literal"
 
 %token LPARENTH "("
@@ -51,10 +51,23 @@ void mCc_parser_error();
 %token EQ "=="
 %token NEQ "!="
 
+%token FAC "!"
+
 %type <enum mCc_ast_binary_op> binary_op
 
-%type <struct mCc_ast_expression *> expression single_expr
+%type <enum mCc_ast_unary_op> unary_op
+
+%type <struct mCc_ast_expression *> expression
 %type <struct mCc_ast_literal *> literal
+%type <struct mCc_ast_single_expression *> single_expr
+%type <struct mCc_ast_function_def *> function_def_void function_def_type
+%type <struct mCc_ast_stmt *> if_stmt while_stmt ret_stmt decl_stmt ass_stmt expr_stmt compound_stmt
+
+%type <struct mCc_ast_parameter *> parameter
+%type <struct mCc_ast_argument *> argument
+%type <struct mCc_ast_call_expr *> call_expr
+%type <struct mCc_ast_assignment *> assignment
+%type <struct mCc_ast_declaration *> declaration
 
 %start toplevel
 
@@ -67,14 +80,29 @@ binary_op : PLUS  { $$ = MCC_AST_BINARY_OP_ADD; }
           | MINUS { $$ = MCC_AST_BINARY_OP_SUB; }
           | ASTER { $$ = MCC_AST_BINARY_OP_MUL; }
           | SLASH { $$ = MCC_AST_BINARY_OP_DIV; }
+          | LT { $$ = MCC_AST_BINARY_OP_LT; }
+          | GT { $$ = MCC_AST_BINARY_OP_GT; }
+          | LE { $$ = MCC_AST_BINARY_OP_LE; }
+          | GE { $$ = MCC_AST_BINARY_OP_GE; }
+          | EQ { $$ = MCC_AST_BINARY_OP_EQ; }
+          | NEQ { $$ = MCC_AST_BINARY_OP_NEQ; }
+          | AND { $$ = MCC_AST_BINARY_OP_AND; }
+          | OR { $$ = MCC_AST_BINARY_OP_OR; }
           ;
 
-single_expr : literal                         { $$ = mCc_ast_new_expression_literal($1); }
-            | LPARENTH expression RPARENTH    { $$ = mCc_ast_new_expression_parenth($2); }
+unary_op : MINUS { $$ = MCC_AST_UNARY_OP_NEGATION; }
+		  | FAC { $$ = MCC_AST_UNARY_OP_FAC; }
+          ;
+
+single_expr : literal                         { $$ = mCc_ast_new_single_expression_literal($1); }
+            | identifier expression   		  { $$ = mCc_ast_new_single_expression_identifier($1,$2); }
+            | call_expr                       { $$ = mCc_ast_new_single_expression_call_expr($1); }
+            | unary_op expression             { $$ = mCc_ast_new_single_expression_unary_op($1,$2); }
+            | LPARENTH expression RPARENTH    { $$ = mCc_ast_new_single_expression_parenth($2); }
             ;
 
 expression : single_expr                      { $$ = $1;                                           }
-           | single_expr binary_op expression { $$ = mCc_ast_new_expression_binary_op($2, $1, $3); }
+           | single_expr binary_op expression { $$ = mCc_ast_new_expression_binary($2, $1, $3); }
            ;
 
 literal : INT_LITERAL   { $$ = mCc_ast_new_literal_int($1);   }

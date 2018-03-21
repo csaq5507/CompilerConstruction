@@ -5,12 +5,11 @@
 
 #ifdef __cplusplus
 extern "C" {
-#endif
-
+#else
 typedef int bool;
 #define true 1
 #define false 0
-
+#endif
 
 /* Forward Declarations */
 struct mCc_ast_expression;
@@ -298,7 +297,7 @@ struct mCc_ast_compound_stmt {
 
 
 enum mCc_ast_stmt_type {
-    MCC_AST_IF_STMT,
+    MCC_AST_IF_STMT	,
     MCC_AST_WHILE_STMT,
     MCC_AST_RET_STMT,
     MCC_AST_DECL_STMT,

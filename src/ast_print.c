@@ -235,7 +235,7 @@ static void print_dot_function_def_type(struct mCc_ast_function_def *f, void *da
     FILE *out = data;
 
     print_dot_node(out, f, "func_def");
-    print_dot_edge(out, f, f->type, "type");
+    print_dot_edge(out, f, f->literal, "type");
     print_dot_edge(out, f, f->identifier, "ident");
     print_dot_edge(out, f, f->params, "param");
     print_dot_edge(out, f, f->c_stmt, "compound_stmt");
@@ -269,6 +269,8 @@ static struct mCc_ast_visitor print_dot_visitor(FILE *out)
 
         .function_def_void = print_dot_function_def_void,
         .function_def_type = print_dot_function_def_type,
+
+
 	};
 }
 

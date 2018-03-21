@@ -19,6 +19,10 @@ void mCc_ast_print_dot_expression(FILE *out,
 
 void mCc_ast_print_dot_literal(FILE *out, struct mCc_ast_literal *literal);
 
+void mCc_ast_print_dot_single_expression(FILE *out, struct mCc_ast_single_expression * single_expression);
+
+void mCc_ast_print_dot_function_def(FILE *out, struct mCc_ast_function_def *f);
+
 #ifdef __cplusplus
 }
 #endif

@@ -388,6 +388,9 @@ void mCc_ast_delete_stmt(struct mCc_ast_stmt *stmt) {
         case MCC_AST_DECL_STMT:
             free(stmt->declaration);
             break;
+        case MCC_AST_ASS_STMT:
+            free(stmt->assignment);
+            break;
     }
 
     free(stmt);

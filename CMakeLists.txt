@@ -16,8 +16,11 @@ set(HEADER_FILES ${INCLUDE}/ast.h ${INCLUDE}/ast_print.h
 
 
 aux_source_directory(src/ SRC_FILES)
-aux_source_directory(src/bin SRC_FILES)
 
 # Add an executable
-add_executable(${PROJECT_NAME} ${SRC_FILES} ${HEADER_FILES})
+add_executable(${PROJECT_NAME} ${SRC_FILES} src/bin/mCc.c ${HEADER_FILES})
+target_include_directories(${PROJECT_NAME} PUBLIC include)
+
+# Add an executable
+add_executable(mC_test ${SRC_FILES} src/bin/mC_to_dot.c ${HEADER_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC include)

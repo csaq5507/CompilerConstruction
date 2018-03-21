@@ -25,14 +25,31 @@ void mCc_parser_error();
 
 %token <long>   INT_LITERAL   "integer literal"
 %token <double> FLOAT_LITERAL "float literal"
+%token <boolean> BOOLEAN_LITERAL "boolean literal"
+%token <char*> STRING_LITERAL "string literal"
 
 %token LPARENTH "("
 %token RPARENTH ")"
+%token LBRACKET "["
+%token RBRACKET "]"
+%token LBRACE "{"
+%token RBRACE "}"
+
+%token SEMICOLON ";"
+
 
 %token PLUS  "+"
 %token MINUS "-"
 %token ASTER "*"
 %token SLASH "/"
+%token LT "<"
+%token GT ">"
+%token LE "<="
+%token GE ">="
+%token AND "&&"
+%token OR "||"
+%token EQ "=="
+%token NEQ "!="
 
 %type <enum mCc_ast_binary_op> binary_op
 

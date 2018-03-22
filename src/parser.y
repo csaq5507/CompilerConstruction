@@ -23,10 +23,13 @@ void mCc_parser_error();
 
 %token END 0 "EOF"
 
-%token <long>   INT_LITERAL   "integer literal"
-%token <double> FLOAT_LITERAL "float literal"
-%token <bool> BOOLEAN_LITERAL "boolean literal"
-%token <char*> STRING_LITERAL "string literal"
+%token <long>       INT_LITERAL     "integer literal"
+%token <double>     FLOAT_LITERAL   "float literal"
+%token <bool>       BOOL_LITERAL    "boolean literal"
+%token <char*>      STRING_LITERAL  "string literal"
+
+%token <char*>      IDENTIFIER      "identifier"
+
 
 %token LPARENTH "("
 %token RPARENTH ")"
@@ -36,6 +39,7 @@ void mCc_parser_error();
 %token RBRACE "}"
 
 %token SEMICOLON ";"
+%token KOMMA ","
 
 
 %token PLUS  "+"
@@ -53,6 +57,8 @@ void mCc_parser_error();
 
 %token FAC "!"
 
+%token VOID "void"
+
 %type <enum mCc_ast_binary_op> binary_op
 
 %type <enum mCc_ast_unary_op> unary_op
@@ -60,54 +66,139 @@ void mCc_parser_error();
 %type <struct mCc_ast_expression *> expression
 %type <struct mCc_ast_literal *> literal
 %type <struct mCc_ast_single_expression *> single_expr
-%type <struct mCc_ast_function_def *> function_def_void function_def_type
-%type <struct mCc_ast_stmt *> if_stmt while_stmt ret_stmt decl_stmt ass_stmt expr_stmt compound_stmt
+%type <struct mCc_ast_function_def *> function_def
+%type <struct mCc_ast_stmt *> statement
 
 %type <struct mCc_ast_parameter *> parameter
-%type <struct mCc_ast_argument *> argument
+%type <struct mCc_ast_argument *> arguments
 %type <struct mCc_ast_call_expr *> call_expr
 %type <struct mCc_ast_assignment *> assignment
 %type <struct mCc_ast_declaration *> declaration
 
+%type <struct mCc_ast_compound_stmt *> compound_stmt
+%type <struct mCc_ast_if_stmt *> if_stmt
+%type <struct mCc_ast_while_stmt *> while_stmt
+%type <struct mCc_ast_ret_stmt *> ret_stmt
+
 %start toplevel
+
 
 %%
 
-toplevel : expression { *result = $1; }
-         ;
 
-binary_op : PLUS  { $$ = MCC_AST_BINARY_OP_ADD; }
-          | MINUS { $$ = MCC_AST_BINARY_OP_SUB; }
-          | ASTER { $$ = MCC_AST_BINARY_OP_MUL; }
-          | SLASH { $$ = MCC_AST_BINARY_OP_DIV; }
-          | LT { $$ = MCC_AST_BINARY_OP_LT; }
-          | GT { $$ = MCC_AST_BINARY_OP_GT; }
-          | LE { $$ = MCC_AST_BINARY_OP_LE; }
-          | GE { $$ = MCC_AST_BINARY_OP_GE; }
-          | EQ { $$ = MCC_AST_BINARY_OP_EQ; }
-          | NEQ { $$ = MCC_AST_BINARY_OP_NEQ; }
-          | AND { $$ = MCC_AST_BINARY_OP_AND; }
-          | OR { $$ = MCC_AST_BINARY_OP_OR; }
-          ;
+binary_op       : PLUS              { $$ = MCC_AST_BINARY_OP_ADD; }
+                | MINUS             { $$ = MCC_AST_BINARY_OP_SUB; }
+                | ASTER             { $$ = MCC_AST_BINARY_OP_MUL; }
+                | SLASH             { $$ = MCC_AST_BINARY_OP_DIV; }
+                | LT                { $$ = MCC_AST_BINARY_OP_LT; }
+                | GT                { $$ = MCC_AST_BINARY_OP_GT; }
+                | LE                { $$ = MCC_AST_BINARY_OP_LE; }
+                | GE                { $$ = MCC_AST_BINARY_OP_GE; }
+                | EQ                { $$ = MCC_AST_BINARY_OP_EQ; }
+                | NEQ               { $$ = MCC_AST_BINARY_OP_NEQ; }
+                | AND               { $$ = MCC_AST_BINARY_OP_AND; }
+                | OR                { $$ = MCC_AST_BINARY_OP_OR; }
+                ;
 
-unary_op : MINUS { $$ = MCC_AST_UNARY_OP_NEGATION; }
-		  | FAC { $$ = MCC_AST_UNARY_OP_FAC; }
-          ;
+unary_op        : MINUS             { $$ = MCC_AST_UNARY_OP_NEGATION; }
+                | FAC               { $$ = MCC_AST_UNARY_OP_FAC; }
+                ;
 
-single_expr : literal                         { $$ = mCc_ast_new_single_expression_literal($1); }
-            | identifier expression   		  { $$ = mCc_ast_new_single_expression_identifier($1,$2); }
-            | call_expr                       { $$ = mCc_ast_new_single_expression_call_expr($1); }
-            | unary_op expression             { $$ = mCc_ast_new_single_expression_unary_op($1,$2); }
-            | LPARENTH expression RPARENTH    { $$ = mCc_ast_new_single_expression_parenth($2); }
-            ;
 
-expression : single_expr                      { $$ = $1;                                           }
-           | single_expr binary_op expression { $$ = mCc_ast_new_expression_binary($2, $1, $3); }
-           ;
+literal         : INT_LITERAL       { $$ = mCc_ast_new_literal_int($1);    }
+                | FLOAT_LITERAL     { $$ = mCc_ast_new_literal_float($1);  }
+                | BOOL_LITERAL      { $$ = mCc_ast_new_literal_bool($1);   }
+                | STRING_LITERAL    { $$ = mCc_ast_new_literal_string($1); }
+                ;
 
-literal : INT_LITERAL   { $$ = mCc_ast_new_literal_int($1);   }
-        | FLOAT_LITERAL { $$ = mCc_ast_new_literal_float($1); }
-        ;
+
+toplevel        : toplevel function_def
+                | function_def                      { *result = $1; }
+                ;
+
+
+function_def    : VOID IDENTIFIER LPARENTH parameter
+                    RPARENTH compound_stmt          { $$ = mCc_ast_new_void_function_def($2,$4,$6); }
+
+                | literal IDENTIFIER LPARENTH parameter
+                    RPARENTH compound_stmt          { $$ = mCc_ast_new_void_function_def($1,$2,$4,$6); }
+                ;
+
+
+parameter       : parameter declaration
+                | declaration
+                |                                   { $$ = NULL; }
+                ;
+
+
+compound_stmt   : LBRACE multi_statement RBRACE     { $$ = $2; }
+                ;
+
+
+multi_statement :
+                | multi_statement statement
+                | statement
+                ;
+
+
+statement       : if_stmt                           { $$ = mCc_ast_new_if_stmt($1); }
+                | ret_stmt                          { $$ = mCc_ast_new_ret_stmt($1); }
+                | while_stmt                        { $$ = mCc_ast_new_while_stmt($1); }
+                | declaration SEMICOLON             { $$ = mCc_ast_new_declaration($1); }
+                | assignment SEMICOLON              { $$ = mCc_ast_new_assignment($1); }
+                | expression SEMICOLON              { $$ = mCc_ast_new_expression($1); }
+                | compound_stmt                     { $$ = mCc_ast_new_compound_stmt($1); }
+                ;
+
+
+if_stmt         : "if" LPARENTH expression RPARENTH statement
+                | "if" LPARENTH expression RPARENTH statement "else" statement
+                ;
+
+
+while_stmt      : "while" LPARENTH expression RPARENTH statement
+                ;
+
+
+ret_stmt        : "return"
+                | "return" expression
+                ;
+
+
+declaration     : literal LBRACKET INT_LITERAL RBRACKET
+                    IDENTIFIER                      { $$ = mCc_ast_new_array_declaration($1,$3,$5); }
+                | literal IDENTIFIER                { $$ = mCc_ast_new_single_declaration($1,$2); }
+                ;
+
+
+assignment      : IDENTIFIER "=" expression
+                | IDENTIFIER LBRACKET expression RBRACKET "=" expression
+                ;
+
+
+expression      : single_expr                       { $$ = mCc_ast_new_expression_single($1); }
+                | single_expr binary_op expression  { $$ = mCc_ast_new_expression_binary($2, $1, $3); }
+                ;
+
+
+single_expr     : literal                           { $$ = mCc_ast_new_single_expression_literal($1); }
+                | IDENTIFIER expression   		    { $$ = mCc_ast_new_single_expression_identifier($1,$2); }
+                | call_expr                         { $$ = mCc_ast_new_single_expression_call_expr($1); }
+                | unary_op expression               { $$ = mCc_ast_new_single_expression_unary_op($1,$2); }
+                | LPARENTH expression RPARENTH      { $$ = mCc_ast_new_single_expression_parenth($2); }
+                ;
+
+
+call_expr       : IDENTIFIER LPARENTH RPARENTH
+                | IDENTIFIER LPARENTH arguments RPARENTH
+                ;
+
+
+arguments       : expression
+                | arguments "," expression
+                ;
+
+
 
 %%
 
@@ -116,6 +207,14 @@ literal : INT_LITERAL   { $$ = mCc_ast_new_literal_int($1);   }
 #include "scanner.h"
 
 void yyerror(yyscan_t *scanner, const char *msg) {}
+
+
+ListElement *NewListElement(ListElementType type) {
+    ListElement *rv = malloc(sizeof(ListElement));
+    rv->type = type;
+    rv->next = 0;
+    return rv;
+}
 
 struct mCc_parser_result mCc_parser_parse_string(const char *input)
 {

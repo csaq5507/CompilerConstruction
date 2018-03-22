@@ -241,6 +241,114 @@ static void print_dot_function_def_type(struct mCc_ast_function_def *f, void *da
     print_dot_edge(out, f, f->c_stmt, "compound_stmt");
 }
 
+/* ----------------------------------------------------------- stmt */
+
+static void print_dot_stmt_if(struct mCc_ast_stmt *stmt, void *data) {
+    assert(stmt);
+    assert(data);
+
+    FILE *out = data;
+
+    print_dot_node(out, stmt, "if-stmt");
+    print_dot_edge(out, stmt, stmt->if_stmt->expression, "expression");
+    print_dot_edge(out, stmt, stmt->if_stmt->statement, "if stmt");
+    print_dot_edge(out, stmt, stmt->if_stmt->else_statement, "else stmt");
+}
+
+static void print_dot_stmt_while(struct mCc_ast_stmt *stmt, void *data) {
+    assert(stmt);
+    assert(data);
+
+    FILE *out = data;
+
+    print_dot_node(out, stmt, "while-stmt");
+    print_dot_edge(out, stmt, stmt->while_stmt->expression, "expression");
+    print_dot_edge(out, stmt, stmt->while_stmt->statement, "while stmt");
+}
+
+static void print_dot_stmt_ret(struct mCc_ast_stmt *stmt, void *data) {
+    assert(stmt);
+    assert(data);
+
+    FILE *out = data;
+
+    print_dot_node(out, stmt, "return-stmt");
+    print_dot_edge(out, stmt, stmt->ret_stmt->expression, "expression");
+}
+
+static void print_dot_stmt_compound(struct mCc_ast_stmt *stmt, void *data) {
+    assert(stmt);
+    assert(data);
+
+    FILE *out = data;
+
+    print_dot_node(out, stmt, "compound-stmt");
+    print_dot_edge(out, stmt, stmt->compound_stmt->statements, "statements");
+}
+
+static void print_dot_stmt_ass(struct mCc_ast_stmt *stmt, void *data) {
+    assert(stmt);
+    assert(data);
+
+    FILE *out = data;
+
+    print_dot_node(out, stmt, "assignment-stmt");
+    print_dot_edge(out, stmt, stmt->assignment->identifier, "identifier");
+    print_dot_edge(out, stmt, stmt->assignment->numerator, "numerator");
+    print_dot_edge(out, stmt, stmt->assignment->expression, "expression");
+}
+
+static void print_dot_stmt_expr(struct mCc_ast_stmt *stmt, void *data) {
+    assert(stmt);
+    assert(data);
+
+    FILE *out = data;
+
+    print_dot_node(out, stmt, "expression-stmt");
+    print_dot_edge(out, stmt, stmt->expression, "expression");
+}
+
+static void print_dot_stmt_decl(struct mCc_ast_stmt *stmt, void *data) {
+    assert(stmt);
+    assert(data);
+
+    FILE *out = data;
+
+    print_dot_node(out, stmt, "decl-stmt");
+    print_dot_edge(out, stmt, stmt->declaration, "declaration");
+}
+
+
+
+/* ----------------------------------------------------------- declaration */
+
+
+static void print_dot_declaration_array(struct mCc_ast_declaration *decl, void *data) {
+    assert(decl);
+    assert(data);
+
+    FILE *out = data;
+
+    print_dot_node(out, decl, "array_declaration");
+    print_dot_edge(out, decl, decl->literal, "literal");
+    print_dot_edge(out, decl, decl->array_identifier, "identifier");
+    print_dot_edge(out, decl, decl->numerator, "numerator");
+}
+
+static void print_dot_declaration_single(struct mCc_ast_declaration *decl, void *data) {
+    assert(decl);
+    assert(data);
+
+    FILE *out = data;
+
+    print_dot_node(out, decl, "declaration");
+    print_dot_edge(out, decl, decl->literal, "literal");
+    print_dot_edge(out, decl, decl->array_identifier, "identifier");
+}
+
+/* ----------------------------------------------------------- declaration */
+
+
 static struct mCc_ast_visitor print_dot_visitor(FILE *out)
 {
 	assert(out);
@@ -270,6 +378,16 @@ static struct mCc_ast_visitor print_dot_visitor(FILE *out)
         .function_def_void = print_dot_function_def_void,
         .function_def_type = print_dot_function_def_type,
 
+        .stmt_ret = print_dot_stmt_ret,
+        .stmt_if = print_dot_stmt_if,
+        .stmt_while = print_dot_stmt_while,
+        .stmt_decl = print_dot_stmt_decl,
+        .stmt_ass = print_dot_stmt_ass,
+        .stmt_expr = print_dot_stmt_expr,
+        .stmt_compound = print_dot_stmt_compound,
+
+        .declaration_array = print_dot_declaration_array,
+        .declaration_single = print_dot_declaration_single,
 
 	};
 }
@@ -321,6 +439,31 @@ void mCc_ast_print_dot_function_def(FILE *out, struct mCc_ast_function_def *f)
     print_dot_begin(out);
     struct  mCc_ast_visitor visitor = print_dot_visitor(out);
     mCc_ast_visit_function_def(f,&visitor);
+
+    print_dot_end(out);
+}
+
+void mCc_ast_print_dot_stmt(FILE *out, struct mCc_ast_stmt *stmt)
+{
+    assert(out);
+    assert(stmt);
+
+    print_dot_begin(out);
+    struct  mCc_ast_visitor visitor = print_dot_visitor(out);
+    mCc_ast_visit_stmt(stmt,&visitor);
+
+    print_dot_end(out);
+}
+
+
+void mCc_ast_print_dot_declaration(FILE *out, struct mCc_ast_declaration *decl)
+{
+    assert(out);
+    assert(decl);
+
+    print_dot_begin(out);
+    struct  mCc_ast_visitor visitor = print_dot_visitor(out);
+    mCc_ast_visit_declaration(decl,&visitor);
 
     print_dot_end(out);
 }

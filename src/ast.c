@@ -223,7 +223,7 @@ void mCc_ast_delete_single_expression(struct mCc_ast_single_expression *expressi
 /* ---------------------------------------------------Function def*/
 
 struct mCc_ast_function_def *
-mCc_ast_new_void_function_def()
+mCc_ast_new_void_function_def(char * identifier, struct mCc_ast_parameter *params, struct mCc_ast_compound_stmt *c_stmt)
 {
     struct mCc_ast_function_def *f = malloc(sizeof(*f));
     if (!f) {
@@ -232,11 +232,15 @@ mCc_ast_new_void_function_def()
     f->type = MCC_AST_FUNCTION_DEF_TYPE_VOID;
 
     f->void_value = "void";
+    f->identifier = identifier;
+    f->params = params;
+    f->c_stmt = c_stmt;
     return f;
 }
 
+
 struct mCc_ast_function_def *
-mCc_ast_new_type_function_def(struct mCc_ast_literal *type)
+mCc_ast_new_type_function_def(struct mCc_ast_literal *type, char * identifier, struct mCc_ast_parameter *params, struct mCc_ast_compound_stmt *c_stmt)
 {
     struct mCc_ast_function_def *f = malloc(sizeof(*f));
     if (!f) {
@@ -245,6 +249,9 @@ mCc_ast_new_type_function_def(struct mCc_ast_literal *type)
     f->type = MCC_AST_FUNCTION_DEF_TYPE_VOID;
 
     f->literal = type;
+    f->identifier = identifier;
+    f->params = params;
+    f->c_stmt = c_stmt;
     return f;
 }
 
@@ -395,3 +402,64 @@ void mCc_ast_delete_stmt(struct mCc_ast_stmt *stmt) {
 
     free(stmt);
 }
+
+struct mCc_ast_declaration *
+mCc_ast_new_array_declaration(struct mCc_ast_literal *literal,int numerator, char * identifier)
+{
+    assert(literal);
+
+    struct mCc_ast_declaration *decl = malloc(sizeof(*decl));
+    if (!decl) {
+        return NULL;
+    }
+    decl->type = MCC_AST_DECLARATION_TYPE_ARRAY;
+    decl->literal = literal;
+    decl->numerator = numerator;
+    decl->array_identifier= identifier;
+    return decl;
+}
+
+struct mCc_ast_declaration *
+mCc_ast_new_single_declaration(struct mCc_ast_literal *literal, char * identifier)
+{
+    assert(literal);
+
+    struct mCc_ast_declaration *decl = malloc(sizeof(*decl));
+    if (!decl) {
+        return NULL;
+    }
+    decl->type = MCC_AST_DECLARATION_TYPE_SINGLE;
+    decl->literal = literal;
+    decl->identifier= identifier;
+    return decl;
+}
+
+void mCc_ast_delete_declaration(struct mCc_ast_declaration * decl)
+{
+    assert(decl);
+    free(decl->literal);
+
+    switch (decl->type) {
+        case MCC_AST_DECLARATION_TYPE_SINGLE:
+            free(decl->identifier);
+            break;
+        case MCC_AST_DECLARATION_TYPE_ARRAY:
+            free(decl->array_identifier);
+            break;
+    }
+
+    free(decl);
+}
+
+
+void mCc_ast_new_parameter(struct mCc_ast_parameter * params, struct mCc_ast_declaration * decl)
+{
+    assert(decl);
+    assert(params);
+
+    struct mCc_ast_parameter * new_params = malloc(sizeof(params) + sizeof(*new_params));
+
+
+}
+
+///TODO declaration in dr print.h

@@ -168,3 +168,24 @@ void mCc_ast_visit_stmt(struct mCc_ast_stmt *stmt,
 
     visit_if_post_order(stmt, visitor->stmt, visitor);
 }
+
+void mCc_ast_visit_declaration(struct mCc_ast_declaration *decl,
+                        struct mCc_ast_visitor *visitor)
+{
+    assert(decl);
+    assert(visitor);
+
+    visit_if_pre_order(decl, visitor->declaration, visitor);
+
+    switch (stmt->type) {
+        case MCC_AST_DECLARATION_TYPE_ARRAY:
+            visit(decl, visitor->declaration_array, visitor);
+            break;
+        case MCC_AST_DECLARATION_TYPE_SINGLE:
+            visit(decl, visitor->declaration_single, visitor);
+            break;
+
+    }
+
+    visit_if_post_order(decl, visitor->declaration, visitor);
+}

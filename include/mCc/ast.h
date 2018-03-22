@@ -11,6 +11,8 @@ typedef int bool;
 #define false 0
 #endif
 
+
+
 /* Forward Declarations */
 struct mCc_ast_expression;
 struct mCc_ast_literal;
@@ -19,6 +21,9 @@ struct mCc_ast_call_expr;
 struct mCc_ast_parameter;
 struct mCc_ast_declaration;
 struct mCc_ast_compound_stmt;
+struct mCc_ast_function_def;
+
+
 /* ---------------------------------------------------------------- AST Node */
 
 struct mCc_ast_source_location {
@@ -207,10 +212,10 @@ struct mCc_ast_function_def {
 };
 
 struct mCc_ast_function_def *
-mCc_ast_new_void_function_def();
+mCc_ast_new_void_function_def(char * identifier, struct mCc_ast_parameter *params, struct mCc_ast_compound_stmt *c_stmt);
 
 struct mCc_ast_function_def *
-mCc_ast_new_type_function_def(struct mCc_ast_literal *type);
+mCc_ast_new_type_function_def(struct mCc_ast_literal *type, char * identifier, struct mCc_ast_parameter *params, struct mCc_ast_compound_stmt *c_stmt);
 
 void mCc_ast_delete_function_def(struct mCc_ast_function_def *f);
 
@@ -252,13 +257,37 @@ struct mCc_ast_assignment {
 
 };
 
+enum mCc_ast_declaration_type{
+	MCC_AST_DECLARATION_TYPE_ARRAY,
+	MCC_AST_DECLARATION_TYPE_SINGLE
+
+};
+
 struct mCc_ast_declaration {
     struct mCc_ast_node node;
 
-    struct mCc_ast_literal *type;
-    int numerator; //OPTIONAL
-    char * identifier;
+	enum mCc_ast_declaration_type type;
+	struct mCc_ast_literal *literal;
+	union{
+
+		struct{
+			int numerator;
+			char * array_identifier;
+
+		};
+		char * identifier;
+	};
+
 };
+
+
+struct mCc_ast_declaration *
+mCc_ast_new_array_declaration(struct mCc_ast_literal *literal,int numerator, char * identifier);
+
+struct mCc_ast_declaration *
+mCc_ast_new_single_declaration(struct mCc_ast_literal *literal, char * identifier);
+
+void mCc_ast_delete_declaration(struct mCc_ast_declaration * decl);
 
 /* ----------------------------------------------------------- stmt */
 

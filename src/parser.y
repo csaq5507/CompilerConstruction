@@ -58,6 +58,10 @@ void mCc_parser_error();
 %token FAC "!"
 
 %token VOID "void"
+%token BOOL "bool"
+%token INT "int"
+%token FLOAT "float"
+%token STRING "string"
 
 %type <enum mCc_ast_binary_op> binary_op
 
@@ -118,10 +122,10 @@ toplevel        : toplevel function_def
 
 
 function_def    : VOID IDENTIFIER LPARENTH parameter
-                    RPARENTH compound_stmt          { $$ = mCc_ast_new_void_function_def($2,$4,$6); }
+                    RPARENTH LBRACE compound_stmt RBRACE          { $$ = mCc_ast_new_void_function_def($2,$4,$7); }
 
                 | literal IDENTIFIER LPARENTH parameter
-                    RPARENTH compound_stmt          { $$ = mCc_ast_new_void_function_def($1,$2,$4,$6); }
+                    RPARENTH LBRACE compound_stmt RBRACE         { $$ = mCc_ast_new_void_function_def($1,$2,$4,$7); }
                 ;
 
 
@@ -131,13 +135,8 @@ parameter       : parameter declaration
                 ;
 
 
-compound_stmt   : LBRACE multi_statement RBRACE     { $$ = $2; }
-                ;
-
-
-multi_statement :
-                | multi_statement statement
-                | statement
+compound_stmt   : compound_stmt statement			
+                | statement							{$$ = mCc_ast_new_compound_stmt($1); }
                 ;
 
 
@@ -147,7 +146,7 @@ statement       : if_stmt                           { $$ = mCc_ast_new_if_stmt($
                 | declaration SEMICOLON             { $$ = mCc_ast_new_declaration($1); }
                 | assignment SEMICOLON              { $$ = mCc_ast_new_assignment($1); }
                 | expression SEMICOLON              { $$ = mCc_ast_new_expression($1); }
-                | compound_stmt                     { $$ = mCc_ast_new_compound_stmt($1); }
+                | LBRACE compound_stmt RBRACE       { $$ = mCc_ast_new_compound_stmt($2); }
                 ;
 
 

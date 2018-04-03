@@ -457,9 +457,11 @@ mCc_ast_new_parameter_array(struct mCc_ast_parameter * params, struct mCc_ast_de
     struct mCc_ast_parameter * new_param = malloc( sizeof(*new_param));
     new_param->declaration = decl;
 
-    struct mCc_ast_parameter * new_params = malloc(sizeof(params) + sizeof(*new_param));
-    memcpy(params,new_params, sizeof(params));
-    memcpy(new_param,new_params + sizeof(params), sizeof(new_param));
+    int arr_size = sizeof(params) / sizeof(params[0]);
+
+    struct mCc_ast_parameter* new_params = malloc(sizeof(new_params)*arr_size+1);
+    memcpy(new_params,params,arr_size);
+    memcpy(&(new_params[arr_size]),new_param,1);
 
     return new_params;
 }
@@ -489,9 +491,12 @@ mCc_ast_new_compound_array(struct mCc_ast_compound_stmt* stmts, struct mCc_ast_s
 
     struct mCc_ast_compound_stmt * new_stmt = malloc(sizeof(*new_stmt));
     new_stmt->statements = stmt;
-    struct mCc_ast_compound_stmt * new_stmts = malloc(sizeof(stmts) + sizeof(*new_stmts));
-    memcpy(stmts,new_stmts, sizeof(stmts));
-    memcpy(new_stmt,new_stmts + sizeof(stmts), sizeof(new_stmt));
+
+    int arr_size = sizeof(stmts) / sizeof(stmts[0]);
+
+    struct mCc_ast_compound_stmt *new_stmts = malloc(sizeof(new_stmts)*arr_size+1);
+    memcpy(new_stmts,stmts,arr_size);
+    memcpy(&(new_stmts[arr_size]),new_stmt,1);
 
     return new_stmts;
 }
@@ -633,9 +638,11 @@ mCc_ast_new_argument_array(struct mCc_ast_argument * arguments, struct mCc_ast_e
     struct mCc_ast_argument * new_argument = malloc( sizeof(*new_argument));
     new_argument->expression = ex;
 
-    struct mCc_ast_argument * new_arguments = malloc(sizeof(arguments) + sizeof(*new_argument));
-    memcpy(arguments,new_arguments, sizeof(arguments));
-    memcpy(new_argument,new_arguments + sizeof(arguments), sizeof(new_argument));
+    int arr_size = sizeof(arguments) / sizeof(arguments[0]);
+
+    struct mCc_ast_argument *new_arguments=malloc(sizeof(new_arguments)*arr_size+1);
+    memcpy(new_arguments,arguments,arr_size);
+    memcpy(&(new_arguments[arr_size]),new_argument,1);
 
     return new_arguments;
 }

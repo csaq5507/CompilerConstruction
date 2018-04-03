@@ -23,11 +23,11 @@ float_literal 	-?[0-9]+\.[0-9]+
 string_literal	-?\"[^\"]*\"
 
 identifier		-?[a-zA-Z_][a-zA-Z0-9_]*
-comment_between	[^*\n]*
-comment_star	"*"+[^*/\n]* 
-comment_end		"*"+"/"
+comment_between	-?[^*\n]*
+comment_star	-?"*"+[^*/\n]* 
+comment_end		-?"*"+"/"
 
-new_line		\n
+new_line		-?\n
 %%
 
 

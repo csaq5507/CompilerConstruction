@@ -33,12 +33,12 @@ new_line		-?\n
 
 "/*"         			BEGIN(comment);
 
-<comment> {
-	{comment_between}       /* eat anything that's not a '*' */
-	{comment_star}   		/* eat up '*'s not followed by '/'s */
-	{new_line}            	++line_counter;
-	{comment_end}  			BEGIN(INITIAL);
-}
+
+<comment>{comment_between}       /* eat anything that's not a '*' */
+<comment>{comment_star}   		/* eat up '*'s not followed by '/'s */
+<comment>{new_line}            	++line_counter;
+<comment>{comment_end}  			BEGIN(INITIAL);
+
 
 
 {new_line}        {line_counter++; }

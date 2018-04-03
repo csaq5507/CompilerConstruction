@@ -2,6 +2,8 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <memory.h>
 
 /* ---------------------------------------------------------------- Literals */
 
@@ -452,14 +454,193 @@ void mCc_ast_delete_declaration(struct mCc_ast_declaration * decl)
 }
 
 
-void mCc_ast_new_parameter(struct mCc_ast_parameter * params, struct mCc_ast_declaration * decl)
+struct mCc_ast_parameter *
+mCc_ast_new_parameter_array(struct mCc_ast_parameter * params, struct mCc_ast_declaration * decl)
 {
     assert(decl);
     assert(params);
+    struct mCc_ast_parameter * new_param = malloc( sizeof(*new_param));
+    new_param->declaration = decl;
 
-    struct mCc_ast_parameter * new_params = malloc(sizeof(params) + sizeof(*new_params));
+    struct mCc_ast_parameter * new_params = malloc(sizeof(params) + sizeof(*new_param));
+    memcpy(params,new_params, sizeof(params));
+    memcpy(new_param,new_params + sizeof(params), sizeof(new_param));
 
-
+    return new_params;
 }
 
-///TODO declaration in dr print.h
+struct mCc_ast_parameter *
+mCc_ast_new_empty_parameter_array()
+{
+    return NULL;
+}
+
+struct mCc_ast_parameter *
+mCc_ast_new_single_parameter(struct mCc_ast_declaration * decl)
+{
+    assert(decl);
+
+    struct mCc_ast_parameter * new_params = malloc(sizeof(*new_params));
+    new_params->declaration=decl;
+    return new_params;
+}
+
+
+struct mCc_ast_compound_stmt *
+mCc_ast_new_compound_array(struct mCc_ast_compound_stmt* stmts, struct mCc_ast_stmt * stmt)
+{
+    assert(stmts);
+    assert(stmt);
+
+    struct mCc_ast_compound_stmt * new_stmt = malloc(sizeof(*new_stmt));
+    new_stmt->statements = stmt;
+    struct mCc_ast_compound_stmt * new_stmts = malloc(sizeof(stmts) + sizeof(*new_stmts));
+    memcpy(stmts,new_stmts, sizeof(stmts));
+    memcpy(new_stmt,new_stmts + sizeof(stmts), sizeof(new_stmt));
+
+    return new_stmts;
+}
+
+struct mCc_ast_compound_stmt * mCc_ast_new_single_compound(struct mCc_ast_stmt * stmt)
+{
+    assert(stmt);
+
+    struct mCc_ast_compound_stmt * new_stmts = malloc(sizeof(*new_stmts));
+    new_stmts->statements = stmt;
+    return new_stmts;
+}
+
+
+struct mCc_ast_if_stmt *
+mCc_ast_new_if(struct mCc_ast_expression *ex, struct mCc_ast_stmt * stmt)
+{
+    assert(ex);
+    assert(stmt);
+
+    struct mCc_ast_if_stmt * if_stmt = malloc(sizeof(*if_stmt));
+    if_stmt->expression = ex;
+    if_stmt->statement = stmt;
+    if_stmt->else_statement = NULL;
+
+    return if_stmt;
+}
+
+struct mCc_ast_if_stmt *
+mCc_ast_new_if_else(struct mCc_ast_expression *ex, struct mCc_ast_stmt * stmt, struct mCc_ast_stmt * elsestmt)
+{
+    assert(ex);
+    assert(stmt);
+
+    struct mCc_ast_if_stmt * if_stmt = malloc(sizeof(*if_stmt));
+    if_stmt->expression = ex;
+    if_stmt->statement = stmt;
+    if_stmt->else_statement = elsestmt;
+
+    return if_stmt;
+}
+
+struct mCc_ast_while_stmt *
+mCc_ast_new_while(struct mCc_ast_expression *ex, struct mCc_ast_stmt * stmt)
+{
+    assert(ex);
+    assert(stmt);
+
+    struct mCc_ast_while_stmt * while_stmt = malloc(sizeof(*while_stmt));
+    while_stmt->expression = ex;
+    while_stmt->statement = stmt;
+
+    return while_stmt;
+}
+
+struct mCc_ast_ret_stmt *
+mCc_ast_new_ret(struct mCc_ast_expression *ex)
+{
+    assert(ex);
+
+    struct mCc_ast_ret_stmt * ret_stmt = malloc(sizeof(*ret_stmt));
+    ret_stmt->expression = ex;
+
+    return ret_stmt;
+}
+
+struct mCc_ast_ret_stmt *
+mCc_ast_new_empty_ret()
+{
+    struct mCc_ast_ret_stmt * ret_stmt = malloc(sizeof(*ret_stmt));
+    ret_stmt->expression = NULL;
+
+    return ret_stmt;
+}
+
+
+struct mCc_ast_assignment *
+mCc_ast_new_single_assignment(char * identifier, struct mCc_ast_expression *ex)
+{
+    assert(ex);
+
+    struct mCc_ast_assignment * ass = malloc(sizeof(*ass));
+    ass->identifier = identifier;
+    ass->expression = ex;
+    ass->numerator = NULL;
+    return ass;
+}
+
+struct mCc_ast_assignment *
+mCc_ast_new_array_assignment(char * identifier, struct mCc_ast_expression *ex,struct mCc_ast_expression *ex2)
+{
+    assert(ex);
+    assert(ex2);
+
+    struct mCc_ast_assignment * ass = malloc(sizeof(*ass));
+    ass->identifier = identifier;
+    ass->expression = ex2;
+    ass->numerator = ex;
+    return ass;
+}
+
+
+struct mCc_ast_call_expr *
+mCc_ast_new_empty_call_expr(char * identifier)
+{
+    struct mCc_ast_call_expr * call_expr = malloc(sizeof(*call_expr));
+    call_expr->identifier=identifier;
+    call_expr->arguments=NULL;
+    return call_expr;
+}
+
+struct mCc_ast_call_expr *
+mCc_ast_new_call_expr(char * identifier, struct mCc_ast_argument * arguments)
+{
+    assert(arguments);
+
+    struct mCc_ast_call_expr * call_expr = malloc(sizeof(*call_expr));
+    call_expr->identifier=identifier;
+    call_expr->arguments=arguments;
+    return call_expr;
+}
+
+struct mCc_ast_argument *
+mCc_ast_new_single_argument(struct mCc_ast_expression * ex)
+{
+    assert(ex);
+
+    struct mCc_ast_argument * argument = malloc(sizeof(*argument));
+    argument->expression=ex;
+    return argument;
+}
+
+
+struct mCc_ast_argument *
+mCc_ast_new_argument_array(struct mCc_ast_argument * arguments, struct mCc_ast_expression * ex)
+{
+    assert(ex);
+
+    struct mCc_ast_argument * new_argument = malloc( sizeof(*new_argument));
+    new_argument->expression = ex;
+
+    struct mCc_ast_argument * new_arguments = malloc(sizeof(arguments) + sizeof(*new_argument));
+    memcpy(arguments,new_arguments, sizeof(arguments));
+    memcpy(new_argument,new_arguments + sizeof(arguments), sizeof(new_argument));
+
+    return new_arguments;
+}

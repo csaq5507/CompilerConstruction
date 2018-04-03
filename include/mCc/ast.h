@@ -224,7 +224,6 @@ struct mCc_ast_parameter {
 	struct mCc_ast_node node;
 
     struct mCc_ast_declaration * declaration;
-    struct mCc_ast_declaration * declarations; //OPTIONAL
 };
 
 
@@ -232,8 +231,6 @@ struct mCc_ast_argument {
     struct mCc_ast_node node;
 
     struct mCc_ast_expression * expression;
-    struct mCc_ast_expression * other_expressions; // OPTIONAL
-
 };
 
 
@@ -375,6 +372,65 @@ struct mCc_ast_stmt *
 mCc_ast_new_compound_stmt(struct mCc_ast_compound_stmt *compound_stmt);
 
 void mCc_ast_delete_stmt(struct mCc_ast_stmt *stmt);
+
+
+
+
+
+
+struct mCc_ast_if_stmt *
+mCc_ast_new_if(struct mCc_ast_expression *ex, struct mCc_ast_stmt * stmt);
+
+struct mCc_ast_if_stmt *
+mCc_ast_new_if_else(struct mCc_ast_expression *ex, struct mCc_ast_stmt * stmt, struct mCc_ast_stmt * elsestmt);
+
+
+struct mCc_ast_while_stmt *
+mCc_ast_new_while(struct mCc_ast_expression *ex, struct mCc_ast_stmt * stmt);
+
+
+struct mCc_ast_ret_stmt *
+mCc_ast_new_ret(struct mCc_ast_expression *ex);
+
+struct mCc_ast_ret_stmt *
+mCc_ast_new_empty_ret();
+
+
+struct mCc_ast_assignment *
+mCc_ast_new_single_assignment(char * identifier, struct mCc_ast_expression *ex);
+
+struct mCc_ast_assignment *
+mCc_ast_new_array_assignment(char * identifier, struct mCc_ast_expression *ex,struct mCc_ast_expression *ex2);
+
+
+struct mCc_ast_call_expr *
+mCc_ast_new_empty_call_expr(char * identifier);
+
+struct mCc_ast_call_expr *
+mCc_ast_new_call_expr(char * identifier, struct mCc_ast_argument * arguments);
+
+struct mCc_ast_argument *
+mCc_ast_new_single_argument(struct mCc_ast_expression * ex);
+
+struct mCc_ast_argument *
+mCc_ast_new_argument_array(struct mCc_ast_argument * arguments, struct mCc_ast_expression * ex);
+
+
+
+struct mCc_ast_parameter *
+mCc_ast_new_parameter_array(struct mCc_ast_parameter * params, struct mCc_ast_declaration * decl);
+
+struct mCc_ast_parameter *
+mCc_ast_new_empty_parameter_array();
+
+struct mCc_ast_parameter *
+mCc_ast_new_single_parameter(struct mCc_ast_declaration * decl);
+
+struct mCc_ast_compound_stmt *
+mCc_ast_new_compound_array(struct mCc_ast_compound_stmt* stmts, struct mCc_ast_stmt * stmt);
+
+struct mCc_ast_compound_stmt *
+mCc_ast_new_single_compound(struct mCc_ast_stmt * stmt);
 
 
 #ifdef __cplusplus

@@ -133,14 +133,14 @@ function_def    : VOID IDENTIFIER LPARENTH parameter
 
 
 
-parameter       : parameter declaration				{ $$ = mCc_ast_new_parameter($1, $2); }
-                | declaration
-                |                                   { $$ = NULL; }
+parameter       : parameter declaration				{ $$ = mCc_ast_new_parameter_array($1, $2); }
+                | declaration                       { $$ = mCc_ast_new_single_parameter($1); }
+                | %empty                                  { $$ = mCc_ast_new_empty_parameter_array(); }
                 ;
 
 
-compound_stmt   : compound_stmt statement			
-                | statement
+compound_stmt   : compound_stmt statement			{ $$ = mCc_ast_new_compound_array($1,$2); }
+                | statement                         { $$ = mCc_ast_new_single_compound($1); }
                 ;
 
 
@@ -155,16 +155,19 @@ statement       : if_stmt                           { $$ = mCc_ast_new_if_stmt($
 
 
 if_stmt         : "if" LPARENTH expression RPARENTH statement
+                                                    { $$ = mCc_ast_new_if($3,$5); }
                 | "if" LPARENTH expression RPARENTH statement "else" statement
+                                                    { $$ = mCc_ast_new_if_else($3,$5,$7); }
                 ;
 
 
 while_stmt      : "while" LPARENTH expression RPARENTH statement
+                                                    { $$ = mCc_ast_new_while($3,$5); }
                 ;
 
 
-ret_stmt        : "return"
-                | "return" expression
+ret_stmt        : "return"                          { $$ = mCc_ast_new_empty_ret(); }
+                | "return" expression               { $$ = mCc_ast_new_ret($2); }
                 ;
 
 
@@ -174,8 +177,9 @@ declaration     : literal LBRACKET INT_LITERAL RBRACKET
                 ;
 
 
-assignment      : IDENTIFIER "=" expression
+assignment      : IDENTIFIER "=" expression         { $$ = mCc_ast_new_single_assignment($1,$3); }
                 | IDENTIFIER LBRACKET expression RBRACKET "=" expression
+                                                    { $$ = mCc_ast_new_array_assignment($1,$3,$6); }
                 ;
 
 
@@ -192,13 +196,14 @@ single_expr     : literal                           { $$ = mCc_ast_new_single_ex
                 ;
 
 
-call_expr       : IDENTIFIER LPARENTH RPARENTH
+call_expr       : IDENTIFIER LPARENTH RPARENTH      { $$ = mCc_ast_new_empty_call_expr($1); }
                 | IDENTIFIER LPARENTH arguments RPARENTH
+                                                    { $$ = mCc_ast_new_call_expr($1,$3); }
                 ;
 
 
-arguments       : expression
-                | arguments "," expression
+arguments       : expression                        { $$ = mCc_ast_new_single_argument($1); }
+                | arguments "," expression          { $$ = mCc_ast_new_argument_array($1,$3); }
                 ;
 
 

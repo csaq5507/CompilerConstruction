@@ -23,20 +23,25 @@ float_literal 	-?[0-9]+\.[0-9]+
 string_literal	-?\"[^\"]*\"
 
 identifier		-?[a-zA-Z_][a-zA-Z0-9_]*
+comment_between	[^*\n]*
+comment_star	"*"+[^*/\n]* 
+comment_end		"*"+"/"
+
+new_line		\n
 %%
 
 
 "/*"         			BEGIN(comment);
 
 <comment> {
-	[^*\n]*        /* eat anything that's not a '*' */
-	"*"+[^*/\n]*   /* eat up '*'s not followed by '/'s */
-	\n             ++line_counter;
-	"*"+"/"        BEGIN(INITIAL);
+	{comment_between}       /* eat anything that's not a '*' */
+	{comment_star}   		/* eat up '*'s not followed by '/'s */
+	{new_line}            	++line_counter;
+	{comment_end}  			BEGIN(INITIAL);
 }
 
 
-"\n"      		  {line_counter++; }
+{new_line}        {line_counter++; }
 
 {int_literal}     { yylval->TK_INT_LITERAL = atol(yytext); return TK_INT_LITERAL; }
 

@@ -202,7 +202,7 @@ struct mCc_ast_function_def {
 
 
     union{
-        struct mCc_ast_literal *literal;
+        enum mCc_ast_literal_type l_type;
         char * void_value;
     };
 	char * identifier;
@@ -215,7 +215,7 @@ struct mCc_ast_function_def *
 mCc_ast_new_void_function_def(char * identifier, struct mCc_ast_parameter *params, struct mCc_ast_compound_stmt *c_stmt);
 
 struct mCc_ast_function_def *
-mCc_ast_new_type_function_def(struct mCc_ast_literal *type, char * identifier, struct mCc_ast_parameter *params, struct mCc_ast_compound_stmt *c_stmt);
+mCc_ast_new_type_function_def(enum mCc_ast_literal_type type, char * identifier, struct mCc_ast_parameter *params, struct mCc_ast_compound_stmt *c_stmt);
 
 void mCc_ast_delete_function_def(struct mCc_ast_function_def *f);
 

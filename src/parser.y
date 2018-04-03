@@ -63,11 +63,11 @@ void mCc_parser_error();
 %token FLOAT "float"
 %token STRING "string"
 
-%token <char*> type "type"
-
 %type <enum mCc_ast_binary_op> binary_op
 
 %type <enum mCc_ast_unary_op> unary_op
+
+%type <enum mCc_ast_literal_type> type
 
 %type <struct mCc_ast_expression *> expression
 %type <struct mCc_ast_literal *> literal
@@ -111,6 +111,11 @@ unary_op        : MINUS             { $$ = MCC_AST_UNARY_OP_NEGATION; }
                 | FAC               { $$ = MCC_AST_UNARY_OP_FAC; }
                 ;
 
+type            : INT               { $$ = MCC_AST_LITERAL_TYPE_INT; }
+                | BOOL              { $$ = MCC_AST_LITERAL_TYPE_BOOL; }
+                | FLOAT             { $$ = MCC_AST_LITERAL_TYPE_FLOAT; }
+                | STRING            { $$ = MCC_AST_LITERAL_TYPE_STRING; }
+                ;
 
 literal         : INT_LITERAL       { $$ = mCc_ast_new_literal_int($1);    }
                 | FLOAT_LITERAL     { $$ = mCc_ast_new_literal_float($1);  }
@@ -184,7 +189,7 @@ assignment      : IDENTIFIER "=" expression         { $$ = mCc_ast_new_single_as
 
 
 expression      : single_expr                       { $$ = mCc_ast_new_expression_single($1); }
-                | single_expr binary_op expression  { $$ = mCc_ast_new_expression_binary($2, $1, $3); }
+                | single_expr binary_op expression  { $$ = mCc_ast_new_expression_binary_op($2, $1, $3); }
                 ;
 
 

@@ -242,7 +242,7 @@ mCc_ast_new_void_function_def(char * identifier, struct mCc_ast_parameter *param
 
 
 struct mCc_ast_function_def *
-mCc_ast_new_type_function_def(struct mCc_ast_literal *type, char * identifier, struct mCc_ast_parameter *params, struct mCc_ast_compound_stmt *c_stmt)
+mCc_ast_new_type_function_def(enum mCc_ast_literal_type type, char * identifier, struct mCc_ast_parameter *params, struct mCc_ast_compound_stmt *c_stmt)
 {
     struct mCc_ast_function_def *f = malloc(sizeof(*f));
     if (!f) {
@@ -250,7 +250,7 @@ mCc_ast_new_type_function_def(struct mCc_ast_literal *type, char * identifier, s
     }
     f->type = MCC_AST_FUNCTION_DEF_TYPE_VOID;
 
-    f->literal = type;
+    f->l_type = type;
     f->identifier = identifier;
     f->params = params;
     f->c_stmt = c_stmt;
@@ -261,14 +261,9 @@ void mCc_ast_delete_function_def(struct mCc_ast_function_def *f)
 {
     assert(f);
 
-    switch (f->type)
+    if (f->type == MCC_AST_FUNCTION_DEF_TYPE_VOID)
     {
-        case MCC_AST_FUNCTION_DEF_TYPE_VOID:
             free(f->void_value);
-            break;
-        case MCC_AST_FUNCTION_DEF_TYPE_TYPE:
-            free(f->literal);
-            break;
     }
 
     free(f);

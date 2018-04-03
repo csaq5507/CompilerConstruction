@@ -50,7 +50,7 @@ new_line		-?\n
 "true"   			{ yylval->TK_BOOL_LITERAL = atof(yytext); return TK_BOOL_LITERAL; }
 "false"    			{ yylval->TK_BOOL_LITERAL = atof(yytext); return TK_BOOL_LITERAL; }
 
-{string_literal}    { yylval->TK_STRING_LITERAL = atof(yytext); return TK_STRING_LITERAL; }
+{string_literal}    { yylval->TK_STRING_LITERAL = yytext; return TK_STRING_LITERAL; }
 
 
 "+"               { return TK_PLUS; }
@@ -86,7 +86,7 @@ new_line		-?\n
 "string"				{ return TK_STRING; }
 
 
-{identifier}    { yylval->TK_IDENTIFIER = atof(yytext); return TK_IDENTIFIER; }
+{identifier}    { yylval->TK_IDENTIFIER = yytext; return TK_IDENTIFIER; }
 
 
 [ \t\r\n]+        { /* ignore */ }

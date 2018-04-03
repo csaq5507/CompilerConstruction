@@ -36,6 +36,18 @@ const char *mCc_ast_print_unary_op(enum mCc_ast_unary_op op)
     return "unknown op";
 }
 
+
+const char *mCc_ast_print_literal_type(enum mCc_ast_literal_type type)
+{
+    switch (type) {
+        case MCC_AST_LITERAL_TYPE_STRING: return "string";
+        case MCC_AST_LITERAL_TYPE_INT: return "int";
+        case MCC_AST_LITERAL_TYPE_FLOAT: return "float";
+        case MCC_AST_LITERAL_TYPE_BOOL: return "bool";
+    }
+
+    return "unknown type";
+}
 /* ------------------------------------------------------------- DOT Printer */
 
 static void print_dot_begin(FILE *out)
@@ -233,9 +245,13 @@ static void print_dot_function_def_type(struct mCc_ast_function_def *f, void *da
     assert(data);
 
     FILE *out = data;
+    char label[LABEL_SIZE] = { 0 };
+    snprintf(label, sizeof(label), "expr: %s",
+             mCc_ast_print_literal_type(f->l_type));
 
     print_dot_node(out, f, "func_def");
-    print_dot_edge(out, f, f->literal, "type");
+
+    print_dot_node(out, f, label);
     print_dot_edge(out, f, f->identifier, "ident");
     print_dot_edge(out, f, f->params, "param");
     print_dot_edge(out, f, f->c_stmt, "compound_stmt");

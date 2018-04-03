@@ -11,7 +11,12 @@
 #include "parser.tab.h"
 
 #define YYSTYPE MCC_PARSER_STYPE
+
+int line_counter = 0;
 %}
+
+
+%x comment
 
 int_literal   	-?[0-9]+
 float_literal 	-?[0-9]+\.[0-9]+
@@ -19,6 +24,19 @@ string_literal	-?\"[^\"]*\"
 
 identifier		-?[a-zA-Z_][a-zA-Z0-9_]*
 %%
+
+
+"/*"         			BEGIN(comment);
+
+<comment> {
+	[^*\n]*        /* eat anything that's not a '*' */
+	"*"+[^*/\n]*   /* eat up '*'s not followed by '/'s */
+	\n             ++line_counter;
+	"*"+"/"        BEGIN(INITIAL);
+}
+
+
+"\n"      		  {line_counter++; }
 
 {int_literal}     { yylval->TK_INT_LITERAL = atol(yytext); return TK_INT_LITERAL; }
 
@@ -70,4 +88,4 @@ identifier		-?[a-zA-Z_][a-zA-Z0-9_]*
 
 <<EOF>>           { return TK_END; }
 
-.                 { fprintf(stderr, "invalid character '%c'\n", yytext[0]); }
+.                 { fprintf(stderr, "invalid character '%c' at line %d\n", yytext[0], line_counter); }

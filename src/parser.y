@@ -129,7 +129,7 @@ function_def    : VOID IDENTIFIER LPARENTH parameter
                 ;
 
 
-parameter       : parameter declaration
+parameter       : parameter declaration				{ $$ = mCc_ast_new_parameter($1, $2); }
                 | declaration
                 |                                   { $$ = NULL; }
                 ;

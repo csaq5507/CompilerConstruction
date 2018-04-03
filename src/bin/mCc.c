@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	struct mCc_ast_expression *expr = NULL;
+	struct mCc_ast_function_def *expr = NULL;
 
 	/* parsing phase */
 	{

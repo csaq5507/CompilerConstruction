@@ -5,16 +5,16 @@
 
 TEST(Parser, BinaryOp_1)
 {
-	const char input[] = "int func() {192 + 3.14;}";
+	const char input[] = "/* Comment */ int func1() {192 + 3.14;} int func2() {192 + 3.14;}";
 	auto result = mCc_parser_parse_string(input);
 	
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-	auto func_def = result.func_def;
+	struct mCc_ast_function_def *func_def = result.func_def;
 
 	// root
 	ASSERT_EQ(MCC_AST_FUNCTION_DEF_TYPE_TYPE, func_def->type);
-	//ASSERT_EQ(MCC_AST_BINARY_OP_ADD, expr->op);
+	//ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, func_def->l_type);
 
 	// root -> lhs
 	//ASSERT_EQ(MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL, expr->lhs->type);
@@ -33,6 +33,20 @@ TEST(Parser, BinaryOp_1)
 
 	mCc_ast_delete_function_def(func_def);
 }
+
+TEST(Parser, Example_File_1) {
+	
+	FILE * file;
+	file = fopen( "../examples/example_1.mc" , "r");
+	if (!file) {
+		printf("I can't open a.snazzle.file!\n");
+	} else {
+		auto result = mCc_parser_parse_file(file);
+		
+		ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+	}
+}
+
 /*
 TEST(Parser, NestedExpression_1)
 {

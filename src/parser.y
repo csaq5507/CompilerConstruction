@@ -63,6 +63,8 @@ void mCc_parser_error();
 %token FLOAT "float"
 %token STRING "string"
 
+%token <char*> type "type"
+
 %type <enum mCc_ast_binary_op> binary_op
 
 %type <enum mCc_ast_unary_op> unary_op
@@ -83,6 +85,7 @@ void mCc_parser_error();
 %type <struct mCc_ast_if_stmt *> if_stmt
 %type <struct mCc_ast_while_stmt *> while_stmt
 %type <struct mCc_ast_ret_stmt *> ret_stmt
+
 
 %start toplevel
 
@@ -124,9 +127,10 @@ toplevel        : toplevel function_def
 function_def    : VOID IDENTIFIER LPARENTH parameter
                     RPARENTH LBRACE compound_stmt RBRACE          { $$ = mCc_ast_new_void_function_def($2,$4,$7); }
 
-                | literal IDENTIFIER LPARENTH parameter
-                    RPARENTH LBRACE compound_stmt RBRACE         { $$ = mCc_ast_new_void_function_def($1,$2,$4,$7); }
+                | type IDENTIFIER LPARENTH parameter
+                    RPARENTH LBRACE compound_stmt RBRACE         { $$ = mCc_ast_new_type_function_def($1,$2,$4,$7); }
                 ;
+
 
 
 parameter       : parameter declaration				{ $$ = mCc_ast_new_parameter($1, $2); }

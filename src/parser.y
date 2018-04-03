@@ -23,7 +23,7 @@ void mCc_parser_error();
 
 %token END 0 "EOF"
 
-%token <long>       INT_LITERAL     "integer literal"
+%token <long>       INT_LITERAL    "integer literal"
 %token <double>     FLOAT_LITERAL   "float literal"
 %token <bool>       BOOL_LITERAL    "boolean literal"
 %token <char*>      STRING_LITERAL  "string literal"

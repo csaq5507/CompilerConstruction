@@ -2,7 +2,7 @@
 
 %define api.pure full
 %lex-param   {void *scanner}
-%parse-param {void *scanner} {struct mCc_ast_expression** result}
+%parse-param {void *scanner} {struct mCc_ast_function_def** result}
 
 %define parse.trace
 %define parse.error verbose
@@ -13,9 +13,12 @@
 
 %{
 #include <string.h>
+#include <stdio.h>
 
 int mCc_parser_lex();
 void mCc_parser_error();
+
+extern int line_num;
 %}
 
 %define api.value.type union
@@ -124,16 +127,16 @@ literal         : INT_LITERAL       { $$ = mCc_ast_new_literal_int($1);    }
                 ;
 
 
-toplevel        : toplevel function_def
-                | function_def                      { *result = $1; }
+toplevel        : function_def toplevel				{ printf("\n\n A \n\n");}
+                | function_def                      { printf("\n\n B \n\n");*result = $1; }
                 ;
 
 
 function_def    : VOID IDENTIFIER LPARENTH parameter
-                    RPARENTH LBRACE compound_stmt RBRACE          { $$ = mCc_ast_new_void_function_def($2,$4,$7); }
+                    RPARENTH LBRACE compound_stmt RBRACE          { printf("\n\n C \n\n");$$ = mCc_ast_new_void_function_def($2,$4,$7); }
 
                 | type IDENTIFIER LPARENTH parameter
-                    RPARENTH LBRACE compound_stmt RBRACE         { $$ = mCc_ast_new_type_function_def($1,$2,$4,$7); }
+                    RPARENTH LBRACE compound_stmt RBRACE         { printf("\n\n D \n\n");$$ = mCc_ast_new_type_function_def($1,$2,$4,$7); }
                 ;
 
 
@@ -219,7 +222,10 @@ arguments       : expression                        { $$ = mCc_ast_new_single_ar
 
 #include "scanner.h"
 
-void yyerror(yyscan_t *scanner, const char *msg) {}
+void yyerror(yyscan_t *scanner, const char *msg) {
+	printf("Error: %s\n", msg);
+	mCc_parser_lex_destroy(scanner);
+}
 
 
 struct mCc_parser_result mCc_parser_parse_string(const char *input)

@@ -15,7 +15,7 @@ int main(void)
 		if (result.status != MCC_PARSER_STATUS_OK) {
 			return EXIT_FAILURE;
 		}
-		expr = result.expression;
+		expr = result.func_def;
 	}
 
 	mCc_ast_print_dot_expression(stdout, expr);

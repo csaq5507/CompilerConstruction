@@ -5,33 +5,33 @@
 
 TEST(Parser, BinaryOp_1)
 {
-	const char input[] = "192 + 3.14";
+	const char input[] = "int func() {192 + 3.14;}";
 	auto result = mCc_parser_parse_string(input);
-
+	
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-	auto expr = result.expression;
+	auto func_def = result.func_def;
 
 	// root
-	ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_BINARY, expr->type);
-	ASSERT_EQ(MCC_AST_BINARY_OP_ADD, expr->op);
+	ASSERT_EQ(MCC_AST_FUNCTION_DEF_TYPE_TYPE, func_def->type);
+	//ASSERT_EQ(MCC_AST_BINARY_OP_ADD, expr->op);
 
 	// root -> lhs
-	ASSERT_EQ(MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL, expr->lhs->type);
+	//ASSERT_EQ(MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL, expr->lhs->type);
 
 	// root -> lhs -> literal
-	ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->lhs->literal->type);
-	ASSERT_EQ(192, expr->lhs->literal->i_value);
+	//ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, expr->lhs->literal->type);
+	//ASSERT_EQ(192, expr->lhs->literal->i_value);
 
 	// root -> rhs
-	ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_SINGLE, expr->rhs->type);
-    ASSERT_EQ(MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL, expr->rhs->single_expr->type);
+	//ASSERT_EQ(MCC_AST_EXPRESSION_TYPE_SINGLE, expr->rhs->type);
+    //ASSERT_EQ(MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL, expr->rhs->single_expr->type);
 
 	// root -> rhs -> literal
-	ASSERT_EQ(MCC_AST_LITERAL_TYPE_FLOAT, expr->rhs->single_expr->literal->type);
-	ASSERT_EQ(3.14, expr->rhs->single_expr->literal->type);
+	//ASSERT_EQ(MCC_AST_LITERAL_TYPE_FLOAT, expr->rhs->single_expr->literal->type);
+	//ASSERT_EQ(3.14, expr->rhs->single_expr->literal->type);
 
-	mCc_ast_delete_expression(expr);
+	mCc_ast_delete_function_def(func_def);
 }
 /*
 TEST(Parser, NestedExpression_1)

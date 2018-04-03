@@ -140,7 +140,7 @@ parameter       : parameter declaration				{ $$ = mCc_ast_new_parameter($1, $2);
 
 
 compound_stmt   : compound_stmt statement			
-                | statement							{$$ = mCc_ast_new_compound_stmt($1); }
+                | statement
                 ;
 
 
@@ -211,13 +211,6 @@ arguments       : expression
 
 void yyerror(yyscan_t *scanner, const char *msg) {}
 
-
-ListElement *NewListElement(ListElementType type) {
-    ListElement *rv = malloc(sizeof(ListElement));
-    rv->type = type;
-    rv->next = 0;
-    return rv;
-}
 
 struct mCc_parser_result mCc_parser_parse_string(const char *input)
 {

@@ -346,7 +346,10 @@ static void print_dot_declaration_array(struct mCc_ast_declaration *decl, void *
     FILE *out = data;
 
     print_dot_node(out, decl, "array_declaration");
-    print_dot_edge(out, decl, decl->literal, "literal");
+    char label[LABEL_SIZE] = { 0 };
+    snprintf(label, sizeof(label), "decl: %s",
+             mCc_ast_print_literal_type(decl->literal));
+    print_dot_node(out,decl,label);
     print_dot_edge(out, decl, decl->array_identifier, "identifier");
     print_dot_edge(out, decl, decl->numerator, "numerator");
 }
@@ -358,7 +361,10 @@ static void print_dot_declaration_single(struct mCc_ast_declaration *decl, void 
     FILE *out = data;
 
     print_dot_node(out, decl, "declaration");
-    print_dot_edge(out, decl, decl->literal, "literal");
+    char label[LABEL_SIZE] = { 0 };
+    snprintf(label, sizeof(label), "decl: %s",
+             mCc_ast_print_literal_type(decl->literal));
+    print_dot_node(out,decl,label);
     print_dot_edge(out, decl, decl->array_identifier, "identifier");
 }
 

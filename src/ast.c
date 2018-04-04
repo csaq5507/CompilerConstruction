@@ -169,7 +169,7 @@ mCc_ast_new_single_expression_unary_op(enum mCc_ast_unary_op unary_op,
     assert(unary_op);
     assert(unary_expression);
 
-    struct mCc_ast_single_expression*expr = malloc(sizeof(*expr));
+    struct mCc_ast_single_expression *expr = malloc(sizeof(*expr));
     if (!expr) {
         return NULL;
     }
@@ -184,7 +184,7 @@ mCc_ast_new_single_expression_parenth(struct mCc_ast_expression *expression)
 {
     assert(expression);
 
-    struct mCc_ast_single_expression*expr = malloc(sizeof(*expr));
+    struct mCc_ast_single_expression *expr = malloc(sizeof(*expr));
     if (!expr) {
         return NULL;
     }
@@ -202,7 +202,6 @@ void mCc_ast_delete_single_expression(struct mCc_ast_single_expression *expressi
         case MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL:
             mCc_ast_delete_literal(expression->literal);
             break;
-
         case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER:
             free(expression->identifier);
             mCc_ast_delete_expression(expression->identifier_expression);
@@ -244,10 +243,6 @@ mCc_ast_new_void_function_def(char * identifier, struct mCc_ast_parameter *param
 struct mCc_ast_function_def *
 mCc_ast_new_type_function_def(enum mCc_ast_literal_type type, char * identifier, struct mCc_ast_parameter *params, struct mCc_ast_compound_stmt *c_stmt)
 {
-    FILE *ds = fopen("h.txt","w");
-    fprintf(ds,"hoi");
-    fclose(ds);
-
     struct mCc_ast_function_def *f = malloc(sizeof(*f));
     if (!f) {
         return NULL;
@@ -262,23 +257,45 @@ mCc_ast_new_type_function_def(enum mCc_ast_literal_type type, char * identifier,
     return f;
 }
 
+struct mCc_ast_function_def_array *
+mCc_ast_add_function_def_to_array(struct mCc_ast_function_def_array *f, struct mCc_ast_function_def *f2)
+{
+    assert(f);
+    assert(f2);
+
+    f->function_def = realloc(f->function_def, sizeof(f->function_def) * (f->counter +1));
+
+    memcpy(&(f->function_def[f->counter]),f2, sizeof(*f2));
+    f->counter++;
+    return f;
+}
+
+
+struct mCc_ast_function_def_array *
+mCc_ast_new_function_def_array(struct mCc_ast_function_def *f)
+{
+    assert(f);
+
+    struct mCc_ast_function_def_array *function_array =
+            malloc(sizeof(*function_array));
+
+    function_array->counter = 1;
+    function_array->function_def = f;
+
+    return function_array;
+}
+
 void mCc_ast_delete_function_def(struct mCc_ast_function_def_array *f)
 {
     assert(f);
-    for(int i=0;i<f->counter;i++) {
-        struct mCc_ast_function_def func = f->function_def[i];
-        if (func.type == MCC_AST_FUNCTION_DEF_TYPE_VOID) {
-            free(func.void_value);
-        }
 
-    }
     free(f->function_def);
     free(f);
 }
 
 /* --------------------------------------------------- Statement*/
 
-
+// IF
 struct mCc_ast_stmt *
 mCc_ast_new_if_stmt(struct mCc_ast_if_stmt *if_stmt)
 {
@@ -293,6 +310,36 @@ mCc_ast_new_if_stmt(struct mCc_ast_if_stmt *if_stmt)
     return stmt;
 }
 
+struct mCc_ast_if_stmt *
+mCc_ast_new_if(struct mCc_ast_expression *ex, struct mCc_ast_stmt * stmt)
+{
+    assert(ex);
+    assert(stmt);
+
+    struct mCc_ast_if_stmt * if_stmt = malloc(sizeof(*if_stmt));
+    if_stmt->expression = ex;
+    if_stmt->statement = stmt;
+    if_stmt->else_statement = NULL;
+
+    return if_stmt;
+}
+
+struct mCc_ast_if_stmt *
+mCc_ast_new_if_else(struct mCc_ast_expression *ex, struct mCc_ast_stmt * stmt, struct mCc_ast_stmt * elsestmt)
+{
+    assert(ex);
+    assert(stmt);
+
+    struct mCc_ast_if_stmt * if_stmt = malloc(sizeof(*if_stmt));
+    if_stmt->expression = ex;
+    if_stmt->statement = stmt;
+    if_stmt->else_statement = elsestmt;
+
+    return if_stmt;
+}
+
+
+//WHILE
 struct mCc_ast_stmt *
 mCc_ast_new_while_stmt(struct mCc_ast_while_stmt *while_stmt)
 {
@@ -307,6 +354,21 @@ mCc_ast_new_while_stmt(struct mCc_ast_while_stmt *while_stmt)
     return stmt;
 }
 
+struct mCc_ast_while_stmt *
+mCc_ast_new_while(struct mCc_ast_expression *ex, struct mCc_ast_stmt * stmt)
+{
+    assert(ex);
+    assert(stmt);
+
+    struct mCc_ast_while_stmt * while_stmt = malloc(sizeof(*while_stmt));
+    while_stmt->expression = ex;
+    while_stmt->statement = stmt;
+
+    return while_stmt;
+}
+
+
+//RETURN
 struct mCc_ast_stmt *
 mCc_ast_new_ret_stmt(struct mCc_ast_ret_stmt *ret_stmt)
 {
@@ -321,6 +383,28 @@ mCc_ast_new_ret_stmt(struct mCc_ast_ret_stmt *ret_stmt)
     return stmt;
 }
 
+struct mCc_ast_ret_stmt *
+mCc_ast_new_empty_ret()
+{
+    struct mCc_ast_ret_stmt * ret_stmt = malloc(sizeof(*ret_stmt));
+    ret_stmt->expression = NULL;
+
+    return ret_stmt;
+}
+
+struct mCc_ast_ret_stmt *
+mCc_ast_new_ret(struct mCc_ast_expression *ex)
+{
+    assert(ex);
+
+    struct mCc_ast_ret_stmt * ret_stmt = malloc(sizeof(*ret_stmt));
+    ret_stmt->expression = ex;
+
+    return ret_stmt;
+}
+
+
+//DECLARATION
 struct mCc_ast_stmt *
 mCc_ast_new_declaration(struct mCc_ast_declaration *decl_stmt)
 {
@@ -335,6 +419,8 @@ mCc_ast_new_declaration(struct mCc_ast_declaration *decl_stmt)
     return stmt;
 }
 
+
+//ASSIGNMENT
 struct mCc_ast_stmt *
 mCc_ast_new_assignment(struct mCc_ast_assignment *ass_stmt)
 {
@@ -349,6 +435,8 @@ mCc_ast_new_assignment(struct mCc_ast_assignment *ass_stmt)
     return stmt;
 }
 
+
+//EXPRESSION
 struct mCc_ast_stmt *
 mCc_ast_new_expression(struct mCc_ast_expression *expr_stmt)
 {
@@ -363,6 +451,8 @@ mCc_ast_new_expression(struct mCc_ast_expression *expr_stmt)
     return stmt;
 }
 
+
+//COMPOUND
 struct mCc_ast_stmt *
 mCc_ast_new_compound_stmt(struct mCc_ast_compound_stmt *compound_stmt)
 {
@@ -377,6 +467,33 @@ mCc_ast_new_compound_stmt(struct mCc_ast_compound_stmt *compound_stmt)
     return stmt;
 }
 
+struct mCc_ast_compound_stmt *
+mCc_ast_new_single_compound(struct mCc_ast_stmt * stmt)
+{
+    assert(stmt);
+
+    struct mCc_ast_compound_stmt * new_stmts = malloc(sizeof(*new_stmts));
+    new_stmts->statements = stmt;
+    new_stmts->counter = 1;
+    return new_stmts;
+}
+
+struct mCc_ast_compound_stmt *
+mCc_ast_new_compound_array(struct mCc_ast_compound_stmt* stmts, struct mCc_ast_stmt * stmt)
+{
+    assert(stmts);
+    assert(stmt);
+
+    stmts->statements = realloc(stmts->statements, sizeof(stmts->statements) * (stmts->counter+1));
+
+    memcpy(&(stmts->statements[stmts->counter]),stmt,sizeof(*stmt));
+
+    stmts->counter++;
+
+    return stmts;
+}
+
+//DELETE
 void mCc_ast_delete_stmt(struct mCc_ast_stmt *stmt) {
     assert(stmt);
 
@@ -407,8 +524,11 @@ void mCc_ast_delete_stmt(struct mCc_ast_stmt *stmt) {
     free(stmt);
 }
 
+
+/* --------------------------------------------------- Declaration*/
+
 struct mCc_ast_declaration *
-mCc_ast_new_array_declaration(struct mCc_ast_literal *literal,int numerator, char * identifier)
+mCc_ast_new_array_declaration(enum mCc_ast_literal_type literal,int numerator, char * identifier)
 {
     assert(literal);
 
@@ -424,7 +544,7 @@ mCc_ast_new_array_declaration(struct mCc_ast_literal *literal,int numerator, cha
 }
 
 struct mCc_ast_declaration *
-mCc_ast_new_single_declaration(struct mCc_ast_literal *literal, char * identifier)
+mCc_ast_new_single_declaration(enum mCc_ast_literal_type literal, char * identifier)
 {
     assert(literal);
 
@@ -441,8 +561,6 @@ mCc_ast_new_single_declaration(struct mCc_ast_literal *literal, char * identifie
 void mCc_ast_delete_declaration(struct mCc_ast_declaration * decl)
 {
     assert(decl);
-    free(decl->literal);
-
     switch (decl->type) {
         case MCC_AST_DECLARATION_TYPE_SINGLE:
             free(decl->identifier);
@@ -455,25 +573,33 @@ void mCc_ast_delete_declaration(struct mCc_ast_declaration * decl)
     free(decl);
 }
 
+
+/* --------------------------------------------------- Parameter*/
 struct mCc_ast_parameter *
 mCc_ast_new_parameter_array(struct mCc_ast_parameter * params, struct mCc_ast_declaration * decl)
 {
     assert(params);
     assert(decl);
 
-    int size = sizeof(struct mCc_ast_parameter);
-    struct mCc_ast_declaration * new_params = malloc(sizeof(new_params) * params->counter+1);
-    memcpy(new_params,params->declaration,params->counter*size);
-    memcpy(&(new_params[params->counter]),decl,size);
+    params->declaration =
+            realloc(params->declaration, sizeof(params->declaration) *(params->counter + 1));
+
+    memcpy(&(params->declaration[params->counter]),decl,sizeof(*decl));
+
     params->counter++;
-    params->declaration=new_params;
+
     return params;
 }
 
 struct mCc_ast_parameter *
 mCc_ast_new_empty_parameter_array()
 {
-    return NULL;
+
+    struct mCc_ast_parameter * new_params =
+            malloc(sizeof(*new_params));
+    new_params->declaration=NULL;
+    new_params->counter = 0;
+    return new_params;
 }
 
 struct mCc_ast_parameter *
@@ -481,102 +607,15 @@ mCc_ast_new_single_parameter(struct mCc_ast_declaration * decl)
 {
     assert(decl);
 
-    struct mCc_ast_parameter * new_params = malloc(sizeof(*new_params));
+    struct mCc_ast_parameter * new_params =
+            malloc(sizeof(*new_params));
     new_params->declaration=decl;
+    new_params->counter = 1;
     return new_params;
 }
 
 
-
-struct mCc_ast_compound_stmt *
-mCc_ast_new_single_compound(struct mCc_ast_stmt * stmt)
-{
-    assert(stmt);
-
-    struct mCc_ast_compound_stmt * new_stmts = malloc(sizeof(*new_stmts));
-    new_stmts->statements = stmt;
-    return new_stmts;
-}
-
-
-struct mCc_ast_compound_stmt *
-mCc_ast_new_compound_array(struct mCc_ast_compound_stmt* stmts, struct mCc_ast_stmt * stmt)
-{
-    assert(stmts);
-    assert(stmt);
-    int size = sizeof(struct mCc_ast_stmt);
-
-    struct mCc_ast_stmt * new_stmts = malloc(sizeof(new_stmts) * stmts->counter+1);
-    memcpy(new_stmts,stmts->statements,stmts->counter * size);
-    memcpy(&(new_stmts[stmts->counter]),stmt,size);
-    stmts->counter++;
-    stmts->statements=new_stmts;
-    return stmts;
-}
-
-
-struct mCc_ast_if_stmt *
-mCc_ast_new_if(struct mCc_ast_expression *ex, struct mCc_ast_stmt * stmt)
-{
-    assert(ex);
-    assert(stmt);
-
-    struct mCc_ast_if_stmt * if_stmt = malloc(sizeof(*if_stmt));
-    if_stmt->expression = ex;
-    if_stmt->statement = stmt;
-    if_stmt->else_statement = NULL;
-
-    return if_stmt;
-}
-
-struct mCc_ast_if_stmt *
-mCc_ast_new_if_else(struct mCc_ast_expression *ex, struct mCc_ast_stmt * stmt, struct mCc_ast_stmt * elsestmt)
-{
-    assert(ex);
-    assert(stmt);
-
-    struct mCc_ast_if_stmt * if_stmt = malloc(sizeof(*if_stmt));
-    if_stmt->expression = ex;
-    if_stmt->statement = stmt;
-    if_stmt->else_statement = elsestmt;
-
-    return if_stmt;
-}
-
-struct mCc_ast_while_stmt *
-mCc_ast_new_while(struct mCc_ast_expression *ex, struct mCc_ast_stmt * stmt)
-{
-    assert(ex);
-    assert(stmt);
-
-    struct mCc_ast_while_stmt * while_stmt = malloc(sizeof(*while_stmt));
-    while_stmt->expression = ex;
-    while_stmt->statement = stmt;
-
-    return while_stmt;
-}
-
-struct mCc_ast_ret_stmt *
-mCc_ast_new_ret(struct mCc_ast_expression *ex)
-{
-    assert(ex);
-
-    struct mCc_ast_ret_stmt * ret_stmt = malloc(sizeof(*ret_stmt));
-    ret_stmt->expression = ex;
-
-    return ret_stmt;
-}
-
-struct mCc_ast_ret_stmt *
-mCc_ast_new_empty_ret()
-{
-    struct mCc_ast_ret_stmt * ret_stmt = malloc(sizeof(*ret_stmt));
-    ret_stmt->expression = NULL;
-
-    return ret_stmt;
-}
-
-
+/* --------------------------------------------------- Assignment*/
 struct mCc_ast_assignment *
 mCc_ast_new_single_assignment(char * identifier, struct mCc_ast_expression *ex)
 {
@@ -603,6 +642,7 @@ mCc_ast_new_array_assignment(char * identifier, struct mCc_ast_expression *ex,st
 }
 
 
+/* --------------------------------------------------- Call Expr*/
 struct mCc_ast_call_expr *
 mCc_ast_new_empty_call_expr(char * identifier)
 {
@@ -623,12 +663,15 @@ mCc_ast_new_call_expr(char * identifier, struct mCc_ast_argument * arguments)
     return call_expr;
 }
 
+
+/* --------------------------------------------------- Argument*/
 struct mCc_ast_argument *
 mCc_ast_new_single_argument(struct mCc_ast_expression * ex)
 {
     assert(ex);
 
-    struct mCc_ast_argument * argument = malloc(sizeof(*argument));
+    struct mCc_ast_argument * argument =
+            malloc(sizeof(*argument));
     argument->expression=ex;
     argument->counter=1;
     return argument;
@@ -637,46 +680,16 @@ mCc_ast_new_single_argument(struct mCc_ast_expression * ex)
 struct mCc_ast_argument *
 mCc_ast_new_argument_array(struct mCc_ast_argument * arguments, struct mCc_ast_expression * ex)
 {
-    int size = sizeof(struct mCc_ast_expression);
+    assert(arguments);
+    assert(ex);
 
-    struct mCc_ast_expression * expressions = malloc(sizeof(expressions) * arguments->counter+1);
-    memcpy(expressions,arguments->expression,arguments->counter * size);
-    memcpy(&(expressions[arguments->counter]),ex,size);
+    arguments->expression =
+            realloc(arguments->expression, sizeof(arguments->expression) * (arguments->counter +1 ));
+    memcpy(&(arguments->expression[arguments->counter]),ex, sizeof(*ex));
+
     arguments->counter++;
-    arguments->expression=expressions;
+
     return arguments;
 }
 
 
-
-struct mCc_ast_function_def_array *
-mCc_ast_add_function_def_to_array(struct mCc_ast_function_def_array *f, struct mCc_ast_function_def *f2)
-{
-    assert(f);
-    assert(f2);
-
-
-    int size = sizeof(struct mCc_ast_function_def);
-
-    struct mCc_ast_function_def *function_array=malloc(sizeof(function_array)*f->counter+1);
-    memcpy(function_array,f->function_def,f->counter * sizeof(f2));
-    memcpy(&(function_array[f->counter]),f2,size);
-    f->counter++;
-    f->function_def = function_array;
-    return f;
-}
-
-
-struct mCc_ast_function_def_array *
-mCc_ast_new_function_def_array(struct mCc_ast_function_def *f)
-{
-    assert(f);
-
-
-    struct mCc_ast_function_def_array *function_array = malloc(sizeof(function_array));
-
-    function_array->counter=1;
-    function_array->function_def = f;
-
-    return function_array;
-}

@@ -69,6 +69,10 @@ extern int line_num;
 
 %token ERROR "error"
 
+%token RETURN "return"
+%token IF "if"
+%token ELSE "else"
+
 %type <enum mCc_ast_binary_op> binary_op
 
 %type <enum mCc_ast_unary_op> unary_op
@@ -149,7 +153,7 @@ function_def    : VOID IDENTIFIER LPARENTH parameter
 
 
 parameter       :  declaration                       { printf("param_dec\n"); $$ = mCc_ast_new_single_parameter($1); }
-                | %empty                                  { printf("param_empty\n"); $$ = mCc_ast_new_empty_parameter_array(); }
+                | %empty                             { printf("param_empty\n"); $$ = mCc_ast_new_empty_parameter_array();  }
                 ;
 
 
@@ -168,9 +172,9 @@ statement       : if_stmt                           { printf("if_stmt\n"); $$ = 
                 ;
 
 
-if_stmt         : "if" LPARENTH expression RPARENTH statement
+if_stmt         : IF LPARENTH expression RPARENTH statement
                                                     { printf("if_stmt_impl_1\n"); $$ = mCc_ast_new_if($3,$5); }
-                | "if" LPARENTH expression RPARENTH statement "else" statement
+                | IF LPARENTH expression RPARENTH statement ELSE statement
                                                     { printf("if_stmt_impl_2\n"); $$ = mCc_ast_new_if_else($3,$5,$7); }
                 ;
 
@@ -180,14 +184,14 @@ while_stmt      : "while" LPARENTH expression RPARENTH statement
                 ;
 
 
-ret_stmt        : "return"                          { printf("ret_stmt_impl_1\n"); $$ = mCc_ast_new_empty_ret(); }
-                | "return" expression               { printf("ret_stmt_impl_2\n"); $$ = mCc_ast_new_ret($2); }
+ret_stmt        : RETURN                          { printf("ret_stmt_impl_1\n"); $$ = mCc_ast_new_empty_ret(); }
+                | RETURN expression               { printf("ret_stmt_impl_2\n"); $$ = mCc_ast_new_ret($2); }
                 ;
 
 
-declaration     : literal LBRACKET INT_LITERAL RBRACKET
+declaration     : type LBRACKET INT_LITERAL RBRACKET
                     IDENTIFIER                      { printf("decl_1\n"); $$ = mCc_ast_new_array_declaration($1,$3,$5); }
-                | literal IDENTIFIER                { printf("decl_2\n"); $$ = mCc_ast_new_single_declaration($1,$2); }
+                | type IDENTIFIER                { printf("decl_2\n"); $$ = mCc_ast_new_single_declaration($1,$2); }
                 ;
 
 

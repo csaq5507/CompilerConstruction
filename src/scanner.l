@@ -84,7 +84,9 @@ new_line		-?\n
 "int"				{return TK_INT; }
 "float"				{ return TK_FLOAT; }
 "string"				{ return TK_STRING; }
-
+"return"            { return TK_RETURN; }
+"if"                { return TK_IF; }
+"else"              { return TK_ELSE; }
 
 {identifier}    { yylval->TK_IDENTIFIER = yytext; return TK_IDENTIFIER; }
 

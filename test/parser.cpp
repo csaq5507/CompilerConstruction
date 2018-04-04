@@ -6,25 +6,26 @@
 
 TEST(Parser, BinaryOp_1)
 {
-	const char input[] = "/* Comment */ int func1() {192 + 3.14;} int func1() {192 + 3.14;} int func1() {192 + 3.14;}";
+	const char input[] = "/* Comment */ int func1() {192 + 3.14;} int func1() {192 + 3.14;} void func1() {192 + 3.14;}";
 	auto result = mCc_parser_parse_string(input);
 	
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-struct mCc_ast_function_def_array *func_def_arr = result.func_def;
-
-    printf("result");
-    printf("%d",func_def_arr->counter);
+    struct mCc_ast_function_def_array *func_def_arr = result.func_def;
 
 
-    auto func_def=func_def_arr->function_def;
 
 
-	ASSERT_EQ(func_def_arr->counter,3);
+    auto func_def = func_def_arr->function_def;
 
-	// root
-	ASSERT_EQ(MCC_AST_FUNCTION_DEF_TYPE_TYPE, func_def->type);
-	//ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, func_def->l_type);
+
+
+    for(int i=0;i<func_def_arr->counter-1;i++)
+    {    // root
+    ASSERT_EQ(MCC_AST_FUNCTION_DEF_TYPE_TYPE, func_def[i].type);
+    //ASSERT_EQ(MCC_AST_LITERAL_TYPE_INT, func_def->l_type);
+    }
+ASSERT_EQ(MCC_AST_FUNCTION_DEF_TYPE_VOID, func_def[func_def_arr->counter-1].type);
 
 	// root -> lhs
 	//ASSERT_EQ(MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL, expr->lhs->type);

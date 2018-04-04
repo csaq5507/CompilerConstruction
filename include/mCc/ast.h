@@ -279,7 +279,7 @@ struct mCc_ast_declaration {
     struct mCc_ast_node node;
 
 	enum mCc_ast_declaration_type type;
-	struct mCc_ast_literal *literal;
+	enum mCc_ast_literal_type literal;
 	union{
 
 		struct{
@@ -294,10 +294,10 @@ struct mCc_ast_declaration {
 
 
 struct mCc_ast_declaration *
-mCc_ast_new_array_declaration(struct mCc_ast_literal *literal,int numerator, char * identifier);
+mCc_ast_new_array_declaration(enum mCc_ast_literal_type literal,int numerator, char * identifier);
 
 struct mCc_ast_declaration *
-mCc_ast_new_single_declaration(struct mCc_ast_literal *literal, char * identifier);
+mCc_ast_new_single_declaration(enum mCc_ast_literal_type literal, char * identifier);
 
 void mCc_ast_delete_declaration(struct mCc_ast_declaration * decl);
 

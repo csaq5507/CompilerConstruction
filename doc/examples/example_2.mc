@@ -13,15 +13,19 @@ int subtraction(int num1, int num2) {
 }
 
 int main() {
-     int var1 = 12;
-     int var2 = 55;
+     int var1;
+     int var2;
+     var1 = 12;
+      var2= 55;
 
-     int sum = addition(var1, var2);
+     int sum;
+     sum = addition(var1, var2);
      print("Addition = ");
      print_int(sum);
      print("\n");
      
-     int sub = subtraction(var1, var2);
+     int sub;
+     sub = subtraction(var1, var2);
      print("Subtraction = ");
      print_int(sub);
      print("\n");

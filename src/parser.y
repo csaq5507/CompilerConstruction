@@ -147,7 +147,7 @@ function_def    : VOID IDENTIFIER LPARENTH parameter
                     RPARENTH LBRACE compound_stmt RBRACE          { printf("func_def_void\n"); $$ = mCc_ast_new_void_function_def($2,$4,$7); }
 
                 | type IDENTIFIER LPARENTH parameter
-                    RPARENTH LBRACE compound_stmt RBRACE         { printf("func_def_type\n"); $$ = mCc_ast_new_type_function_def($1,$2,$4,$7); }
+                    RPARENTH LBRACE compound_stmt RBRACE         { printf("\n\n D \n\n");$$ = mCc_ast_new_type_function_def($1,$2,$4,$7); }
                 ;
 
 

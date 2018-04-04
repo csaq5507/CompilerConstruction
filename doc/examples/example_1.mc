@@ -14,8 +14,10 @@ int max(int num1, int num2) {
 
 int main () {
 
-   int a = 100;
-   int b = 200;
+   int a;
+   int b ;
+   a = 100;
+   b = 200;
    int ret;
  
    ret = max(a, b);

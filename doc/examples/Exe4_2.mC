@@ -1,5 +1,6 @@
 Ave_k (int a, int b, int c){
-    int n= (a+b+c)/3;
+    int n;
+    n = (a+b+c)/3;
     return s;
 }
 

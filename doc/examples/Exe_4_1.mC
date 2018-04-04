@@ -1,7 +1,8 @@
 
 ‫‪void del(char s[])
 {
-  int j,j;
+  int i;
+  int j;
    for(i=0,s[i],i++)
    {
      for(j=(i+1),s[j],j++)
@@ -17,9 +18,9 @@
 
 void main()
 {
-	print("Please enter some characters");
 
-	int n==11;
+	int n;
+	n=11;
 	n = read_int();
 	print_n();
 

@@ -2,12 +2,15 @@
 
 int main() {
   
-  int n = 8;
-  int space = 1;
+  int n;
+  int space;
+  n = 8;
+  space = 1;
   space = n - 1;
    
-  int k = 1;
+  int k;
   int c;
+  k = 1;
   while (k <= n) {
     c = 1;
     while (c <= space) {
@@ -26,8 +29,7 @@ int main() {
 
   space = 1;
 
-  int k = 1;
-  int c;
+  k = 1;
   while (k <= n) {
     c = 1;
     while (c <= space) {

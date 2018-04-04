@@ -14,10 +14,6 @@ int max(int num1, int num2) {
    return result;
 }
 
-int func ( {
-
-}
-
 int main () {
 
    int a;

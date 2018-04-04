@@ -49,6 +49,7 @@ struct mCc_ast_visitor {
 	mCc_ast_visit_single_expression_cb single_expression;
 	mCc_ast_visit_single_expression_cb single_expression_literal;
 	mCc_ast_visit_single_expression_cb single_expression_identifier;
+	mCc_ast_visit_single_expression_cb single_expression_identifier_ex;
 	mCc_ast_visit_single_expression_cb single_expression_call;
 	mCc_ast_visit_single_expression_cb single_expression_unary_op;
 	mCc_ast_visit_single_expression_cb single_expression_parenth;

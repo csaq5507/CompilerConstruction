@@ -36,7 +36,6 @@ const char *mCc_ast_print_unary_op(enum mCc_ast_unary_op op)
     return "unknown op";
 }
 
-
 const char *mCc_ast_print_literal_type(enum mCc_ast_literal_type type)
 {
     switch (type) {
@@ -351,7 +350,7 @@ static void print_dot_declaration_array(struct mCc_ast_declaration *decl, void *
              mCc_ast_print_literal_type(decl->literal));
     print_dot_node(out,decl,label);
     print_dot_edge(out, decl, decl->array_identifier, "identifier");
-    print_dot_edge(out, decl, decl->numerator, "numerator");
+    print_dot_edge(out, decl, &(decl->numerator), "numerator");
 }
 
 static void print_dot_declaration_single(struct mCc_ast_declaration *decl, void *data) {

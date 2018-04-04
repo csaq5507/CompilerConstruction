@@ -94,7 +94,10 @@ void mCc_ast_visit_single_expression(struct mCc_ast_single_expression *single_ex
             break;
 
         case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER:
-            visit(single_expression, visitor->single_expression_identifier, visitor);
+            visit(single_expression, visitor->single_expression_identifier,visitor);
+            break;
+        case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX:
+            visit(single_expression, visitor->single_expression_identifier_ex, visitor);
             break;
 
         case MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH:

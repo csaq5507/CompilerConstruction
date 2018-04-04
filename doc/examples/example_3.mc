@@ -1,7 +1,8 @@
 /* Example of how to work with arrays in mCc */
 
 int[] init_array(int array[], int length_of_array, int default_value)  { 
-	int i = 0;
+	int i;
+	i = 0;
 	while (i < length_of_array) {
 		array[i] = default_value; 
 		i = i +1;
@@ -10,7 +11,8 @@ int[] init_array(int array[], int length_of_array, int default_value)  {
 }  
 
 int[] add_array(int first_array[], int second_array[], int length_of_array) {
-	int i = 0;
+	int i;
+	i = 0;
 	int ret_array[length_of_array];
 	while (i < length_of_array) {
 		ret_array[i] = first_array[i] + second_array[i]; 

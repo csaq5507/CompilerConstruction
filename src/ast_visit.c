@@ -2,6 +2,7 @@
 
 #include <assert.h>
 #include <printf.h>
+#include <stdio.h>
 
 #define visit(node, callback, visitor) \
 	do { \

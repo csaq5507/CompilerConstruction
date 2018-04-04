@@ -4,8 +4,7 @@ int main() {
   
   int n;
   int space;
-  n = 8;
-  space = 1;
+  n = 10;
   space = n - 1;
    
   int k;

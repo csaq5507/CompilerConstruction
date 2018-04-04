@@ -3,25 +3,31 @@
 int max(int num1, int num2) {
 
    int result;
- 
-   if (num1 > num2)
+
+   if (num1 > num2) {
       result = num1;
-   else
+   }
+   else {
       result = num2;
- 
-   return result; 
+   }
+
+   return result;
 }
 
-int main (int art) {
+int func ( {
+
+}
+
+int main () {
 
    int a;
    int b;
    a = 100;
    b = 200;
    int ret;
- 
+
    ret = max(a, b);
- 
+
    print( "Max value is :");
    print_int(ret);
    print("\n");

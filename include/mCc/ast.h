@@ -259,7 +259,7 @@ struct mCc_ast_call_expr {
 
     char * identifier;
 
-    struct mCc_ast_argument *arguments; //OPTIONAL
+    struct mCc_ast_argument * arguments; //OPTIONAL
 };
 
 /* ----------------------------------------------------------- Assignment / Declaration */

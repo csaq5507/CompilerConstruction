@@ -52,7 +52,6 @@ int main(int argc, char *argv[])
 	 * - invoke backend compiler
 	 */
 
-	printf("output");
     FILE *out;
     out = fopen("output.txt","w");
     

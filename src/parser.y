@@ -43,7 +43,7 @@ extern int line_counter;
 %token RBRACE "}"
 
 %token SEMICOLON ";"
-%token KOMMA ","
+%token COMMA ","
 
 
 %token PLUS  "+"
@@ -67,12 +67,13 @@ extern int line_counter;
 %token FLOAT "float"
 %token STRING "string"
 
-%token <char*> ERROR "error"
+%token <char*> UNKNWON "unkown"
 
 %token RETURN "return"
 %token IF "if"
 %token ELSE "else"
 %token ASSIGNMENT "="
+%token WHILE "while"
 
 %type <enum mCc_ast_binary_op> binary_op
 
@@ -149,14 +150,14 @@ function_def    : VOID IDENTIFIER LPARENTH parameter
 
                 | type IDENTIFIER LPARENTH parameter
                     RPARENTH LBRACE compound_stmt RBRACE         { printf("func_def_type\n");$$ = mCc_ast_new_type_function_def($1,$2,$4,$7); }
-                | error RBRACE function_def						{ $$ = $3; }
+                | error RBRACE function_def                     { $$ = $3; }
                 ;
 
 
 
 parameter       :  declaration                       { printf("param_dec\n"); $$ = mCc_ast_new_single_parameter($1); }
                 | %empty                             { printf("param_empty\n"); $$ = mCc_ast_new_empty_parameter_array();  }
-                | parameter "," declaration          { printf("multi params\n"); $$ = mCc_ast_new_parameter_array($1,$3); }
+                | parameter COMMA declaration          { printf("multi params\n"); $$ = mCc_ast_new_parameter_array($1,$3); }
                 ;
 
 
@@ -172,18 +173,18 @@ statement       : if_stmt                           { printf("if_stmt\n"); $$ = 
                 | assignment SEMICOLON              { printf("assign_SEMI\n"); $$ = mCc_ast_new_assignment($1); }
                 | expression SEMICOLON              { printf("expression_SEMI\n"); $$ = mCc_ast_new_expression($1); }
                 | LBRACE compound_stmt RBRACE       { printf("stmt_cmp\n"); $$ = mCc_ast_new_compound_stmt($2); }
-                | error SEMICOLON statement			{ yyerror(NULL, "ERROR MESSAGE"); $$ = $3;}
+                | error SEMICOLON statement         { $$ = $3; }
                 ;
 
 
-if_stmt         : IF LPARENTH expression RPARENTH statement
-                                                    { printf("if_stmt_impl_1\n"); $$ = mCc_ast_new_if($3,$5); }
-                | IF LPARENTH expression RPARENTH statement ELSE statement
-                                                    { printf("if_stmt_impl_2\n"); $$ = mCc_ast_new_if_else($3,$5,$7); }
+if_stmt         : IF LPARENTH expression RPARENTH LBRACE statement RBRACE
+                                                    { printf("if_stmt_impl_1\n"); $$ = mCc_ast_new_if($3,$6); }
+                | IF LPARENTH expression RPARENTH LBRACE statement RBRACE ELSE LBRACE statement RBRACE
+                                                    { printf("if_stmt_impl_2\n"); $$ = mCc_ast_new_if_else($3,$6,$10); }
                 ;
 
 
-while_stmt      : "while" LPARENTH expression RPARENTH statement
+while_stmt      : WHILE LPARENTH expression RPARENTH statement
                                                     { printf("while_stmt_impl_1\n"); $$ = mCc_ast_new_while($3,$5); }
                 ;
 
@@ -194,8 +195,8 @@ ret_stmt        : RETURN                          { printf("ret_stmt_impl_1\n");
 
 
 declaration     : type LBRACKET INT_LITERAL RBRACKET
-                    IDENTIFIER                      { printf("decl_1\n"); $$ = mCc_ast_new_array_declaration($1,$3,$5); }
-                | type IDENTIFIER                { printf("decl_2\n"); $$ = mCc_ast_new_single_declaration($1,$2); }
+                    IDENTIFIER                      { printf("decl_1\n"); $$ = mCc_ast_new_array_declaration($1,$3,$5);}
+                | type IDENTIFIER                { printf("decl_2\n"); $$ = mCc_ast_new_single_declaration($1,$2);}
                 ;
 
 
@@ -226,7 +227,7 @@ call_expr       : IDENTIFIER LPARENTH RPARENTH      { printf("call_expr_1\n"); $
 
 
 arguments       : expression                        { printf("arg_1\n"); $$ = mCc_ast_new_single_argument($1); }
-                | arguments "," expression          { printf("arg_2\n"); $$ = mCc_ast_new_argument_array($1,$3); }
+                | arguments COMMA expression          { printf("arg_2\n"); $$ = mCc_ast_new_argument_array($1,$3); }
                 ;
 
 
@@ -237,17 +238,41 @@ arguments       : expression                        { printf("arg_1\n"); $$ = mC
 
 #include "scanner.h"
 
+struct mCc_parser_result result;
 
 void yyerror(yyscan_t *scanner, const char *msg) {
-	printf("Error at line %d: %s\n", line_counter, msg);
+    struct mCc_parser_error *error =  malloc(sizeof(*error));
+    error->error_msg = msg;
+    error->error_line = line_counter;
+	result.errors = add_parse_error(result.errors, error);
 }
 
+
+struct mCc_parser_error_array* new_parse_error_array() {
+    struct mCc_parser_error_array *parser_error_array =
+                malloc(sizeof(*parser_error_array));
+
+    parser_error_array->errors = NULL;
+    parser_error_array->counter = 0;
+
+    return parser_error_array;
+}
+
+struct mCc_parser_error_array* add_parse_error(struct mCc_parser_error_array* array, struct mCc_parser_error *error) {
+    assert(array);
+    assert(error);
+
+    array->errors = realloc(array->errors, sizeof(*error) * (array->counter +1));
+
+    memcpy(&(array->errors[array->counter]),error, sizeof(*error));
+    array->counter++;
+    return array;
+}
 
 struct mCc_parser_result mCc_parser_parse_string(const char *input)
 {
 	assert(input);
 
-	struct mCc_parser_result result = { 0 };
 
 	FILE *in = fmemopen((void *)input, strlen(input), "r");
 	if (!in) {
@@ -266,19 +291,12 @@ struct mCc_parser_result mCc_parser_parse_file(FILE *input)
 {
 	assert(input);
 
-/*    func_def_arrray = 1;
-    parameter_arrray = 1;
-    compound_arrray = 1;
-    argument_arrray = 1;
-*/
-
     yyscan_t scanner;
 	mCc_parser_lex_init(&scanner);
 	mCc_parser_set_in(input, scanner);
 
-	struct mCc_parser_result result = {
-		.status = MCC_PARSER_STATUS_OK,
-	};
+	result.status = MCC_PARSER_STATUS_OK;
+	result.errors = new_parse_error_array();
 
 	if (yyparse(scanner, &result) != 0) {
 		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;

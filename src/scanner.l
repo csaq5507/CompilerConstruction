@@ -21,7 +21,7 @@ int_literal   	-?[0-9]+
 float_literal 	-?[0-9]+\.[0-9]+
 string_literal	-?\"[^\"]*\"
 
-identifier		-?[a-zA-Z_][a-zA-Z0-9_]*
+identifier		[a-zA-Z_][a-zA-Z0-9_]*
 comment_between	-?[^*\n\r]*
 comment_star	-?"*"+[^*/]* 
 comment_end		-?"*"+"/"
@@ -29,7 +29,6 @@ comment_linebreak_n	[ \t]*[\n][ \t]*
 comment_linebreak_r	[ \t]*[\r][ \t]*
 %%
 
-[ \t]+  				{/* eat up whitespace */}
 
 "/*"         			BEGIN(comment);
 
@@ -48,7 +47,7 @@ comment_linebreak_r	[ \t]*[\r][ \t]*
 "true"   			{ yylval->TK_BOOL_LITERAL = atof(yytext); return TK_BOOL_LITERAL; }
 "false"    			{ yylval->TK_BOOL_LITERAL = atof(yytext); return TK_BOOL_LITERAL; }
 
-{string_literal}    { yylval->TK_STRING_LITERAL = yytext; return TK_STRING_LITERAL; }
+{string_literal}    { yylval->TK_STRING_LITERAL = strdup(yytext); return TK_STRING_LITERAL; }
 
 
 "+"               { return TK_PLUS; }
@@ -65,7 +64,7 @@ comment_linebreak_r	[ \t]*[\r][ \t]*
 
 ";"               { return TK_SEMICOLON; }
 
-","               { return TK_KOMMA; }
+","               { return TK_COMMA; }
 
 "<"               { return TK_LT; }
 ">"               { return TK_GT; }
@@ -87,13 +86,16 @@ comment_linebreak_r	[ \t]*[\r][ \t]*
 "return"            { return TK_RETURN; }
 "if"                { return TK_IF; }
 "else"              { return TK_ELSE; }
+"while"             {return TK_WHILE; }
 
-{identifier}    { yylval->TK_IDENTIFIER = yytext; return TK_IDENTIFIER; }
+{identifier}    { yylval->TK_IDENTIFIER = strdup(yytext); return TK_IDENTIFIER; }
 
 
 [ \t]*[\n][ \t]*     	{line_counter++; }
 [ \t]*[\r][ \t]*     	{line_counter++; }
 
+[ \t]+  				{/* eat up whitespace */}
+
 <<EOF>>           { return TK_END; }
 
-.                 { yylval->TK_ERROR = yytext[0]; return TK_ERROR; }
+.                 { yylval->TK_UNKNWON = yytext[0]; return TK_UNKNWON; }

@@ -33,12 +33,10 @@ int main(int argc, char *argv[])
 
 	struct mCc_ast_function_def_array *expr = NULL;
 
-    printf("A\n\n");
 	/* parsing phase */
 	{
 		struct mCc_parser_result result = mCc_parser_parse_file(in);
 		fclose(in);
-        printf("Zs\n\n");
 		if (result.status != MCC_PARSER_STATUS_OK) {
             printf("Parser_error");
 			return EXIT_FAILURE;

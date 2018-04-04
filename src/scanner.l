@@ -12,9 +12,8 @@
 
 #define YYSTYPE MCC_PARSER_STYPE
 
-int line_counter = 0;
+int line_counter = 1;
 %}
-
 
 %x comment
 
@@ -23,25 +22,24 @@ float_literal 	-?[0-9]+\.[0-9]+
 string_literal	-?\"[^\"]*\"
 
 identifier		-?[a-zA-Z_][a-zA-Z0-9_]*
-comment_between	-?[^*\n]*
-comment_star	-?"*"+[^*/\n]* 
+comment_between	-?[^*\n\r]*
+comment_star	-?"*"+[^*/]* 
 comment_end		-?"*"+"/"
-
-new_line		-?\n
+comment_linebreak_n	[ \t]*[\n][ \t]*
+comment_linebreak_r	[ \t]*[\r][ \t]*
 %%
 
+[ \t]+  				{/* eat up whitespace */}
 
 "/*"         			BEGIN(comment);
 
 
+<comment>{comment_linebreak_n}    {line_counter++; }
+<comment>{comment_linebreak_r}    {line_counter++; }
 <comment>{comment_between}       /* eat anything that's not a '*' */
 <comment>{comment_star}   		/* eat up '*'s not followed by '/'s */
-<comment>{new_line}            	++line_counter;
-<comment>{comment_end}  			BEGIN(INITIAL);
+<comment>{comment_end}  		BEGIN(INITIAL);
 
-
-
-{new_line}        {line_counter++; }
 
 {int_literal}     { yylval->TK_INT_LITERAL = atol(yytext); return TK_INT_LITERAL; }
 
@@ -93,8 +91,9 @@ new_line		-?\n
 {identifier}    { yylval->TK_IDENTIFIER = yytext; return TK_IDENTIFIER; }
 
 
-[ \t\r\n]+        { /* ignore */ }
+[ \t]*[\n][ \t]*     	{line_counter++; }
+[ \t]*[\r][ \t]*     	{line_counter++; }
 
 <<EOF>>           { return TK_END; }
 
-.                 { fprintf(stderr, "invalid character '%c' at line %d\n", yytext[0], line_counter); return TK_ERROR; }
+.                 { yylval->TK_ERROR = yytext[0]; return TK_ERROR; }

@@ -2,13 +2,14 @@
 
 %define api.pure full
 %lex-param   {void *scanner}
-%parse-param {void *scanner} {struct mCc_ast_function_def_array** result}
+%parse-param {void *scanner} {struct mCc_parser_result* result}
 
 %define parse.trace
 %define parse.error verbose
 
 %code requires {
 #include "mCc/parser.h"
+
 }
 
 %{
@@ -18,9 +19,8 @@
 int mCc_parser_lex();
 void mCc_parser_error();
 
-extern int line_num;
+extern int line_counter;
 %}
-
 
 %define api.value.type union
 %define api.token.prefix {TK_}
@@ -67,7 +67,7 @@ extern int line_num;
 %token FLOAT "float"
 %token STRING "string"
 
-%token ERROR "error"
+%token <char*> ERROR "error"
 
 %token RETURN "return"
 %token IF "if"
@@ -136,7 +136,7 @@ literal         : INT_LITERAL       { printf("INT_LIT\n"); $$ = mCc_ast_new_lite
                 ;
 
 
-toplevel        : function_def_arr                  { printf("toplevel"); *result = $1; }
+toplevel        : function_def_arr                  { printf("toplevel\n"); result->func_def = $1; }
                 ;
 
 function_def_arr: function_def_arr function_def     { printf("func_def_arr_1\n"); $$ = mCc_ast_add_function_def_to_array($1,$2); }
@@ -148,7 +148,8 @@ function_def    : VOID IDENTIFIER LPARENTH parameter
                     RPARENTH LBRACE compound_stmt RBRACE          { printf("func_def_void\n"); $$ = mCc_ast_new_void_function_def($2,$4,$7); }
 
                 | type IDENTIFIER LPARENTH parameter
-                    RPARENTH LBRACE compound_stmt RBRACE         { printf("\n\n D \n\n");$$ = mCc_ast_new_type_function_def($1,$2,$4,$7); }
+                    RPARENTH LBRACE compound_stmt RBRACE         { printf("func_def_type\n");$$ = mCc_ast_new_type_function_def($1,$2,$4,$7); }
+                | error RBRACE function_def						{ $$ = $3; }
                 ;
 
 
@@ -171,6 +172,7 @@ statement       : if_stmt                           { printf("if_stmt\n"); $$ = 
                 | assignment SEMICOLON              { printf("assign_SEMI\n"); $$ = mCc_ast_new_assignment($1); }
                 | expression SEMICOLON              { printf("expression_SEMI\n"); $$ = mCc_ast_new_expression($1); }
                 | LBRACE compound_stmt RBRACE       { printf("stmt_cmp\n"); $$ = mCc_ast_new_compound_stmt($2); }
+                | error SEMICOLON statement			{ yyerror(NULL, "ERROR MESSAGE"); $$ = $3;}
                 ;
 
 
@@ -237,7 +239,7 @@ arguments       : expression                        { printf("arg_1\n"); $$ = mC
 
 
 void yyerror(yyscan_t *scanner, const char *msg) {
-	printf("Error: %s\n", msg);
+	printf("Error at line %d: %s\n", line_counter, msg);
 }
 
 
@@ -270,7 +272,6 @@ struct mCc_parser_result mCc_parser_parse_file(FILE *input)
     argument_arrray = 1;
 */
 
-    printf("B\n\n");
     yyscan_t scanner;
 	mCc_parser_lex_init(&scanner);
 	mCc_parser_set_in(input, scanner);
@@ -278,16 +279,11 @@ struct mCc_parser_result mCc_parser_parse_file(FILE *input)
 	struct mCc_parser_result result = {
 		.status = MCC_PARSER_STATUS_OK,
 	};
-    printf("C\n\n");
 
-	if (yyparse(scanner, &result.func_def) != 0) {
+	if (yyparse(scanner, &result) != 0) {
 		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
 	}
-	printf("D\n\n");
-
 
 	mCc_parser_lex_destroy(scanner);
-    printf("E\n\n");
-
 	return result;
 }

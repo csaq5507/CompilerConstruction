@@ -447,15 +447,21 @@ void mCc_ast_print_dot_single_expression(FILE *out, struct mCc_ast_single_expres
 	print_dot_end(out);
 }
 
-void mCc_ast_print_dot_function_def(FILE *out, struct mCc_ast_function_def *f)
+void mCc_ast_print_dot_function_def(FILE *out, struct mCc_ast_function_def_array *f)
 {
     assert(out);
     assert(f);
+	printf("HERE\n");
 
     print_dot_begin(out);
-    struct  mCc_ast_visitor visitor = print_dot_visitor(out);
-    mCc_ast_visit_function_def(f,&visitor);
+	struct  mCc_ast_visitor visitor = print_dot_visitor(out);
+	
+	for(int i=0;i<f->counter;i++) {
+        struct mCc_ast_function_def func = f->function_def[i];
+        mCc_ast_visit_function_def(&func,&visitor);
 
+    }
+    
     print_dot_end(out);
 }
 

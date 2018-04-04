@@ -21,7 +21,7 @@ void mCc_ast_print_dot_literal(FILE *out, struct mCc_ast_literal *literal);
 
 void mCc_ast_print_dot_single_expression(FILE *out, struct mCc_ast_single_expression * single_expression);
 
-void mCc_ast_print_dot_function_def(FILE *out, struct mCc_ast_function_def *f);
+void mCc_ast_print_dot_function_def(FILE *out, struct mCc_ast_function_def_array *f);
 
 void mCc_ast_print_dot_declaration(FILE *out, struct mCc_ast_declaration *f);
 

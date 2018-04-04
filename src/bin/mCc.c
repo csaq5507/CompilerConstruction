@@ -54,6 +54,13 @@ int main(int argc, char *argv[])
 	 * - invoke backend compiler
 	 */
 
+	printf("output");
+    FILE *out;
+    out = fopen("output.txt","w");
+    
+    mCc_ast_print_dot_function_def(out,expr);
+    
+
 	/* cleanup */
 	mCc_ast_delete_function_def(expr);
 

@@ -27,6 +27,13 @@ typedef void (*mCc_ast_visit_single_expression_cb)(struct mCc_ast_single_express
 typedef void (*mCc_ast_visit_function_def_cb)(struct mCc_ast_function_def *, void *);
 
 typedef void (*mCc_ast_visit_stmt_cb)(struct mCc_ast_stmt *, void *);
+typedef void (*mCc_ast_visit_stmt_if)(struct mCc_ast_if_stmt *, void *);
+typedef void (*mCc_ast_visit_stmt_while)(struct mCc_ast_while_stmt *, void *);
+typedef void (*mCc_ast_visit_stmt_ret)(struct mCc_ast_ret_stmt *, void *);
+typedef void (*mCc_ast_visit_stmt_decl)(struct mCc_ast_declaration *, void *);
+typedef void (*mCc_ast_visit_stmt_ass)(struct mCc_ast_assignment *, void *);
+typedef void (*mCc_ast_visit_stmt_expr)(struct mCc_ast_expression *, void *);
+typedef void (*mCc_ast_visit_stmt_cmp)(struct mCc_ast_compound_stmt *, void *);
 
 typedef void (*mCc_ast_visit_declaration_cb)(struct mCc_ast_declaration *, void *);
 
@@ -66,13 +73,13 @@ struct mCc_ast_visitor {
 	mCc_ast_visit_function_def_cb function_def_type;
 
 	mCc_ast_visit_stmt_cb stmt;
-	mCc_ast_visit_stmt_cb stmt_if;
-	mCc_ast_visit_stmt_cb stmt_while;
-	mCc_ast_visit_stmt_cb stmt_ret;
-	mCc_ast_visit_stmt_cb stmt_decl;
-	mCc_ast_visit_stmt_cb stmt_ass;
-	mCc_ast_visit_stmt_cb stmt_expr;
-	mCc_ast_visit_stmt_cb stmt_compound;
+	mCc_ast_visit_stmt_if stmt_if;
+	mCc_ast_visit_stmt_while stmt_while;
+	mCc_ast_visit_stmt_ret stmt_ret;
+	mCc_ast_visit_stmt_decl stmt_decl;
+	mCc_ast_visit_stmt_ass stmt_ass;
+	mCc_ast_visit_stmt_expr stmt_expr;
+	mCc_ast_visit_stmt_cmp stmt_compound;
 
 	mCc_ast_visit_declaration_cb declaration;
 	mCc_ast_visit_declaration_cb declaration_array;

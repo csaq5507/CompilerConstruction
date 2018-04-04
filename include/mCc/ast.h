@@ -150,6 +150,7 @@ void mCc_ast_delete_expression(struct mCc_ast_expression *expression);
 enum mCc_ast_single_expression_type {
 	MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL,
 	MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER,
+	MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX,
 	MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR,
 	MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP,
 	MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH
@@ -162,6 +163,8 @@ struct mCc_ast_single_expression {
 
     union {
         struct mCc_ast_literal *literal;
+
+		char * only_identifier;
 
         struct {
             char * identifier;
@@ -184,8 +187,10 @@ struct mCc_ast_single_expression*
 mCc_ast_new_single_expression_literal(struct mCc_ast_literal *literal);
 
 struct mCc_ast_single_expression*
-mCc_ast_new_single_expression_identifier(char* identifier,
-                                         struct mCc_ast_expression *identifier_expression);
+mCc_ast_new_single_expression_identifier(char* identifier);
+struct mCc_ast_single_expression*
+mCc_ast_new_single_expression_identifier_ex(char* identifier,
+										 struct mCc_ast_expression *identifier_expression);
 struct mCc_ast_single_expression*
 mCc_ast_new_single_expression_call_expr(struct mCc_ast_call_expr *call_expr);
 

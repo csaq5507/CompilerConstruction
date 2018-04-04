@@ -15,7 +15,7 @@ int max(int num1, int num2) {
 int main () {
 
    int a;
-   int b ;
+   int b;
    a = 100;
    b = 200;
    int ret;

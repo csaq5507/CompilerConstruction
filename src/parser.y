@@ -72,6 +72,7 @@ extern int line_num;
 %token RETURN "return"
 %token IF "if"
 %token ELSE "else"
+%token ASSIGNMENT "="
 
 %type <enum mCc_ast_binary_op> binary_op
 
@@ -154,6 +155,7 @@ function_def    : VOID IDENTIFIER LPARENTH parameter
 
 parameter       :  declaration                       { printf("param_dec\n"); $$ = mCc_ast_new_single_parameter($1); }
                 | %empty                             { printf("param_empty\n"); $$ = mCc_ast_new_empty_parameter_array();  }
+                | parameter "," declaration          { printf("multi params\n"); $$ = mCc_ast_new_parameter_array($1,$3); }
                 ;
 
 
@@ -163,7 +165,7 @@ compound_stmt   : statement                         { printf("compund_stmt_stmt\
 
 
 statement       : if_stmt                           { printf("if_stmt\n"); $$ = mCc_ast_new_if_stmt($1); }
-                | ret_stmt                          { printf("ret_stmt\n"); $$ = mCc_ast_new_ret_stmt($1); }
+                | ret_stmt SEMICOLON                { printf("ret_stmt\n"); $$ = mCc_ast_new_ret_stmt($1); }
                 | while_stmt                        { printf("while_stmt\n"); $$ = mCc_ast_new_while_stmt($1); }
                 | declaration SEMICOLON             { printf("decl_SEMI\n"); $$ = mCc_ast_new_declaration($1); }
                 | assignment SEMICOLON              { printf("assign_SEMI\n"); $$ = mCc_ast_new_assignment($1); }
@@ -185,7 +187,7 @@ while_stmt      : "while" LPARENTH expression RPARENTH statement
 
 
 ret_stmt        : RETURN                          { printf("ret_stmt_impl_1\n"); $$ = mCc_ast_new_empty_ret(); }
-                | RETURN expression               { printf("ret_stmt_impl_2\n"); $$ = mCc_ast_new_ret($2); }
+                | RETURN expression              { printf("ret_stmt_impl_2\n"); $$ = mCc_ast_new_ret($2); }
                 ;
 
 
@@ -195,7 +197,7 @@ declaration     : type LBRACKET INT_LITERAL RBRACKET
                 ;
 
 
-assignment      : IDENTIFIER "=" expression         { printf("assign_1\n"); $$ = mCc_ast_new_single_assignment($1,$3); }
+assignment      : IDENTIFIER ASSIGNMENT expression         { printf("assign_1\n"); $$ = mCc_ast_new_single_assignment($1,$3); }
                 | IDENTIFIER LBRACKET expression RBRACKET "=" expression
                                                     { printf("assign_2\n"); $$ = mCc_ast_new_array_assignment($1,$3,$6); }
                 ;
@@ -207,7 +209,8 @@ expression      : single_expr                       { printf("express_sing\n"); 
 
 
 single_expr     : literal                           { printf("literal\n"); $$ = mCc_ast_new_single_expression_literal($1); }
-                | IDENTIFIER expression   		    { printf("ident_expr\n"); $$ = mCc_ast_new_single_expression_identifier($1,$2); }
+                | IDENTIFIER                        { printf("ident\n"); $$ = mCc_ast_new_single_expression_identifier($1); }
+                | IDENTIFIER expression   		    { printf("ident_expr\n"); $$ = mCc_ast_new_single_expression_identifier_ex($1,$2); }
                 | call_expr                         { printf("call_expr\n"); $$ = mCc_ast_new_single_expression_call_expr($1); }
                 | unary_op expression               { printf("unary_op\n"); $$ = mCc_ast_new_single_expression_unary_op($1,$2); }
                 | LPARENTH expression RPARENTH      { printf("singl_expr\n"); $$ = mCc_ast_new_single_expression_parenth($2); }

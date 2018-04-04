@@ -132,8 +132,22 @@ mCc_ast_new_single_expression_literal(struct mCc_ast_literal *literal)
 }
 
 struct mCc_ast_single_expression*
-mCc_ast_new_single_expression_identifier(char* identifier,
-                                             struct mCc_ast_expression *identifier_expression)
+mCc_ast_new_single_expression_identifier(char* identifier)
+{
+    assert(identifier);
+
+    struct mCc_ast_single_expression *expr = malloc(sizeof(*expr));
+    if (!expr) {
+        return NULL;
+    }
+    expr->type = MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER;
+    expr->only_identifier = identifier;
+    return expr;
+}
+
+struct mCc_ast_single_expression*
+mCc_ast_new_single_expression_identifier_ex(char* identifier,
+                                         struct mCc_ast_expression *identifier_expression)
 {
     assert(identifier);
     assert(identifier_expression);
@@ -142,7 +156,7 @@ mCc_ast_new_single_expression_identifier(char* identifier,
     if (!expr) {
         return NULL;
     }
-    expr->type = MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER;
+    expr->type = MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX;
     expr->identifier = identifier;
     expr->identifier_expression = identifier_expression;
     return expr;
@@ -203,6 +217,9 @@ void mCc_ast_delete_single_expression(struct mCc_ast_single_expression *expressi
             mCc_ast_delete_literal(expression->literal);
             break;
         case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER:
+            free(expression->only_identifier);
+            break;
+        case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX:
             free(expression->identifier);
             mCc_ast_delete_expression(expression->identifier_expression);
             break;
@@ -263,7 +280,7 @@ mCc_ast_add_function_def_to_array(struct mCc_ast_function_def_array *f, struct m
     assert(f);
     assert(f2);
 
-    f->function_def = realloc(f->function_def, sizeof(f->function_def) * (f->counter +1));
+    f->function_def = realloc(f->function_def, sizeof(*f2) * (f->counter +1));
 
     memcpy(&(f->function_def[f->counter]),f2, sizeof(*f2));
     f->counter++;
@@ -484,7 +501,8 @@ mCc_ast_new_compound_array(struct mCc_ast_compound_stmt* stmts, struct mCc_ast_s
     assert(stmts);
     assert(stmt);
 
-    stmts->statements = realloc(stmts->statements, sizeof(stmts->statements) * (stmts->counter+1));
+    stmts->statements =
+            realloc(stmts->statements, sizeof(*stmt) * (stmts->counter+1));
 
     memcpy(&(stmts->statements[stmts->counter]),stmt,sizeof(*stmt));
 
@@ -546,8 +564,6 @@ mCc_ast_new_array_declaration(enum mCc_ast_literal_type literal,int numerator, c
 struct mCc_ast_declaration *
 mCc_ast_new_single_declaration(enum mCc_ast_literal_type literal, char * identifier)
 {
-    assert(literal);
-
     struct mCc_ast_declaration *decl = malloc(sizeof(*decl));
     if (!decl) {
         return NULL;
@@ -582,7 +598,7 @@ mCc_ast_new_parameter_array(struct mCc_ast_parameter * params, struct mCc_ast_de
     assert(decl);
 
     params->declaration =
-            realloc(params->declaration, sizeof(params->declaration) *(params->counter + 1));
+            realloc(params->declaration, sizeof(*decl) *(params->counter + 1));
 
     memcpy(&(params->declaration[params->counter]),decl,sizeof(*decl));
 
@@ -684,7 +700,7 @@ mCc_ast_new_argument_array(struct mCc_ast_argument * arguments, struct mCc_ast_e
     assert(ex);
 
     arguments->expression =
-            realloc(arguments->expression, sizeof(arguments->expression) * (arguments->counter +1 ));
+            realloc(arguments->expression, sizeof(*ex) * (arguments->counter +1 ));
     memcpy(&(arguments->expression[arguments->counter]),ex, sizeof(*ex));
 
     arguments->counter++;

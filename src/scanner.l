@@ -79,6 +79,8 @@ new_line		-?\n
 "!="               { return TK_NEQ; }
 "!"               { return TK_FAC; }
 
+"="                 {return TK_ASSIGNMENT; }
+
 "void"				{ return TK_VOID; }
 "bool"				{ return TK_BOOL; }
 "int"				{return TK_INT; }

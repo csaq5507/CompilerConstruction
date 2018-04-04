@@ -228,11 +228,13 @@ mCc_ast_new_void_function_def(char * identifier, struct mCc_ast_parameter *param
 struct mCc_ast_function_def *
 mCc_ast_new_type_function_def(enum mCc_ast_literal_type type, char * identifier, struct mCc_ast_parameter *params, struct mCc_ast_compound_stmt *c_stmt);
 
-void mCc_ast_delete_function_def(struct mCc_ast_function_def *f);
+void mCc_ast_delete_function_def(struct mCc_ast_function_def_array *f);
 
 
 struct mCc_ast_parameter {
 	struct mCc_ast_node node;
+
+    int counter;
 
     struct mCc_ast_declaration * declaration;
 };
@@ -240,6 +242,8 @@ struct mCc_ast_parameter {
 
 struct mCc_ast_argument {
     struct mCc_ast_node node;
+
+    int counter;
 
     struct mCc_ast_expression * expression;
 };
@@ -328,6 +332,8 @@ struct mCc_ast_ret_stmt {
 
 struct mCc_ast_compound_stmt {
     struct mCc_ast_node node;
+
+    int counter;
 
     struct mCc_ast_stmt * statements; //OPTIONAL
 };
@@ -438,10 +444,10 @@ struct mCc_ast_parameter *
 mCc_ast_new_single_parameter(struct mCc_ast_declaration * decl);
 
 struct mCc_ast_compound_stmt *
-mCc_ast_new_compound_array(struct mCc_ast_compound_stmt* stmts, struct mCc_ast_stmt * stmt);
+mCc_ast_new_single_compound(struct mCc_ast_stmt * stmt);
 
 struct mCc_ast_compound_stmt *
-mCc_ast_new_single_compound(struct mCc_ast_stmt * stmt);
+mCc_ast_new_compound_array(struct mCc_ast_compound_stmt* stmts, struct mCc_ast_stmt * stmt);
 
 struct mCc_ast_function_def_array *
 mCc_ast_add_function_def_to_array(struct mCc_ast_function_def_array *f, struct mCc_ast_function_def *f2);

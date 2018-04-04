@@ -6,7 +6,7 @@
 
 TEST(Parser, BinaryOp_1)
 {
-	const char input[] = "/* Comment */ int func1() {192 + 3.14;} int func4() {192 + 3.14;} int func2() {192 + 3.14;}";
+	const char input[] = "/* Comment */ int func1() {192 + 3.14;} int func1() {192 + 3.14;} int func1() {192 + 3.14;}";
 	auto result = mCc_parser_parse_string(input);
 	
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
@@ -41,7 +41,7 @@ struct mCc_ast_function_def_array *func_def_arr = result.func_def;
 	//ASSERT_EQ(MCC_AST_LITERAL_TYPE_FLOAT, expr->rhs->single_expr->literal->type);
 	//ASSERT_EQ(3.14, expr->rhs->single_expr->literal->type);
 
-	mCc_ast_delete_function_def(func_def);
+	mCc_ast_delete_function_def(func_def_arr);
 }
 /*
 TEST(Parser, Example_File_1) {
@@ -103,7 +103,7 @@ TEST(Parser, NestedExpression_1)
 
 	mCc_ast_delete_expression(expr);
 }
-*/
+
 TEST(Parser, MissingClosingParenthesis_1)
 {
 	const char input[] = "(42";
@@ -111,3 +111,4 @@ TEST(Parser, MissingClosingParenthesis_1)
 
 	ASSERT_NE(MCC_PARSER_STATUS_OK, result.status);
 }
+*/

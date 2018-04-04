@@ -119,6 +119,7 @@ void mCc_ast_visit_function_def(struct mCc_ast_function_def *f,
     assert(f);
     assert(visitor);
 
+
     visit_if_pre_order(f, visitor->function_def, visitor);
 
     switch (f->type) {

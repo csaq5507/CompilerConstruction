@@ -253,7 +253,7 @@ mCc_ast_new_type_function_def(enum mCc_ast_literal_type type, char * identifier,
         return NULL;
     }
 
-    f->type = MCC_AST_FUNCTION_DEF_TYPE_VOID;
+    f->type = MCC_AST_FUNCTION_DEF_TYPE_TYPE;
 
     f->l_type = type;
     f->identifier = identifier;
@@ -262,15 +262,17 @@ mCc_ast_new_type_function_def(enum mCc_ast_literal_type type, char * identifier,
     return f;
 }
 
-void mCc_ast_delete_function_def(struct mCc_ast_function_def *f)
+void mCc_ast_delete_function_def(struct mCc_ast_function_def_array *f)
 {
     assert(f);
+    for(int i=0;i<f->counter;i++) {
+        struct mCc_ast_function_def func = f->function_def[i];
+        if (func.type == MCC_AST_FUNCTION_DEF_TYPE_VOID) {
+            free(func.void_value);
+        }
 
-    if (f->type == MCC_AST_FUNCTION_DEF_TYPE_VOID)
-    {
-            free(f->void_value);
     }
-
+    free(f->function_def);
     free(f);
 }
 
@@ -453,7 +455,20 @@ void mCc_ast_delete_declaration(struct mCc_ast_declaration * decl)
     free(decl);
 }
 
+struct mCc_ast_parameter *
+mCc_ast_new_parameter_array(struct mCc_ast_parameter * params, struct mCc_ast_declaration * decl)
+{
+    assert(params);
+    assert(decl);
 
+    int size = sizeof(struct mCc_ast_parameter);
+    struct mCc_ast_declaration * new_params = malloc(sizeof(new_params) * params->counter+1);
+    memcpy(new_params,params->declaration,params->counter*size);
+    memcpy(&(new_params[params->counter]),decl,size);
+    params->counter++;
+    params->declaration=new_params;
+    return params;
+}
 
 struct mCc_ast_parameter *
 mCc_ast_new_empty_parameter_array()
@@ -473,13 +488,30 @@ mCc_ast_new_single_parameter(struct mCc_ast_declaration * decl)
 
 
 
-struct mCc_ast_compound_stmt * mCc_ast_new_single_compound(struct mCc_ast_stmt * stmt)
+struct mCc_ast_compound_stmt *
+mCc_ast_new_single_compound(struct mCc_ast_stmt * stmt)
 {
     assert(stmt);
 
     struct mCc_ast_compound_stmt * new_stmts = malloc(sizeof(*new_stmts));
     new_stmts->statements = stmt;
     return new_stmts;
+}
+
+
+struct mCc_ast_compound_stmt *
+mCc_ast_new_compound_array(struct mCc_ast_compound_stmt* stmts, struct mCc_ast_stmt * stmt)
+{
+    assert(stmts);
+    assert(stmt);
+    int size = sizeof(struct mCc_ast_stmt);
+
+    struct mCc_ast_stmt * new_stmts = malloc(sizeof(new_stmts) * stmts->counter+1);
+    memcpy(new_stmts,stmts->statements,stmts->counter * size);
+    memcpy(&(new_stmts[stmts->counter]),stmt,size);
+    stmts->counter++;
+    stmts->statements=new_stmts;
+    return stmts;
 }
 
 
@@ -598,8 +630,23 @@ mCc_ast_new_single_argument(struct mCc_ast_expression * ex)
 
     struct mCc_ast_argument * argument = malloc(sizeof(*argument));
     argument->expression=ex;
+    argument->counter=1;
     return argument;
 }
+
+struct mCc_ast_argument *
+mCc_ast_new_argument_array(struct mCc_ast_argument * arguments, struct mCc_ast_expression * ex)
+{
+    int size = sizeof(struct mCc_ast_expression);
+
+    struct mCc_ast_expression * expressions = malloc(sizeof(expressions) * arguments->counter+1);
+    memcpy(expressions,arguments->expression,arguments->counter * size);
+    memcpy(&(expressions[arguments->counter]),ex,size);
+    arguments->counter++;
+    arguments->expression=expressions;
+    return arguments;
+}
+
 
 
 struct mCc_ast_function_def_array *
@@ -608,11 +655,12 @@ mCc_ast_add_function_def_to_array(struct mCc_ast_function_def_array *f, struct m
     assert(f);
     assert(f2);
 
-    printf("inc arr");
+
+    int size = sizeof(struct mCc_ast_function_def);
 
     struct mCc_ast_function_def *function_array=malloc(sizeof(function_array)*f->counter+1);
-    memcpy(function_array,f->function_def,f->counter);
-    memcpy(&(function_array[f->counter]),f2,1);
+    memcpy(function_array,f->function_def,f->counter * sizeof(f2));
+    memcpy(&(function_array[f->counter]),f2,size);
     f->counter++;
     f->function_def = function_array;
     return f;
@@ -623,8 +671,6 @@ struct mCc_ast_function_def_array *
 mCc_ast_new_function_def_array(struct mCc_ast_function_def *f)
 {
     assert(f);
-
-    printf("new arr");
 
 
     struct mCc_ast_function_def_array *function_array = malloc(sizeof(function_array));

@@ -93,4 +93,4 @@ new_line		-?\n
 
 <<EOF>>           { return TK_END; }
 
-.                 { fprintf(stderr, "invalid character '%c' at line %d\n", yytext[0], line_counter); }
+.                 { fprintf(stderr, "invalid character '%c' at line %d\n", yytext[0], line_counter); return TK_ERROR; }

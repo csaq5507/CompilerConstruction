@@ -8,9 +8,8 @@
 
 int main(void)
 {
-	struct mCc_ast_function_def_array *expr = NULL;
+/*	struct mCc_ast_function_def_array *expr = NULL;
 
-	/* parsing phase */
 	{
 		struct mCc_parser_result result = mCc_parser_parse_file(stdin);
 		if (result.status != MCC_PARSER_STATUS_OK) {
@@ -23,5 +22,5 @@ int main(void)
 
 	mCc_ast_delete_expression(expr);
 
-	return EXIT_SUCCESS;
+	return EXIT_SUCCESS;*/
 }

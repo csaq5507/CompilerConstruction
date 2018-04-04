@@ -476,9 +476,7 @@ mCc_ast_new_compound_stmt(struct mCc_ast_compound_stmt *compound_stmt)
     assert(compound_stmt);
 
     struct mCc_ast_stmt *stmt = malloc(sizeof(*stmt));
-    if (!stmt) {
-        return NULL;
-    }
+
     stmt->type = MCC_AST_COMPOUND_STMT;
     stmt->compound_stmt = compound_stmt;
     return stmt;

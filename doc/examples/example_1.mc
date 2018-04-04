@@ -12,7 +12,7 @@ int max(int num1, int num2) {
    return result; 
 }
 
-int main () {
+int main (int art) {
 
    int a;
    int b;

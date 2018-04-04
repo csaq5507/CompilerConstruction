@@ -27,6 +27,12 @@ void mCc_ast_print_dot_function_def(FILE *out, struct mCc_ast_function_def_array
 
 void mCc_ast_print_dot_declaration(FILE *out, struct mCc_ast_declaration *f);
 
+void mCc_ast_print_dot_compound_stmt(FILE * out, struct mCc_ast_compound_stmt *c_stmt);
+
+void mCc_ast_print_dot_stmt(FILE *out, struct mCc_ast_stmt *stmt);
+
+void mCc_ast_print_dot_parameter(FILE *out, struct mCc_ast_parameter *param);
+
 #ifdef __cplusplus
 }
 #endif

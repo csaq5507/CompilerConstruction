@@ -1,6 +1,7 @@
 #include "mCc/ast_visit.h"
 
 #include <assert.h>
+#include <printf.h>
 
 #define visit(node, callback, visitor) \
 	do { \
@@ -25,10 +26,10 @@
 	         visitor)
 
 void mCc_ast_visit_expression(struct mCc_ast_expression *expression,
-                              struct mCc_ast_visitor *visitor)
-{
+                              struct mCc_ast_visitor *visitor) {
 	assert(expression);
 	assert(visitor);
+    printf("mCc_ast_visit_expression\n");
 
 	visit_if_pre_order(expression, visitor->expression, visitor);
 
@@ -52,10 +53,10 @@ void mCc_ast_visit_expression(struct mCc_ast_expression *expression,
 }
 
 void mCc_ast_visit_literal(struct mCc_ast_literal *literal,
-                           struct mCc_ast_visitor *visitor)
-{
+                           struct mCc_ast_visitor *visitor){
 	assert(literal);
 	assert(visitor);
+    printf("mCc_ast_visit_literal\n");
 
 	visit_if_pre_order(literal, visitor->literal, visitor);
 
@@ -81,10 +82,10 @@ void mCc_ast_visit_literal(struct mCc_ast_literal *literal,
 }
 
 void mCc_ast_visit_single_expression(struct mCc_ast_single_expression *single_expression,
-                           struct mCc_ast_visitor *visitor)
-{
+                           struct mCc_ast_visitor *visitor){
     assert(single_expression);
     assert(visitor);
+    printf("mCc_ast_visit_single_expression\n");
 
     visit_if_pre_order(single_expression, visitor->single_expression, visitor);
 
@@ -117,12 +118,10 @@ void mCc_ast_visit_single_expression(struct mCc_ast_single_expression *single_ex
 }
 
 void mCc_ast_visit_function_def(struct mCc_ast_function_def *f,
-                           struct mCc_ast_visitor *visitor)
-{
+                           struct mCc_ast_visitor *visitor){
     assert(f);
     assert(visitor);
-
-
+    printf("mCc_ast_visit_function_def\n");
     visit_if_pre_order(f, visitor->function_def, visitor);
 
     switch (f->type) {
@@ -139,11 +138,11 @@ void mCc_ast_visit_function_def(struct mCc_ast_function_def *f,
 }
 
 void mCc_ast_visit_stmt(struct mCc_ast_stmt *stmt,
-                           struct mCc_ast_visitor *visitor)
-{
+                           struct mCc_ast_visitor *visitor){
     assert(stmt);
     assert(visitor);
 
+    printf("mCc_ast_visit_stmt\n");
     visit_if_pre_order(stmt, visitor->stmt, visitor);
 
     switch (stmt->type) {
@@ -174,10 +173,11 @@ void mCc_ast_visit_stmt(struct mCc_ast_stmt *stmt,
 }
 
 void mCc_ast_visit_declaration(struct mCc_ast_declaration *decl,
-                        struct mCc_ast_visitor *visitor)
-{
+                        struct mCc_ast_visitor *visitor){
     assert(decl);
     assert(visitor);
+
+    printf("mCc_ast_visit_declaration\n");
 
     visit_if_pre_order(decl, visitor->declaration, visitor);
 

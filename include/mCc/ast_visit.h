@@ -30,6 +30,13 @@ typedef void (*mCc_ast_visit_stmt_cb)(struct mCc_ast_stmt *, void *);
 
 typedef void (*mCc_ast_visit_declaration_cb)(struct mCc_ast_declaration *, void *);
 
+typedef void (*mCc_ast_visit_parameter_cb)(struct mCc_ast_parameter *, void *);
+
+typedef void (*mCc_ast_visit_compound_cb)(struct mCc_ast_compound_stmt *, void *);
+
+typedef void (*mCc_ast_visit_argument_cb)(struct mCc_ast_argument *, void *);
+
+
 struct mCc_ast_visitor {
 	enum mCc_ast_visit_traversal traversal;
 	enum mCc_ast_visit_order order;
@@ -70,6 +77,12 @@ struct mCc_ast_visitor {
 	mCc_ast_visit_declaration_cb declaration;
 	mCc_ast_visit_declaration_cb declaration_array;
 	mCc_ast_visit_declaration_cb declaration_single;
+
+    mCc_ast_visit_parameter_cb parameter;
+
+    mCc_ast_visit_compound_cb compound;
+
+    mCc_ast_visit_argument_cb argument;
 };
 
 void mCc_ast_visit_expression(struct mCc_ast_expression *expression,
@@ -89,6 +102,9 @@ void mCc_ast_visit_stmt(struct mCc_ast_stmt *stmt,
 
 void mCc_ast_visit_declaration(struct mCc_ast_declaration *decl,
 							   struct mCc_ast_visitor *visitor);
+
+void mCc_ast_visit_parameter(struct mCc_ast_parameter * param,
+                             struct mCc_ast_visitor * visitor);
 
 #ifdef __cplusplus
 }

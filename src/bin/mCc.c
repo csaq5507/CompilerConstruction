@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <mCc/ast_print.h>
 
 #include "mCc/ast.h"
 #include "mCc/parser.h"
@@ -30,13 +31,14 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	struct mCc_ast_function_def *expr = NULL;
+	struct mCc_ast_function_def_array *expr = NULL;
 
 	/* parsing phase */
 	{
 		struct mCc_parser_result result = mCc_parser_parse_file(in);
 		fclose(in);
 		if (result.status != MCC_PARSER_STATUS_OK) {
+            printf("Parser_error");
 			return EXIT_FAILURE;
 		}
 		expr = result.func_def;
@@ -49,6 +51,11 @@ int main(int argc, char *argv[])
 	 * - output assembly code
 	 * - invoke backend compiler
 	 */
+    printf("output");
+    FILE *out;
+    out = fopen("output.txt","w");
+
+    mCc_ast_print_dot_function_def(out,expr);
 
 	/* cleanup */
 	mCc_ast_delete_expression(expr);

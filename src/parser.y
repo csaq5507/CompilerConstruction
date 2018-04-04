@@ -21,6 +21,7 @@ void mCc_parser_error();
 extern int line_num;
 %}
 
+
 %define api.value.type union
 %define api.token.prefix {TK_}
 
@@ -76,6 +77,7 @@ extern int line_num;
 %type <struct mCc_ast_literal *> literal
 %type <struct mCc_ast_single_expression *> single_expr
 %type <struct mCc_ast_function_def *> function_def
+%type <struct mCc_ast_function_def_array *> function_def_arr
 %type <struct mCc_ast_stmt *> statement
 
 %type <struct mCc_ast_parameter *> parameter
@@ -127,8 +129,11 @@ literal         : INT_LITERAL       { $$ = mCc_ast_new_literal_int($1);    }
                 ;
 
 
-toplevel        : function_def toplevel				{ printf("\n\n A \n\n");}
-                | function_def                      { printf("\n\n B \n\n");*result = $1; }
+toplevel        : function_def_arr                  { printf("\n\n B \n\n"); *result = $1; }
+                ;
+
+function_def_arr: function_def function_def_arr     { printf("\n\n arr \n\n"); $$ = mCc_ast_add_function_def_to_array($1,$2); }
+                | function_def                      { printf("\n\n single    \n\n"); $$ = mCc_ast_new_function_def_array($1); }
                 ;
 
 
@@ -141,14 +146,12 @@ function_def    : VOID IDENTIFIER LPARENTH parameter
 
 
 
-parameter       : parameter declaration				{ $$ = mCc_ast_new_parameter_array($1, $2); }
-                | declaration                       { $$ = mCc_ast_new_single_parameter($1); }
+parameter       :  declaration                       { $$ = mCc_ast_new_single_parameter($1); }
                 | %empty                                  { $$ = mCc_ast_new_empty_parameter_array(); }
                 ;
 
 
-compound_stmt   : compound_stmt statement			{ $$ = mCc_ast_new_compound_array($1,$2); }
-                | statement                         { $$ = mCc_ast_new_single_compound($1); }
+compound_stmt   : statement                         { $$ = mCc_ast_new_single_compound($1); }
                 ;
 
 
@@ -211,7 +214,6 @@ call_expr       : IDENTIFIER LPARENTH RPARENTH      { $$ = mCc_ast_new_empty_cal
 
 
 arguments       : expression                        { $$ = mCc_ast_new_single_argument($1); }
-                | arguments "," expression          { $$ = mCc_ast_new_argument_array($1,$3); }
                 ;
 
 
@@ -221,6 +223,7 @@ arguments       : expression                        { $$ = mCc_ast_new_single_ar
 #include <assert.h>
 
 #include "scanner.h"
+
 
 void yyerror(yyscan_t *scanner, const char *msg) {
 	printf("Error: %s\n", msg);
@@ -251,6 +254,11 @@ struct mCc_parser_result mCc_parser_parse_file(FILE *input)
 {
 	assert(input);
 
+/*    func_def_arrray = 1;
+    parameter_arrray = 1;
+    compound_arrray = 1;
+    argument_arrray = 1;
+*/
 	yyscan_t scanner;
 	mCc_parser_lex_init(&scanner);
 	mCc_parser_set_in(input, scanner);

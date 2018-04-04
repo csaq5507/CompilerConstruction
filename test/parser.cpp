@@ -1,16 +1,26 @@
 #include <gtest/gtest.h>
-
+#include <stdlib.h>
+#include <stdio.h>
 #include "mCc/ast.h"
 #include "mCc/parser.h"
 
 TEST(Parser, BinaryOp_1)
 {
-	const char input[] = "/* Comment */ int func1() {192 + 3.14;} int func2() {192 + 3.14;}";
+	const char input[] = "/* Comment */ int func1() {192 + 3.14;} int func4() {192 + 3.14;} int func2() {192 + 3.14;}";
 	auto result = mCc_parser_parse_string(input);
 	
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-	struct mCc_ast_function_def *func_def = result.func_def;
+struct mCc_ast_function_def_array *func_def_arr = result.func_def;
+
+    printf("result");
+    printf("%d",func_def_arr->counter);
+
+
+    auto func_def=func_def_arr->function_def;
+
+
+	ASSERT_EQ(func_def_arr->counter,3);
 
 	// root
 	ASSERT_EQ(MCC_AST_FUNCTION_DEF_TYPE_TYPE, func_def->type);
@@ -33,16 +43,16 @@ TEST(Parser, BinaryOp_1)
 
 	mCc_ast_delete_function_def(func_def);
 }
-
+/*
 TEST(Parser, Example_File_1) {
-	
+
 	FILE * file;
 	file = fopen( "../examples/example_1.mc" , "r");
 	if (!file) {
 		printf("I can't open a.snazzle.file!\n");
 	} else {
 		auto result = mCc_parser_parse_file(file);
-		
+
 		ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 	}
 }

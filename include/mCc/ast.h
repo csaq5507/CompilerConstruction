@@ -13,6 +13,8 @@ typedef int bool;
 
 
 
+
+
 /* Forward Declarations */
 struct mCc_ast_expression;
 struct mCc_ast_literal;
@@ -22,7 +24,16 @@ struct mCc_ast_parameter;
 struct mCc_ast_declaration;
 struct mCc_ast_compound_stmt;
 struct mCc_ast_function_def;
+struct mCc_ast_argument;
 
+
+/* array_counter */
+
+struct mCc_ast_function_def_array {
+    int counter;
+    struct mCc_ast_function_def * function_def;
+
+};
 
 /* ---------------------------------------------------------------- AST Node */
 
@@ -431,6 +442,12 @@ mCc_ast_new_compound_array(struct mCc_ast_compound_stmt* stmts, struct mCc_ast_s
 
 struct mCc_ast_compound_stmt *
 mCc_ast_new_single_compound(struct mCc_ast_stmt * stmt);
+
+struct mCc_ast_function_def_array *
+mCc_ast_add_function_def_to_array(struct mCc_ast_function_def_array *f, struct mCc_ast_function_def *f2);
+
+struct mCc_ast_function_def_array *
+mCc_ast_new_function_def_array(struct mCc_ast_function_def *f);
 
 
 #ifdef __cplusplus

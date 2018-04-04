@@ -244,10 +244,15 @@ mCc_ast_new_void_function_def(char * identifier, struct mCc_ast_parameter *param
 struct mCc_ast_function_def *
 mCc_ast_new_type_function_def(enum mCc_ast_literal_type type, char * identifier, struct mCc_ast_parameter *params, struct mCc_ast_compound_stmt *c_stmt)
 {
+    FILE *ds = fopen("h.txt","w");
+    fprintf(ds,"hoi");
+    fclose(ds);
+
     struct mCc_ast_function_def *f = malloc(sizeof(*f));
     if (!f) {
         return NULL;
     }
+
     f->type = MCC_AST_FUNCTION_DEF_TYPE_VOID;
 
     f->l_type = type;
@@ -449,22 +454,6 @@ void mCc_ast_delete_declaration(struct mCc_ast_declaration * decl)
 }
 
 
-struct mCc_ast_parameter *
-mCc_ast_new_parameter_array(struct mCc_ast_parameter * params, struct mCc_ast_declaration * decl)
-{
-    assert(decl);
-    assert(params);
-    struct mCc_ast_parameter * new_param = malloc( sizeof(*new_param));
-    new_param->declaration = decl;
-
-    int arr_size = sizeof(params) / sizeof(params[0]);
-
-    struct mCc_ast_parameter* new_params = malloc(sizeof(new_params)*arr_size+1);
-    memcpy(new_params,params,arr_size);
-    memcpy(&(new_params[arr_size]),new_param,1);
-
-    return new_params;
-}
 
 struct mCc_ast_parameter *
 mCc_ast_new_empty_parameter_array()
@@ -483,23 +472,6 @@ mCc_ast_new_single_parameter(struct mCc_ast_declaration * decl)
 }
 
 
-struct mCc_ast_compound_stmt *
-mCc_ast_new_compound_array(struct mCc_ast_compound_stmt* stmts, struct mCc_ast_stmt * stmt)
-{
-    assert(stmts);
-    assert(stmt);
-
-    struct mCc_ast_compound_stmt * new_stmt = malloc(sizeof(*new_stmt));
-    new_stmt->statements = stmt;
-
-    int arr_size = sizeof(stmts) / sizeof(stmts[0]);
-
-    struct mCc_ast_compound_stmt *new_stmts = malloc(sizeof(new_stmts)*arr_size+1);
-    memcpy(new_stmts,stmts,arr_size);
-    memcpy(&(new_stmts[arr_size]),new_stmt,1);
-
-    return new_stmts;
-}
 
 struct mCc_ast_compound_stmt * mCc_ast_new_single_compound(struct mCc_ast_stmt * stmt)
 {
@@ -630,19 +602,35 @@ mCc_ast_new_single_argument(struct mCc_ast_expression * ex)
 }
 
 
-struct mCc_ast_argument *
-mCc_ast_new_argument_array(struct mCc_ast_argument * arguments, struct mCc_ast_expression * ex)
+struct mCc_ast_function_def_array *
+mCc_ast_add_function_def_to_array(struct mCc_ast_function_def_array *f, struct mCc_ast_function_def *f2)
 {
-    assert(ex);
+    assert(f);
+    assert(f2);
 
-    struct mCc_ast_argument * new_argument = malloc( sizeof(*new_argument));
-    new_argument->expression = ex;
+    printf("inc arr");
 
-    int arr_size = sizeof(arguments) / sizeof(arguments[0]);
+    struct mCc_ast_function_def *function_array=malloc(sizeof(function_array)*f->counter+1);
+    memcpy(function_array,f->function_def,f->counter);
+    memcpy(&(function_array[f->counter]),f2,1);
+    f->counter++;
+    f->function_def = function_array;
+    return f;
+}
 
-    struct mCc_ast_argument *new_arguments=malloc(sizeof(new_arguments)*arr_size+1);
-    memcpy(new_arguments,arguments,arr_size);
-    memcpy(&(new_arguments[arr_size]),new_argument,1);
 
-    return new_arguments;
+struct mCc_ast_function_def_array *
+mCc_ast_new_function_def_array(struct mCc_ast_function_def *f)
+{
+    assert(f);
+
+    printf("new arr");
+
+
+    struct mCc_ast_function_def_array *function_array = malloc(sizeof(function_array));
+
+    function_array->counter=1;
+    function_array->function_def = f;
+
+    return function_array;
 }

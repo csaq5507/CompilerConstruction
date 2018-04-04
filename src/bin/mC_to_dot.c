@@ -4,10 +4,11 @@
 #include "mCc/ast.h"
 #include "mCc/ast_print.h"
 #include "mCc/parser.h"
+#include "mCc/ast.h"
 
 int main(void)
 {
-	struct mCc_ast_function_def *expr = NULL;
+	struct mCc_ast_function_def_array *expr = NULL;
 
 	/* parsing phase */
 	{

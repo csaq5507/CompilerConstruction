@@ -10,61 +10,37 @@ extern "C" {
 
 
 /* Forward Declarations */
-struct mCc_ast_expression;
-struct mCc_ast_literal;
-struct mCc_ast_single_expression;
-struct mCc_ast_call_expr;
-struct mCc_ast_parameter;
-struct mCc_ast_declaration;
-struct mCc_ast_compound_stmt;
-struct mCc_ast_function_def;
-struct mCc_ast_argument;
-struct mCc_ast_stmt;
+typedef struct mCc_ast_literal                  ast_literal;
+typedef struct mCc_ast_function_def             ast_function_def;
+typedef struct mCc_ast_function_def_array       ast_function_def_array;
+typedef struct mCc_ast_expression               ast_expr;
+typedef struct mCc_ast_single_expression        ast_single_expr;
+typedef struct mCc_ast_call_expr                ast_call_expr;
+typedef struct mCc_ast_declaration              ast_declaration;
+typedef struct mCc_ast_parameter                ast_parameter;
+typedef struct mCc_ast_assignment               ast_assignment;
+typedef struct mCc_ast_stmt                     ast_stmt;
+typedef struct mCc_ast_if_stmt                  ast_if_stmt;
+typedef struct mCc_ast_while_stmt               ast_while_stmt;
+typedef struct mCc_ast_ret_stmt                 ast_ret_stmt;
+typedef struct mCc_ast_compound_stmt            ast_compound_stmt;
+typedef struct mCc_ast_argument                 ast_argument;
 
 
 
 /* ###################### STRUCTS/ENUMS ###################### */
 
 /* ---------------------------------------------------------------- AST Node */
-struct mCc_ast_source_location {
+typedef struct mCc_ast_source_location {
     int start_line;
     int start_col;
     int end_line;
     int end_col;
-};
+} ast_source_location;
 
-struct mCc_ast_node {
-    struct mCc_ast_source_location sloc;
-};
-
-
-/* ----------------------------------------------------------- Function Def */
-enum mCc_ast_function_def_type {
-    MCC_AST_FUNCTION_DEF_TYPE_VOID,
-    MCC_AST_FUNCTION_DEF_TYPE_TYPE
-};
-
-struct mCc_ast_function_def_array {
-    int counter;
-    struct mCc_ast_function_def *function_def;
-
-} ast_function_def_array;
-
-struct mCc_ast_function_def {
-    struct mCc_ast_node node;
-
-    enum mCc_ast_function_def_type type;
-
-
-    union {
-        enum mCc_ast_literal_type l_type;
-        char *void_value;
-    };
-    char *identifier;
-    struct mCc_ast_parameter *params; //Optional
-    struct mCc_ast_compound_stmt *c_stmt;
-
-} ast_function_def;
+typedef struct mCc_ast_node {
+    ast_source_location sloc;
+} ast_node;
 
 
 /* --------------------------------------------------------------- Operators */
@@ -97,8 +73,8 @@ enum mCc_ast_literal_type {
     MCC_AST_LITERAL_TYPE_STRING
 };
 
-struct mCc_ast_literal {
-    struct mCc_ast_node node;
+typedef struct mCc_ast_literal {
+    ast_node node;
 
     enum mCc_ast_literal_type type;
     union {
@@ -115,27 +91,57 @@ struct mCc_ast_literal {
 } ast_literal;
 
 
+/* ----------------------------------------------------------- Function Def */
+enum mCc_ast_function_def_type {
+    MCC_AST_FUNCTION_DEF_TYPE_VOID,
+    MCC_AST_FUNCTION_DEF_TYPE_TYPE
+};
+
+
+typedef struct mCc_ast_function_def {
+    ast_node node;
+
+    enum mCc_ast_function_def_type type;
+
+
+    union {
+        enum mCc_ast_literal_type l_type;
+        char *void_value;
+    };
+    char *identifier;
+    ast_parameter *params; //Optional
+    ast_compound_stmt *c_stmt;
+
+} ast_function_def;
+
+typedef struct mCc_ast_function_def_array {
+    int counter;
+    ast_function_def *function_def;
+
+} ast_function_def_array;
+
+
 /* ------------------------------------------------------------- Expressions */
 enum mCc_ast_expression_type {
     MCC_AST_EXPRESSION_TYPE_SINGLE,
     MCC_AST_EXPRESSION_TYPE_BINARY
 };
 
-struct mCc_ast_expression {
-    struct mCc_ast_node node;
+typedef struct mCc_ast_expression {
+    ast_node node;
 
     enum mCc_ast_expression_type type;
 
     union {
 
         /* MCC_AST_EXPRESSION_TYPE_LITERAL */
-        struct mCc_ast_single_expression *single_expr;
+        ast_single_expr *single_expr;
 
         /* MCC_AST_EXPRESSION_TYPE_BINARY_OP */ //optional
         struct {
             enum mCc_ast_binary_op op;
-            struct mCc_ast_single_expression *lhs;
-            struct mCc_ast_expression *rhs;
+            ast_single_expr *lhs;
+            ast_expr *rhs;
         };
 
     };
@@ -152,40 +158,40 @@ enum mCc_ast_single_expression_type {
     MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH
 };
 
-struct mCc_ast_single_expression {
-    struct mCc_ast_node node;
+typedef struct mCc_ast_single_expression {
+    ast_node node;
 
     enum mCc_ast_single_expression_type type;
 
     union {
-        struct mCc_ast_literal *literal;
+        ast_literal *literal;
 
         char *only_identifier;
 
         struct {
             char *identifier;
-            struct mCc_ast_expression *identifier_expression; //OPTIONAL
+            ast_expr *identifier_expression; //OPTIONAL
         };
 
-        struct mCc_ast_call_expr *call_expr;
+        ast_call_expr *call_expr;
 
         struct {
             enum mCc_ast_unary_op unary_operator;
-            struct mCc_ast_expression *unary_expression;
+            ast_expr *unary_expression;
         };
 
-        struct mCc_ast_expression *expression;
+        ast_expr *expression;
 
     };
 } ast_single_expr;
 
 /* Call Expression */
-struct mCc_ast_call_expr {
-    struct mCc_ast_node node;
+typedef struct mCc_ast_call_expr {
+    ast_node node;
 
     char *identifier;
 
-    struct mCc_ast_argument *arguments; //OPTIONAL
+    ast_argument *arguments; //OPTIONAL
 } ast_call_expr;
 
 
@@ -196,8 +202,8 @@ enum mCc_ast_declaration_type {
 
 };
 
-struct mCc_ast_declaration {
-    struct mCc_ast_node node;
+typedef struct mCc_ast_declaration {
+    ast_node node;
 
     enum mCc_ast_declaration_type type;
     enum mCc_ast_literal_type literal;
@@ -226,95 +232,92 @@ enum mCc_ast_stmt_type {
 
 };
 
-struct mCc_ast_stmt {
-    struct mCc_ast_node node;
+typedef struct mCc_ast_stmt {
+    ast_node node;
 
     enum mCc_ast_stmt_type type;
 
     union {
-        struct mCc_ast_if_stmt *if_stmt;
-        struct mCc_ast_while_stmt *while_stmt;
-        struct mCc_ast_ret_stmt *ret_stmt;
-        struct mCc_ast_declaration *declaration;
-        struct mCc_ast_assignment *assignment;
-        struct mCc_ast_expression *expression;
-        struct mCc_ast_compound_stmt *compound_stmt;
+        ast_if_stmt *if_stmt;
+        ast_while_stmt *while_stmt;
+        ast_ret_stmt *ret_stmt;
+        ast_declaration *declaration;
+        ast_assignment *assignment;
+        ast_expr *expression;
+        ast_compound_stmt *compound_stmt;
 
     };
 } ast_stmt;
 
 /* IF Statement */
-struct mCc_ast_if_stmt {
-    struct mCc_ast_node node;
+typedef struct mCc_ast_if_stmt {
+    ast_node node;
 
-    struct mCc_ast_expression *expression;
-    struct mCc_ast_stmt *statement;
-    struct mCc_ast_stmt *else_statement; //OPTIONAL
+    ast_expr *expression;
+    ast_stmt *statement;
+    ast_stmt *else_statement; //OPTIONAL
 
-} ast_stmt_if;
+} ast_if_stmt;
 
 
 /* WHILE Statement */
-struct mCc_ast_while_stmt {
-    struct mCc_ast_node node;
+typedef struct mCc_ast_while_stmt {
+    ast_node node;
 
-    struct mCc_ast_expression *expression;
-    struct mCc_ast_stmt *statement;
-} ast_stmt_while;
+    ast_expr *expression;
+    ast_stmt *statement;
+} ast_while_stmt;
 
 
 /* RETURN Statement */
-struct mCc_ast_ret_stmt {
-    struct mCc_ast_node node;
+typedef struct mCc_ast_ret_stmt {
+    ast_node node;
 
-    struct mCc_ast_expression *expression;
+    ast_expr *expression;
 
-} ast_stmt_ret;
+} ast_ret_stmt;
 
 
 /* COMPOUND Statement */
-struct mCc_ast_compound_stmt {
-    struct mCc_ast_node node;
+typedef struct mCc_ast_compound_stmt {
+    ast_node node;
 
     int counter;
 
-    struct mCc_ast_stmt *statements; //OPTIONAL
-} ast_stmt_compound;
+    ast_stmt *statements; //OPTIONAL
+} ast_compound_stmt;
 
 
 /* ----------------------------------------------------------- Assignment */
-struct mCc_ast_assignment {
-    struct mCc_ast_node node;
+typedef struct mCc_ast_assignment {
+    ast_node node;
 
     char *identifier;
 
-    struct mCc_ast_expression *numerator; //OPTIONAL
-    struct mCc_ast_expression *expression;
+    ast_expr *numerator; //OPTIONAL
+    ast_expr *expression;
 
 } ast_assignment;
 
 
 /* ------------------------------------------------------------- Parameter */
-struct mCc_ast_parameter {
-    struct mCc_ast_node node;
+typedef struct mCc_ast_parameter {
+    ast_node node;
 
     int counter;
 
-    struct mCc_ast_declaration *declaration;
+    ast_declaration *declaration;
 } ast_parameter;
 
 
 /* ------------------------------------------------------------- Argument */
-struct mCc_ast_argument {
-    struct mCc_ast_node node;
+typedef struct mCc_ast_argument {
+    ast_node node;
 
     int counter;
 
-    struct mCc_ast_expression *expression;
+    ast_expr *expression;
 } ast_argument;
-
-
-
 
 
 
@@ -326,157 +329,121 @@ struct mCc_ast_argument {
 
 /* ###################### FUNCTIONS ###################### */
 /* ---------------------------------------------------------------- Literals */
-struct mCc_ast_literal *mCc_ast_new_literal_int(long value);
+ast_literal *mCc_ast_new_literal_int(long value);
 
-struct mCc_ast_literal *mCc_ast_new_literal_float(double value);
+ast_literal *mCc_ast_new_literal_float(double value);
 
-struct mCc_ast_literal *mCc_ast_new_literal_bool(bool value);
+ast_literal *mCc_ast_new_literal_bool(bool value);
 
-struct mCc_ast_literal *mCc_ast_new_literal_string(char *value);
+ast_literal *mCc_ast_new_literal_string(char *value);
 
-void mCc_ast_delete_literal(struct mCc_ast_literal *literal);
+void mCc_ast_delete_literal(ast_literal *literal);
+
 
 /* ------------------------------------------------------------- Expressions */
-struct mCc_ast_expression *
-mCc_ast_new_expression_single(struct mCc_ast_single_expression *single_expr);
+ast_expr *mCc_ast_new_expression_single(ast_single_expr *single_expr);
 
-struct mCc_ast_expression *
-mCc_ast_new_expression_binary_op(enum mCc_ast_binary_op op,
-                                 struct mCc_ast_single_expression *lhs,
-                                 struct mCc_ast_expression *rhs);
+ast_expr *mCc_ast_new_expression_binary_op(enum mCc_ast_binary_op op,
+                                 ast_single_expr *lhs,
+                                 ast_expr *rhs);
 
-void mCc_ast_delete_expression(struct mCc_ast_expression *expression);
+void mCc_ast_delete_expression(ast_expr *expression);
+
 
 /* Single Expression */
-struct mCc_ast_single_expression *
-mCc_ast_new_single_expression_literal(struct mCc_ast_literal *literal);
+ast_single_expr *mCc_ast_new_single_expression_literal(ast_literal *literal);
 
-struct mCc_ast_single_expression *
-mCc_ast_new_single_expression_identifier(char *identifier);
+ast_single_expr *mCc_ast_new_single_expression_identifier(char *identifier);
 
-struct mCc_ast_single_expression *
-mCc_ast_new_single_expression_identifier_ex(char *identifier,
-                                            struct mCc_ast_expression *identifier_expression);
+ast_single_expr *mCc_ast_new_single_expression_identifier_ex(char *identifier,
+                                            ast_expr *identifier_expression);
+ast_single_expr *mCc_ast_new_single_expression_call_expr(ast_call_expr *call_expr);
 
-struct mCc_ast_single_expression *
-mCc_ast_new_single_expression_call_expr(struct mCc_ast_call_expr *call_expr);
+ast_single_expr *mCc_ast_new_single_expression_unary_op(enum mCc_ast_unary_op unary_op,
+                                       ast_expr *unary_expression);
 
-struct mCc_ast_single_expression *
-mCc_ast_new_single_expression_unary_op(enum mCc_ast_unary_op unary_op,
-                                       struct mCc_ast_expression *unary_expression);
+ast_single_expr *mCc_ast_new_single_expression_parenth(ast_expr *expression);
 
-struct mCc_ast_single_expression *
-mCc_ast_new_single_expression_parenth(struct mCc_ast_expression *expression);
-
-void mCc_ast_delete_single_expression(struct mCc_ast_single_expression *expression);
-
-/* ----------------------------------------------------------- Function Def / CALL */
+void mCc_ast_delete_single_expression(ast_single_expr *expression);
 
 
-struct mCc_ast_function_def *
-mCc_ast_new_void_function_def(char *identifier, struct mCc_ast_parameter *params, struct mCc_ast_compound_stmt *c_stmt);
+/* Call Expression */
+ast_call_expr *mCc_ast_new_empty_call_expr(char *identifier);
 
-struct mCc_ast_function_def *
-mCc_ast_new_type_function_def(enum mCc_ast_literal_type type, char *identifier, struct mCc_ast_parameter *params,
-                              struct mCc_ast_compound_stmt *c_stmt);
-
-void mCc_ast_delete_function_def(struct mCc_ast_function_def_array *f);
+ast_call_expr *mCc_ast_new_call_expr(char *identifier, ast_argument *arguments);
 
 
+/* ----------------------------------------------------------- Function Def  */
+ast_function_def *mCc_ast_new_void_function_def(char *identifier, ast_parameter *params, ast_compound_stmt *c_stmt);
+
+ast_function_def *mCc_ast_new_type_function_def(enum mCc_ast_literal_type type, char *identifier, ast_parameter *params,
+                              ast_compound_stmt *c_stmt);
+
+void mCc_ast_delete_function_def(ast_function_def_array *f);
 
 
-struct mCc_ast_declaration *
-mCc_ast_new_array_declaration(enum mCc_ast_literal_type literal, int numerator, char *identifier);
+/* ----------------------------------------------------------- Declaration */
+ast_declaration *mCc_ast_new_array_declaration(enum mCc_ast_literal_type literal, int numerator, char *identifier);
 
-struct mCc_ast_declaration *
-mCc_ast_new_single_declaration(enum mCc_ast_literal_type literal, char *identifier);
+ast_declaration *mCc_ast_new_single_declaration(enum mCc_ast_literal_type literal, char *identifier);
 
-void mCc_ast_delete_declaration(struct mCc_ast_declaration *decl);
-
-/* ----------------------------------------------------------- stmt */
-
-struct mCc_ast_stmt *
-mCc_ast_new_if_stmt(struct mCc_ast_if_stmt *if_stmt);
-
-struct mCc_ast_stmt *
-mCc_ast_new_while_stmt(struct mCc_ast_while_stmt *while_stmt);
-
-struct mCc_ast_stmt *
-mCc_ast_new_ret_stmt(struct mCc_ast_ret_stmt *ret_stmt);
-
-struct mCc_ast_stmt *
-mCc_ast_new_declaration(struct mCc_ast_declaration *decl_stmt);
-
-struct mCc_ast_stmt *
-mCc_ast_new_assignment(struct mCc_ast_assignment *ass_stmt);
-
-struct mCc_ast_stmt *
-mCc_ast_new_expression(struct mCc_ast_expression *expr_stmt);
-
-struct mCc_ast_stmt *
-mCc_ast_new_compound_stmt(struct mCc_ast_compound_stmt *compound_stmt);
-
-void mCc_ast_delete_stmt(struct mCc_ast_stmt *stmt);
+void mCc_ast_delete_declaration(ast_declaration *decl);
 
 
-struct mCc_ast_if_stmt *
-mCc_ast_new_if(struct mCc_ast_expression *ex, struct mCc_ast_stmt *stmt);
+/* ----------------------------------------------------------- Statement */
+ast_stmt *mCc_ast_new_if_stmt(ast_if_stmt *if_stmt);
 
-struct mCc_ast_if_stmt *
-mCc_ast_new_if_else(struct mCc_ast_expression *ex, struct mCc_ast_stmt *stmt, struct mCc_ast_stmt *elsestmt);
+ast_if_stmt *mCc_ast_new_if(ast_expr *ex, ast_stmt *stmt);
 
+ast_if_stmt *mCc_ast_new_if_else(ast_expr *ex, ast_stmt *stmt, ast_stmt *elsestmt);
 
-struct mCc_ast_while_stmt *
-mCc_ast_new_while(struct mCc_ast_expression *ex, struct mCc_ast_stmt *stmt);
+ast_stmt *mCc_ast_new_while_stmt(ast_while_stmt *while_stmt);
 
+ast_while_stmt *mCc_ast_new_while(ast_expr *ex, ast_stmt *stmt);
 
-struct mCc_ast_ret_stmt *
-mCc_ast_new_ret(struct mCc_ast_expression *ex);
+ast_stmt *mCc_ast_new_ret_stmt(ast_ret_stmt *ret_stmt);
 
-struct mCc_ast_ret_stmt *
-mCc_ast_new_empty_ret();
+ast_ret_stmt *mCc_ast_new_ret(ast_expr *ex);
 
+ast_ret_stmt *mCc_ast_new_empty_ret();
 
-struct mCc_ast_assignment *
-mCc_ast_new_single_assignment(char *identifier, struct mCc_ast_expression *ex);
+ast_stmt *mCc_ast_new_declaration(ast_declaration *decl_stmt);
 
-struct mCc_ast_assignment *
-mCc_ast_new_array_assignment(char *identifier, struct mCc_ast_expression *ex, struct mCc_ast_expression *ex2);
+ast_stmt *mCc_ast_new_assignment(ast_assignment *ass_stmt);
 
+ast_stmt *mCc_ast_new_expression(ast_expr *expr_stmt);
 
-struct mCc_ast_call_expr *
-mCc_ast_new_empty_call_expr(char *identifier);
+ast_stmt *mCc_ast_new_compound_stmt(ast_compound_stmt *compound_stmt);
 
-struct mCc_ast_call_expr *
-mCc_ast_new_call_expr(char *identifier, struct mCc_ast_argument *arguments);
+ast_compound_stmt *mCc_ast_new_single_compound(ast_stmt *stmt);
 
-struct mCc_ast_argument *
-mCc_ast_new_single_argument(struct mCc_ast_expression *ex);
+ast_compound_stmt *mCc_ast_new_compound_array(ast_compound_stmt *stmts, ast_stmt *stmt);
 
-struct mCc_ast_argument *
-mCc_ast_new_argument_array(struct mCc_ast_argument *arguments, struct mCc_ast_expression *ex);
+void mCc_ast_delete_stmt(ast_stmt *stmt);
 
 
-struct mCc_ast_parameter *
-mCc_ast_new_parameter_array(struct mCc_ast_parameter *params, struct mCc_ast_declaration *decl);
+/* ----------------------------------------------------------- Assignment */
+ast_assignment *mCc_ast_new_single_assignment(char *identifier, ast_expr *ex);
 
-struct mCc_ast_parameter *
-mCc_ast_new_empty_parameter_array();
+ast_assignment *mCc_ast_new_array_assignment(char *identifier, ast_expr *ex, ast_expr *ex2);
 
-struct mCc_ast_parameter *
-mCc_ast_new_single_parameter(struct mCc_ast_declaration *decl);
 
-struct mCc_ast_compound_stmt *
-mCc_ast_new_single_compound(struct mCc_ast_stmt *stmt);
+/* ------------------------------------------------------------- Argument */
+ast_argument *mCc_ast_new_single_argument(ast_expr *ex);
 
-struct mCc_ast_compound_stmt *
-mCc_ast_new_compound_array(struct mCc_ast_compound_stmt *stmts, struct mCc_ast_stmt *stmt);
+ast_argument *mCc_ast_new_argument_array(ast_argument *arguments, ast_expr *ex);
 
-struct mCc_ast_function_def_array *
-mCc_ast_add_function_def_to_array(struct mCc_ast_function_def_array *f, struct mCc_ast_function_def *f2);
 
-struct mCc_ast_function_def_array *
-mCc_ast_new_function_def_array(struct mCc_ast_function_def *f);
+/* ------------------------------------------------------------- Parameter */
+ast_parameter *mCc_ast_new_parameter_array(ast_parameter *params, ast_declaration *decl);
+
+ast_parameter *mCc_ast_new_empty_parameter_array();
+
+ast_parameter *mCc_ast_new_single_parameter(ast_declaration *decl);
+
+ast_function_def_array *mCc_ast_add_function_def_to_array(ast_function_def_array *f, ast_function_def *f2);
+
+ast_function_def_array *mCc_ast_new_function_def_array(ast_function_def *f);
 
 
 #ifdef __cplusplus

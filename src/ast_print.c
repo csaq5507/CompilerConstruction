@@ -511,7 +511,6 @@ static void print_dot_compound_stmt(struct mCc_ast_compound_stmt * c_stmt, void 
     assert(c_stmt);
     assert(data);
 
-    printf("print_dot_compound_stmt\n");
     FILE *out = data;
 
     char label[LABEL_SIZE] = { 0 };
@@ -673,7 +672,6 @@ static void print_dot_function_def_type(struct mCc_ast_function_def *f, void *da
 void mCc_ast_print_dot_function_def(FILE *out, struct mCc_ast_function_def_array *f){
     assert(out);
     assert(f);
-    printf("mCc_ast_print_dot_function_def\n");
 
     print_dot_begin(out);
 

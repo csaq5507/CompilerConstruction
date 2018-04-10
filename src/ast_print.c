@@ -3,6 +3,7 @@
 #include <assert.h>
 
 #include "../include/mCc/ast.h"
+#include <string.h>
 
 #define LABEL_SIZE 64
 
@@ -116,6 +117,8 @@ static void print_dot_literal(struct mCc_ast_literal *literal, void *data) {
             print_dot_node(out, literal, label);
             break;
         case (MCC_AST_LITERAL_TYPE_STRING):
+            // TODO does not work because of the double quotes
+            //snprintf(label, sizeof(label), "SLiteral: %s", literal->s_value);
             snprintf(label, sizeof(label), "SLiteral: ");
             print_dot_node(out, literal, label);
             break;
@@ -129,6 +132,7 @@ static void print_dot_literal(struct mCc_ast_literal *literal, void *data) {
             break;
     }
 }
+
 
 /* ------------------------------------------------------------- Expressions */
 

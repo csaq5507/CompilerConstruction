@@ -150,7 +150,7 @@ function_def    : VOID IDENTIFIER LPARENTH parameter
 
                 | type IDENTIFIER LPARENTH parameter
                     RPARENTH LBRACE compound_stmt RBRACE         { $$ = mCc_ast_new_type_function_def($1,$2,$4,$7); }
-                | error RBRACE function_def                     { $$ = $3; }
+
                 ;
 
 
@@ -163,6 +163,7 @@ parameter       :  declaration                       { $$ = mCc_ast_new_single_p
 
 compound_stmt   : statement                         { $$ = mCc_ast_new_single_compound($1); }
                 | compound_stmt statement           { $$ = mCc_ast_new_compound_array($1,$2); }
+                | %empty                            { $$ = mCc_ast_new_empty_compound(); }
                 ;
 
 
@@ -173,7 +174,6 @@ statement       : if_stmt                           { $$ = mCc_ast_new_if_stmt($
                 | assignment SEMICOLON              { $$ = mCc_ast_new_assignment($1); }
                 | expression SEMICOLON              { $$ = mCc_ast_new_expression($1); }
                 | LBRACE compound_stmt RBRACE       { $$ = mCc_ast_new_compound_stmt($2); }
-                | error SEMICOLON statement         { $$ = $3; }
                 ;
 
 

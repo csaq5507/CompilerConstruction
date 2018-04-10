@@ -471,6 +471,15 @@ ast_stmt * mCc_ast_new_compound_stmt(ast_compound_stmt *compound_stmt) {
     return stmt;
 }
 
+ast_compound_stmt *mCc_ast_new_empty_compound() {
+
+    ast_compound_stmt * new_stmts =
+            malloc(sizeof(*new_stmts));
+    new_stmts->statements=NULL;
+    new_stmts->counter = 0;
+    return new_stmts;
+}
+
 ast_compound_stmt * mCc_ast_new_single_compound(ast_stmt * stmt) {
     assert(stmt);
 

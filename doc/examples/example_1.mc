@@ -29,3 +29,7 @@ int main () {
    print("\n");
    return 0;
 }
+
+int a () {
+
+}

@@ -415,6 +415,8 @@ ast_stmt *mCc_ast_new_expression(ast_expr *expr_stmt);
 
 ast_stmt *mCc_ast_new_compound_stmt(ast_compound_stmt *compound_stmt);
 
+ast_compound_stmt *mCc_ast_new_empty_compound();
+
 ast_compound_stmt *mCc_ast_new_single_compound(ast_stmt *stmt);
 
 ast_compound_stmt *mCc_ast_new_compound_array(ast_compound_stmt *stmts, ast_stmt *stmt);

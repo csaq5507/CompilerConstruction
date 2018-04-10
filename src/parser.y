@@ -106,128 +106,128 @@ extern int line_counter;
 %%
 
 
-binary_op       : PLUS              { printf("PLUS\n"); $$ = MCC_AST_BINARY_OP_ADD; }
-                | MINUS             { printf("MINUS\n"); $$ = MCC_AST_BINARY_OP_SUB; }
-                | ASTER             { printf("ASTER\n"); $$ = MCC_AST_BINARY_OP_MUL; }
-                | SLASH             { printf("SLASH\n"); $$ = MCC_AST_BINARY_OP_DIV; }
-                | LT                { printf("LT\n"); $$ = MCC_AST_BINARY_OP_LT; }
-                | GT                { printf("GT\n"); $$ = MCC_AST_BINARY_OP_GT; }
-                | LE                { printf("LE\n"); $$ = MCC_AST_BINARY_OP_LE; }
-                | GE                { printf("GE\n"); $$ = MCC_AST_BINARY_OP_GE; }
-                | EQ                { printf("EQ\n"); $$ = MCC_AST_BINARY_OP_EQ; }
-                | NEQ               { printf("NEQ\n"); $$ = MCC_AST_BINARY_OP_NEQ; }
-                | AND               { printf("AND\n"); $$ = MCC_AST_BINARY_OP_AND; }
-                | OR                { printf("OR\n"); $$ = MCC_AST_BINARY_OP_OR; }
+binary_op       : PLUS              { $$ = MCC_AST_BINARY_OP_ADD; }
+                | MINUS             { $$ = MCC_AST_BINARY_OP_SUB; }
+                | ASTER             { $$ = MCC_AST_BINARY_OP_MUL; }
+                | SLASH             { $$ = MCC_AST_BINARY_OP_DIV; }
+                | LT                { $$ = MCC_AST_BINARY_OP_LT; }
+                | GT                { $$ = MCC_AST_BINARY_OP_GT; }
+                | LE                { $$ = MCC_AST_BINARY_OP_LE; }
+                | GE                { $$ = MCC_AST_BINARY_OP_GE; }
+                | EQ                { $$ = MCC_AST_BINARY_OP_EQ; }
+                | NEQ               { $$ = MCC_AST_BINARY_OP_NEQ; }
+                | AND               { $$ = MCC_AST_BINARY_OP_AND; }
+                | OR                { $$ = MCC_AST_BINARY_OP_OR; }
                 ;
 
-unary_op        : MINUS             { printf("MINUS\n"); $$ = MCC_AST_UNARY_OP_NEGATION; }
-                | FAC               { printf("FAC\n"); $$ = MCC_AST_UNARY_OP_FAC; }
+unary_op        : MINUS             { $$ = MCC_AST_UNARY_OP_NEGATION; }
+                | FAC               { $$ = MCC_AST_UNARY_OP_FAC; }
                 ;
 
-type            : INT               { printf("INT\n"); $$ = MCC_AST_LITERAL_TYPE_INT; }
-                | BOOL              { printf("BOOL\n"); $$ = MCC_AST_LITERAL_TYPE_BOOL; }
-                | FLOAT             { printf("FLOAT\n"); $$ = MCC_AST_LITERAL_TYPE_FLOAT; }
-                | STRING            { printf("STRING\n"); $$ = MCC_AST_LITERAL_TYPE_STRING; }
+type            : INT               { $$ = MCC_AST_LITERAL_TYPE_INT; }
+                | BOOL              { $$ = MCC_AST_LITERAL_TYPE_BOOL; }
+                | FLOAT             { $$ = MCC_AST_LITERAL_TYPE_FLOAT; }
+                | STRING            { $$ = MCC_AST_LITERAL_TYPE_STRING; }
                 ;
 
-literal         : INT_LITERAL       { printf("INT_LIT\n"); $$ = mCc_ast_new_literal_int($1);    }
-                | FLOAT_LITERAL     { printf("FLOAT_LIT\n"); $$ = mCc_ast_new_literal_float($1);  }
-                | BOOL_LITERAL      { printf("BOOL_LIT\n"); $$ = mCc_ast_new_literal_bool($1);   }
-                | STRING_LITERAL    { printf("STRING_LIT %s\n\n", $1); $$ = mCc_ast_new_literal_string($1); }
+literal         : INT_LITERAL       { $$ = mCc_ast_new_literal_int($1);    }
+                | FLOAT_LITERAL     { $$ = mCc_ast_new_literal_float($1);  }
+                | BOOL_LITERAL      { $$ = mCc_ast_new_literal_bool($1);   }
+                | STRING_LITERAL    { $$ = mCc_ast_new_literal_string($1); }
                 ;
 
 
-toplevel        : function_def_arr                  { printf("toplevel\n"); result->func_def = $1; }
+toplevel        : function_def_arr                  { result->func_def = $1; }
                 ;
 
-function_def_arr: function_def_arr function_def     { printf("func_def_arr_1\n"); $$ = mCc_ast_add_function_def_to_array($1,$2); }
-                | function_def                      { printf("func_def_arr_2\n"); $$ = mCc_ast_new_function_def_array($1); }
+function_def_arr: function_def_arr function_def     { $$ = mCc_ast_add_function_def_to_array($1,$2); }
+                | function_def                      { $$ = mCc_ast_new_function_def_array($1); }
                 ;
 
 
 function_def    : VOID IDENTIFIER LPARENTH parameter
-                    RPARENTH LBRACE compound_stmt RBRACE          { printf("func_def_void\n"); $$ = mCc_ast_new_void_function_def($2,$4,$7); }
+                    RPARENTH LBRACE compound_stmt RBRACE          { $$ = mCc_ast_new_void_function_def($2,$4,$7); }
 
                 | type IDENTIFIER LPARENTH parameter
-                    RPARENTH LBRACE compound_stmt RBRACE         { printf("func_def_type\n");$$ = mCc_ast_new_type_function_def($1,$2,$4,$7); }
+                    RPARENTH LBRACE compound_stmt RBRACE         { $$ = mCc_ast_new_type_function_def($1,$2,$4,$7); }
                 | error RBRACE function_def                     { $$ = $3; }
                 ;
 
 
 
-parameter       :  declaration                       { printf("param_dec\n"); $$ = mCc_ast_new_single_parameter($1); }
-                | %empty                             { printf("param_empty\n"); $$ = mCc_ast_new_empty_parameter_array();  }
-                | parameter COMMA declaration          { printf("multi params\n"); $$ = mCc_ast_new_parameter_array($1,$3); }
+parameter       :  declaration                       { $$ = mCc_ast_new_single_parameter($1); }
+                | %empty                             { $$ = mCc_ast_new_empty_parameter_array();  }
+                | parameter COMMA declaration          { $$ = mCc_ast_new_parameter_array($1,$3); }
                 ;
 
 
-compound_stmt   : statement                         { printf("compund_stmt_stmt\n"); $$ = mCc_ast_new_single_compound($1); }
-                | compound_stmt statement           { printf("compound_stmt-cmp\n"); $$ = mCc_ast_new_compound_array($1,$2); }
+compound_stmt   : statement                         { $$ = mCc_ast_new_single_compound($1); }
+                | compound_stmt statement           { $$ = mCc_ast_new_compound_array($1,$2); }
                 ;
 
 
-statement       : if_stmt                           { printf("if_stmt\n"); $$ = mCc_ast_new_if_stmt($1); }
-                | ret_stmt SEMICOLON                { printf("ret_stmt\n"); $$ = mCc_ast_new_ret_stmt($1); }
-                | while_stmt                        { printf("while_stmt\n"); $$ = mCc_ast_new_while_stmt($1); }
-                | declaration SEMICOLON             { printf("decl_SEMI\n"); $$ = mCc_ast_new_declaration($1); }
-                | assignment SEMICOLON              { printf("assign_SEMI\n"); $$ = mCc_ast_new_assignment($1); }
-                | expression SEMICOLON              { printf("expression_SEMI\n"); $$ = mCc_ast_new_expression($1); }
-                | LBRACE compound_stmt RBRACE       { printf("stmt_cmp\n"); $$ = mCc_ast_new_compound_stmt($2); }
+statement       : if_stmt                           { $$ = mCc_ast_new_if_stmt($1); }
+                | ret_stmt SEMICOLON                { $$ = mCc_ast_new_ret_stmt($1); }
+                | while_stmt                        { $$ = mCc_ast_new_while_stmt($1); }
+                | declaration SEMICOLON             { $$ = mCc_ast_new_declaration($1); }
+                | assignment SEMICOLON              { $$ = mCc_ast_new_assignment($1); }
+                | expression SEMICOLON              { $$ = mCc_ast_new_expression($1); }
+                | LBRACE compound_stmt RBRACE       { $$ = mCc_ast_new_compound_stmt($2); }
                 | error SEMICOLON statement         { $$ = $3; }
                 ;
 
 
 if_stmt         : IF LPARENTH expression RPARENTH LBRACE statement RBRACE
-                                                    { printf("if_stmt_impl_1\n"); $$ = mCc_ast_new_if($3,$6); }
+                                                    { $$ = mCc_ast_new_if($3,$6); }
                 | IF LPARENTH expression RPARENTH LBRACE statement RBRACE ELSE LBRACE statement RBRACE
-                                                    { printf("if_stmt_impl_2\n"); $$ = mCc_ast_new_if_else($3,$6,$10); }
+                                                    { $$ = mCc_ast_new_if_else($3,$6,$10); }
                 ;
 
 
 while_stmt      : WHILE LPARENTH expression RPARENTH statement
-                                                    { printf("while_stmt_impl_1\n"); $$ = mCc_ast_new_while($3,$5); }
+                                                    { $$ = mCc_ast_new_while($3,$5); }
                 ;
 
 
-ret_stmt        : RETURN                          { printf("ret_stmt_impl_1\n"); $$ = mCc_ast_new_empty_ret(); }
-                | RETURN expression              { printf("ret_stmt_impl_2\n"); $$ = mCc_ast_new_ret($2); }
+ret_stmt        : RETURN                          { $$ = mCc_ast_new_empty_ret(); }
+                | RETURN expression              { $$ = mCc_ast_new_ret($2); }
                 ;
 
 
 declaration     : type LBRACKET INT_LITERAL RBRACKET
-                    IDENTIFIER                      { printf("decl_1\n"); $$ = mCc_ast_new_array_declaration($1,$3,$5);}
-                | type IDENTIFIER                { printf("decl_2\n"); $$ = mCc_ast_new_single_declaration($1,$2);}
+                    IDENTIFIER                      { $$ = mCc_ast_new_array_declaration($1,$3,$5);}
+                | type IDENTIFIER                { $$ = mCc_ast_new_single_declaration($1,$2);}
                 ;
 
 
-assignment      : IDENTIFIER ASSIGNMENT expression         { printf("assign_1\n"); $$ = mCc_ast_new_single_assignment($1,$3); }
+assignment      : IDENTIFIER ASSIGNMENT expression         { $$ = mCc_ast_new_single_assignment($1,$3); }
                 | IDENTIFIER LBRACKET expression RBRACKET "=" expression
-                                                    { printf("assign_2\n"); $$ = mCc_ast_new_array_assignment($1,$3,$6); }
+                                                    { $$ = mCc_ast_new_array_assignment($1,$3,$6); }
                 ;
 
 
-expression      : single_expr                       { printf("express_sing\n"); $$ = mCc_ast_new_expression_single($1); }
-                | single_expr binary_op expression  { printf("express_arr\n"); $$ = mCc_ast_new_expression_binary_op($2, $1, $3); }
+expression      : single_expr                       { $$ = mCc_ast_new_expression_single($1); }
+                | single_expr binary_op expression  { $$ = mCc_ast_new_expression_binary_op($2, $1, $3); }
                 ;
 
 
-single_expr     : literal                           { printf("literal\n"); $$ = mCc_ast_new_single_expression_literal($1); }
-                | IDENTIFIER                        { printf("ident\n"); $$ = mCc_ast_new_single_expression_identifier($1); }
-                | IDENTIFIER expression   		    { printf("ident_expr\n"); $$ = mCc_ast_new_single_expression_identifier_ex($1,$2); }
-                | call_expr                         { printf("call_expr\n"); $$ = mCc_ast_new_single_expression_call_expr($1); }
-                | unary_op expression               { printf("unary_op\n"); $$ = mCc_ast_new_single_expression_unary_op($1,$2); }
-                | LPARENTH expression RPARENTH      { printf("singl_expr\n"); $$ = mCc_ast_new_single_expression_parenth($2); }
+single_expr     : literal                           { $$ = mCc_ast_new_single_expression_literal($1); }
+                | IDENTIFIER                        { $$ = mCc_ast_new_single_expression_identifier($1); }
+                | IDENTIFIER expression   		    { $$ = mCc_ast_new_single_expression_identifier_ex($1,$2); }
+                | call_expr                         { $$ = mCc_ast_new_single_expression_call_expr($1); }
+                | unary_op expression               { $$ = mCc_ast_new_single_expression_unary_op($1,$2); }
+                | LPARENTH expression RPARENTH      { $$ = mCc_ast_new_single_expression_parenth($2); }
                 ;
 
 
-call_expr       : IDENTIFIER LPARENTH RPARENTH      { printf("call_expr_1\n"); $$ = mCc_ast_new_empty_call_expr($1); }
+call_expr       : IDENTIFIER LPARENTH RPARENTH      { $$ = mCc_ast_new_empty_call_expr($1); }
                 | IDENTIFIER LPARENTH arguments RPARENTH
-                                                    { printf("call_expr_2\n"); $$ = mCc_ast_new_call_expr($1,$3); }
+                                                    { $$ = mCc_ast_new_call_expr($1,$3); }
                 ;
 
 
-arguments       : expression                        { printf("arg_1\n"); $$ = mCc_ast_new_single_argument($1); }
-                | arguments COMMA expression          { printf("arg_2\n"); $$ = mCc_ast_new_argument_array($1,$3); }
+arguments       : expression                        { $$ = mCc_ast_new_single_argument($1); }
+                | arguments COMMA expression          { $$ = mCc_ast_new_argument_array($1,$3); }
                 ;
 
 

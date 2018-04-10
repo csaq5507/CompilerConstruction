@@ -133,7 +133,7 @@ type            : INT               { printf("INT\n"); $$ = MCC_AST_LITERAL_TYPE
 literal         : INT_LITERAL       { printf("INT_LIT\n"); $$ = mCc_ast_new_literal_int($1);    }
                 | FLOAT_LITERAL     { printf("FLOAT_LIT\n"); $$ = mCc_ast_new_literal_float($1);  }
                 | BOOL_LITERAL      { printf("BOOL_LIT\n"); $$ = mCc_ast_new_literal_bool($1);   }
-                | STRING_LITERAL    { printf("STRING_LIT\n"); $$ = mCc_ast_new_literal_string($1); }
+                | STRING_LITERAL    { printf("STRING_LIT %s\n\n", $1); $$ = mCc_ast_new_literal_string($1); }
                 ;
 
 

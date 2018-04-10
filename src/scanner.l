@@ -19,7 +19,7 @@ int line_counter = 1;
 
 int_literal   	-?[0-9]+
 float_literal 	-?[0-9]+\.[0-9]+
-string_literal	-?\"[^\"]*\"
+string_literal	L?\"(\\.|[^\\"])*\"
 
 identifier		[a-zA-Z_][a-zA-Z0-9_]*
 comment_between	-?[^*\n\r]*
@@ -47,7 +47,7 @@ comment_linebreak_r	[ \t]*[\r][ \t]*
 "true"   			{ yylval->TK_BOOL_LITERAL = atof(yytext); return TK_BOOL_LITERAL; }
 "false"    			{ yylval->TK_BOOL_LITERAL = atof(yytext); return TK_BOOL_LITERAL; }
 
-{string_literal}    { yylval->TK_STRING_LITERAL = strdup(yytext); return TK_STRING_LITERAL; }
+{string_literal}    { yylval->TK_STRING_LITERAL = yytext; return TK_STRING_LITERAL; }
 
 
 "+"               { return TK_PLUS; }

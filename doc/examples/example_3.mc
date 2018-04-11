@@ -1,6 +1,6 @@
 /* Example of how to work with arrays in mCc */
 
-int[] init_array(int array[], int length_of_array, int default_value)  { 
+int init_array(int [3] array, int length_of_array, int default_value)  {
 	int i;
 	i = 0;
 	while (i < length_of_array) {
@@ -10,19 +10,19 @@ int[] init_array(int array[], int length_of_array, int default_value)  {
 	return array;
 }  
 
-int[] add_array(int first_array[], int second_array[], int length_of_array) {
+int add_array(int [3] first_array, int [1] second_array, int length_of_array) {
 	int i;
 	i = 0;
-	int ret_array[length_of_array];
+	int [4] ret_array;
 	while (i < length_of_array) {
-		ret_array[i] = first_array[i] + second_array[i]; 
+		ret_array[i] = first_array[i] + second_array[i];
 		i = i +1;
 	}
 	return ret_array;
 }
 
 int main() { 
-	int array[50]; 
+	int [50] ()array;
  
 	init_array(values, 50, 0); 
 	 

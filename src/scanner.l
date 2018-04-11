@@ -17,6 +17,9 @@ int line_counter = 1;
 
 %x comment
 
+%x LEXING_ERROR
+
+
 int_literal   	-?[0-9]+
 float_literal 	-?[0-9]+\.[0-9]+
 string_literal	L?\"(\\.|[^\\"])*\"
@@ -98,4 +101,5 @@ comment_linebreak_r	[ \t]*[\r][ \t]*
 
 <<EOF>>           { return TK_END; }
 
-.                 { yylval->TK_UNKNWON = yytext[0]; return TK_UNKNWON; }
+.                 { BEGIN(LEXING_ERROR); yyless(0); }
+<LEXING_ERROR>.+  { fprintf(stderr,"Invalid character '%c' found at line %d, just before '%s'\n", *yytext, line_counter, yytext+1); exit(1); }

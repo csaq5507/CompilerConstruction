@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <memory.h>
-
+#include <string.h>
 
 /* ---------------------------------------------------------------- Literals */
 ast_literal *mCc_ast_new_literal_int(long value) {
@@ -40,14 +40,61 @@ ast_literal *mCc_ast_new_literal_bool(bool value) {
     return lit;
 }
 
+
+char * replace(
+        char const * const original,
+        char const * const pattern,
+        char const * const replacement
+) {
+    size_t const replen = strlen(replacement);
+    size_t const patlen = strlen(pattern);
+    size_t const orilen = strlen(original);
+
+    size_t patcnt = 0;
+    const char * oriptr;
+    const char * patloc;
+
+    // find how many times the pattern occurs in the original string
+    for (oriptr = original; (patloc = strstr(oriptr, pattern)) != NULL; oriptr = patloc + patlen)
+    {
+        patcnt++;
+    }
+
+    {
+        // allocate memory for the new string
+        size_t const retlen = orilen + patcnt * (replen - patlen);
+        char * const returned = (char *) malloc( sizeof(char) * (retlen + 1) );
+
+        if (returned != NULL)
+        {
+            // copy the original string,
+            // replacing all the instances of the pattern
+            char * retptr = returned;
+            for (oriptr = original; (patloc = strstr(oriptr, pattern)) != NULL; oriptr = patloc + patlen)
+            {
+                size_t const skplen = patloc - oriptr;
+                // copy the section until the occurence of the pattern
+                strncpy(retptr, oriptr, skplen);
+                retptr += skplen;
+                // copy the replacement
+                strncpy(retptr, replacement, replen);
+                retptr += replen;
+            }
+            // copy the rest of the string.
+            strcpy(retptr, oriptr);
+        }
+        return returned;
+    }
+}
+
 ast_literal *mCc_ast_new_literal_string(char* value)  {
     ast_literal *lit = malloc(sizeof(*lit));
     if (!lit) {
         return NULL;
     }
-
+    lit->s_value=malloc(sizeof(*(lit->s_value)));
     lit->type = MCC_AST_LITERAL_TYPE_STRING;
-    lit->s_value = value;
+    strcpy(lit->s_value, replace(replace(value,"\\n","enter"),"\""," "));
     return lit;
 }
 
@@ -262,7 +309,13 @@ ast_function_def_array * mCc_ast_add_function_def_to_array(ast_function_def_arra
     assert(f);
     assert(f2);
 
-    f->function_def = realloc(f->function_def, sizeof(*f2) * (f->counter +1));
+    ast_function_def * temp = realloc(f->function_def, sizeof(*f2) * (f->counter +1));
+    if(temp == NULL)
+    {
+        //TODO throw error
+        return NULL;
+    }
+    f->function_def = temp;
 
     memcpy(&(f->function_def[f->counter]),f2, sizeof(*f2));
     f->counter++;
@@ -291,7 +344,6 @@ void mCc_ast_delete_function_def(ast_function_def_array *f) {
 
 /* ----------------------------------------------------------- Declaration */
 ast_declaration * mCc_ast_new_array_declaration(enum mCc_ast_literal_type literal,int numerator, char * identifier) {
-    assert(literal);
 
     ast_declaration *decl = malloc(sizeof(*decl));
     if (!decl) {
@@ -493,9 +545,14 @@ ast_compound_stmt * mCc_ast_new_compound_array(ast_compound_stmt* stmts, ast_stm
     assert(stmts);
     assert(stmt);
 
-    stmts->statements =
+    ast_stmt * temp =
             realloc(stmts->statements, sizeof(*stmt) * (stmts->counter+1));
-
+    if(temp == NULL)
+    {
+        //TODO throw error
+        return NULL;
+    }
+    stmts->statements = temp;
     memcpy(&(stmts->statements[stmts->counter]),stmt,sizeof(*stmt));
 
     stmts->counter++;
@@ -563,9 +620,14 @@ ast_parameter * mCc_ast_new_parameter_array(ast_parameter * params, ast_declarat
     assert(params);
     assert(decl);
 
-    params->declaration =
+    ast_declaration * temp =
             realloc(params->declaration, sizeof(*decl) *(params->counter + 1));
-
+    if(temp == NULL)
+    {
+        //TODO throw error
+        return NULL;
+    }
+    params->declaration = temp;
     memcpy(&(params->declaration[params->counter]),decl,sizeof(*decl));
 
     params->counter++;
@@ -608,8 +670,15 @@ ast_argument * mCc_ast_new_argument_array(ast_argument * arguments, ast_expr * e
     assert(arguments);
     assert(ex);
 
-    arguments->expression =
+    ast_expr * temp =
             realloc(arguments->expression, sizeof(*ex) * (arguments->counter +1 ));
+    if(temp == NULL)
+    {
+        //TODO throw error
+        return NULL;
+    }
+    arguments->expression = temp;
+
     memcpy(&(arguments->expression[arguments->counter]),ex, sizeof(*ex));
 
     arguments->counter++;

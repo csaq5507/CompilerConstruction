@@ -170,8 +170,8 @@ compound_stmt   : statement                         { $$ = mCc_ast_new_single_co
 statement       : if_stmt                           { $$ = mCc_ast_new_if_stmt($1); }
                 | ret_stmt SEMICOLON                { $$ = mCc_ast_new_ret_stmt($1); }
                 | while_stmt                        { $$ = mCc_ast_new_while_stmt($1); }
-                | declaration SEMICOLON             { $$ = mCc_ast_new_declaration($1); }
                 | assignment SEMICOLON              { $$ = mCc_ast_new_assignment($1); }
+                | declaration SEMICOLON             { $$ = mCc_ast_new_declaration($1); }
                 | expression SEMICOLON              { $$ = mCc_ast_new_expression($1); }
                 | LBRACE compound_stmt RBRACE       { $$ = mCc_ast_new_compound_stmt($2); }
                 ;
@@ -200,20 +200,21 @@ declaration     : type LBRACKET INT_LITERAL RBRACKET
                 ;
 
 
-assignment      : IDENTIFIER ASSIGNMENT expression         { $$ = mCc_ast_new_single_assignment($1,$3); }
-                | IDENTIFIER LBRACKET expression RBRACKET "=" expression
+assignment      : IDENTIFIER LBRACKET expression RBRACKET "=" expression
                                                     { $$ = mCc_ast_new_array_assignment($1,$3,$6); }
+                | IDENTIFIER ASSIGNMENT expression  { $$ = mCc_ast_new_single_assignment($1,$3); }
                 ;
 
 
-expression      : single_expr                       { $$ = mCc_ast_new_expression_single($1); }
-                | single_expr binary_op expression  { $$ = mCc_ast_new_expression_binary_op($2, $1, $3); }
+expression      : single_expr binary_op expression  { $$ = mCc_ast_new_expression_binary_op($2, $1, $3); }
+                | single_expr                       { $$ = mCc_ast_new_expression_single($1); }
                 ;
 
 
 single_expr     : literal                           { $$ = mCc_ast_new_single_expression_literal($1); }
+                | IDENTIFIER LBRACKET expression RBRACKET
+                                                    { $$ = mCc_ast_new_single_expression_identifier_ex($1,$3); }
                 | IDENTIFIER                        { $$ = mCc_ast_new_single_expression_identifier($1); }
-                | IDENTIFIER expression   		    { $$ = mCc_ast_new_single_expression_identifier_ex($1,$2); }
                 | call_expr                         { $$ = mCc_ast_new_single_expression_call_expr($1); }
                 | unary_op expression               { $$ = mCc_ast_new_single_expression_unary_op($1,$2); }
                 | LPARENTH expression RPARENTH      { $$ = mCc_ast_new_single_expression_parenth($2); }
@@ -235,16 +236,16 @@ arguments       : expression                        { $$ = mCc_ast_new_single_ar
 %%
 
 #include <assert.h>
+#include <string.h>
 
 #include "scanner.h"
 
-struct mCc_parser_result result;
-
-void yyerror(yyscan_t *scanner, const char *msg) {
-    struct mCc_parser_error *error =  malloc(sizeof(*error));
-    error->error_msg = msg;
+void yyerror(yyscan_t *scanner, struct mCc_parser_result * result, const char *msg) {
+    struct mCc_parser_error *error =  malloc(sizeof(struct mCc_parser_error));
+    strcpy(error->error_msg,msg);
     error->error_line = line_counter;
-	result.errors = add_parse_error(result.errors, error);
+	result->errors = add_parse_error(result->errors, error);
+
 }
 
 
@@ -261,10 +262,22 @@ struct mCc_parser_error_array* new_parse_error_array() {
 struct mCc_parser_error_array* add_parse_error(struct mCc_parser_error_array* array, struct mCc_parser_error *error) {
     assert(array);
     assert(error);
+    if(array->counter == 0)
+    {
+        array->errors = malloc(sizeof(*error));
+        array->errors[array->counter] = *error;
 
-    array->errors = realloc(array->errors, sizeof(*error) * (array->counter +1));
-
-    memcpy(&(array->errors[array->counter]),error, sizeof(*error));
+    } else
+    {
+        struct mCc_parser_error * temp = realloc(array->errors, sizeof(*error) * (array->counter + 1));
+        if(temp == NULL)
+        {
+            //TODO throw error
+            return NULL;
+        }
+        array->errors = temp;
+        memcpy(&(array->errors[array->counter]),error, sizeof(*error));
+    }
     array->counter++;
     return array;
 }
@@ -276,11 +289,12 @@ struct mCc_parser_result mCc_parser_parse_string(const char *input)
 
 	FILE *in = fmemopen((void *)input, strlen(input), "r");
 	if (!in) {
+		struct mCc_parser_result result;
 		result.status = MCC_PARSER_STATUS_UNABLE_TO_OPEN_STREAM;
 		return result;
 	}
 
-	result = mCc_parser_parse_file(in);
+	struct mCc_parser_result result = mCc_parser_parse_file(in);
 
 	fclose(in);
 
@@ -294,6 +308,8 @@ struct mCc_parser_result mCc_parser_parse_file(FILE *input)
     yyscan_t scanner;
 	mCc_parser_lex_init(&scanner);
 	mCc_parser_set_in(input, scanner);
+
+    struct mCc_parser_result result;
 
 	result.status = MCC_PARSER_STATUS_OK;
 	result.errors = new_parse_error_array();

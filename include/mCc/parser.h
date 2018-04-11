@@ -24,11 +24,11 @@ struct mCc_parser_result {
 
 struct mCc_parser_error_array {
 	int counter;
-	struct mCc_parser_error *errors;
+	struct mCc_parser_error* errors;
 };
 
 struct mCc_parser_error {
-	char* error_msg;
+	 char error_msg[1024];
 	int error_line;
 };
 

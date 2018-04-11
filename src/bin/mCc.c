@@ -38,7 +38,12 @@ int main(int argc, char *argv[])
 		struct mCc_parser_result result = mCc_parser_parse_file(in);
 		fclose(in);
 		if (result.status != MCC_PARSER_STATUS_OK) {
-            printf("Parser_error");
+            printf("Parser_error:\n");
+			for(int i=0;i<result.errors->counter;i++){
+				printf("Error at line %d\n",result.errors->errors[i].error_line);
+				printf("%s\n",result.errors->errors[i].error_msg);
+
+			}
 			return EXIT_FAILURE;
 		}
 		expr = result.func_def;

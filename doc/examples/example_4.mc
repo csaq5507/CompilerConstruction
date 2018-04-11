@@ -37,7 +37,7 @@ int main() {
     }
     space = space + 1;
     c = 1;
-    while (c <= 2*(n-k)-1) {
+    while (c <= (2 * (n - k) - 1) ) {
       print("*");
       c = c + 1;
     }

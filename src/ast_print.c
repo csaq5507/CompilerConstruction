@@ -1,13 +1,11 @@
 #include "mCc/ast_print.h"
 
 #include <assert.h>
-
-#include "../include/mCc/ast.h"
-#include <string.h>
+#include <stdlib.h>
 
 #define LABEL_SIZE 64
 
-
+char * ptr;
 
 static void print_dot_begin(FILE *out);
 static void print_dot_end(FILE *out);
@@ -46,29 +44,27 @@ const char *mCc_ast_print_binary_op(enum mCc_ast_binary_op op){
         case MCC_AST_BINARY_OP_GT: return ">";
         case MCC_AST_BINARY_OP_LE: return "<=";
         case MCC_AST_BINARY_OP_LT: return "<";
+        default: return "unknown";
 	}
-
-	return "unknown op";
 }
 
 const char *mCc_ast_print_unary_op(enum mCc_ast_unary_op op){
     switch (op) {
-        case MCC_AST_UNARY_OP_FAC: return "!";
-        case MCC_AST_UNARY_OP_NEGATION: return "-";
+        case MCC_AST_UNARY_OP_FAC: return "Operator: !";
+        case MCC_AST_UNARY_OP_NEGATION: return "Operator: -";
+        default: return "unknown";
     }
 
-    return "unknown op";
 }
 
 const char *mCc_ast_print_literal_type(enum mCc_ast_literal_type type){
     switch (type) {
-        case MCC_AST_LITERAL_TYPE_STRING: return "string";
-        case MCC_AST_LITERAL_TYPE_INT: return "int";
-        case MCC_AST_LITERAL_TYPE_FLOAT: return "float";
-        case MCC_AST_LITERAL_TYPE_BOOL: return "bool";
+        case MCC_AST_LITERAL_TYPE_STRING: return "type: STRING";
+        case MCC_AST_LITERAL_TYPE_INT: return "type: INT";
+        case MCC_AST_LITERAL_TYPE_FLOAT: return "type: FLOAT";
+        case MCC_AST_LITERAL_TYPE_BOOL: return "type: BOOL";
+        default: return "unknown";
     }
-
-    return "unknown type";
 }
 /* ------------------------------------------------------------- DOT Printer */
 
@@ -104,6 +100,10 @@ static void print_dot_edge(FILE *out, const void *src_node, const void *dst_node
 }
 
 /* ------------------------------------------------------------- Literal */
+
+
+
+
 static void print_dot_literal(struct mCc_ast_literal *literal, void *data) {
     assert(literal);
     assert(data);
@@ -117,9 +117,7 @@ static void print_dot_literal(struct mCc_ast_literal *literal, void *data) {
             print_dot_node(out, literal, label);
             break;
         case (MCC_AST_LITERAL_TYPE_STRING):
-            // TODO does not work because of the double quotes
-            //snprintf(label, sizeof(label), "SLiteral: %s", literal->s_value);
-            snprintf(label, sizeof(label), "SLiteral: ");
+            snprintf(label, sizeof(label), "SLiteral: %s", literal->s_value);
             print_dot_node(out, literal, label);
             break;
         case (MCC_AST_LITERAL_TYPE_BOOL):
@@ -191,14 +189,7 @@ static void print_dot_expression_single(struct mCc_ast_single_expression *expres
             print_dot_call_expr(expression->call_expr, data);
             break;
         case(MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP):
-            switch (expression->unary_operator) {
-                case (MCC_AST_UNARY_OP_NEGATION):
-                    snprintf(label, sizeof(label), "Operator: -");
-                    break;
-                case (MCC_AST_UNARY_OP_FAC):
-                    snprintf(label, sizeof(label), "Operator: !");
-                    break;
-            }
+            snprintf(label, sizeof(label), "%s", mCc_ast_print_unary_op(expression->unary_operator));
             print_dot_node(out, &expression->unary_operator, label);
             print_dot_edge(out, expression, &expression->unary_operator, "");
             snprintf(label, sizeof(label), "Unary expression:");
@@ -230,52 +221,12 @@ static void print_dot_expression_binary(struct mCc_ast_expression *expression, v
     print_dot_edge(out, expression, expression->lhs, "");
     print_dot_expression_single(expression->lhs, data);
 
-    char * text;
-    switch (expression->op) {
-        case (MCC_AST_BINARY_OP_ADD):
-            text = "+";
-            break;
-        case (MCC_AST_BINARY_OP_SUB):
-            text = "-";
-            break;
-        case (MCC_AST_BINARY_OP_MUL):
-            text = "*";
-            break;
-        case (MCC_AST_BINARY_OP_DIV):
-            text = "/";
-            break;
-        case (MCC_AST_BINARY_OP_LT):
-            text = "<";
-            break;
-        case (MCC_AST_BINARY_OP_GT):
-            text = ">";
-            break;
-        case (MCC_AST_BINARY_OP_LE):
-            text = "<=";
-            break;
-        case (MCC_AST_BINARY_OP_GE):
-            text = ">=";
-            break;
-        case (MCC_AST_BINARY_OP_AND):
-            text = "&&";
-            break;
-        case (MCC_AST_BINARY_OP_OR):
-            text = "||";
-            break;
-        case (MCC_AST_BINARY_OP_EQ):
-            text = "==";
-            break;
-        case (MCC_AST_BINARY_OP_NEQ):
-            text = "!=";
-            break;
-        default:
-            text="Unknown";
-            break;
-    }
+    const char * text = mCc_ast_print_binary_op(expression->op);
+
 
     snprintf(label, sizeof(label), "Operator: %s", text);
-    print_dot_node(out, text, label);
-    print_dot_edge(out, expression, text, "");
+    print_dot_node(out, ptr, label);
+    print_dot_edge(out, expression, ptr++, "");
 
 
 
@@ -360,7 +311,7 @@ static void print_dot_stmt_statement(struct mCc_ast_stmt *stmt, void *data) {
             print_dot_stmt_compound(stmt->compound_stmt, data);
             break;
         default:
-            // TODO ELSE STATEMENT
+            //tODO should not occur,
             break;
     }
 }
@@ -584,10 +535,9 @@ static void print_dot_function_def_void(struct mCc_ast_function_def *f, void *da
     char label[LABEL_SIZE] = { 0 };
 
     /* TYPE */
-    void *help1 ;
     snprintf(label, sizeof(label), "type: VOID");
-    print_dot_node(out, &help1, label);
-    print_dot_edge(out, f->identifier, &help1, "");
+    print_dot_node(out, ptr, label);
+    print_dot_edge(out, f->identifier, ptr++, "");
 
 
     /* Parameter */
@@ -623,33 +573,10 @@ static void print_dot_function_def_type(struct mCc_ast_function_def *f, void *da
 
     char label[LABEL_SIZE] = { 0 };
 
-    /* TYPE */
-    char *help1;
-    switch(f->l_type) {
-        case (MCC_AST_LITERAL_TYPE_INT):
-            help1 = "int";
-            snprintf(label, sizeof(label), "type: INT");
-            break;
-        case (MCC_AST_LITERAL_TYPE_STRING):
-            help1 = "string";
-            snprintf(label, sizeof(label), "type: STRING");
-            break;
-        case (MCC_AST_LITERAL_TYPE_BOOL):
-            help1 = "bool";
-            snprintf(label, sizeof(label), "type: BOOL");
-            break;
-        case (MCC_AST_LITERAL_TYPE_FLOAT):
-            help1 = "float";
-            snprintf(label, sizeof(label), "type: FLOAT");
-            break;
-        default:
-            help1 = "unknwon";
-            snprintf(label, sizeof(label), "type: Unknwon");
-            break;
-    }
+    snprintf(label, sizeof(label), "%s", mCc_ast_print_literal_type(f->l_type));
 
-    print_dot_node(out, help1, label);
-    print_dot_edge(out, f->identifier, help1, "");
+    print_dot_node(out, ptr, label);
+    print_dot_edge(out, f->identifier, ptr++, "");
 
 
     /* Parameter */
@@ -659,7 +586,10 @@ static void print_dot_function_def_type(struct mCc_ast_function_def *f, void *da
     }
 
     for(int i=0;i<f->params->counter;i++) {
-        snprintf(label, sizeof(label), "params: %s", f->params->declaration[i].identifier);
+        if(f->params->declaration[i].type == MCC_AST_DECLARATION_TYPE_SINGLE)
+            snprintf(label, sizeof(label), "params: %s", f->params->declaration[i].identifier);
+        else
+            snprintf(label, sizeof(label), "params: %s", f->params->declaration[i].array_identifier);
         print_dot_node(out, &f->params->declaration[i], label);
         print_dot_edge(out, f->params, &f->params->declaration[i], "");
         print_dot_stmt_decl(&f->params->declaration[i], data);
@@ -676,7 +606,7 @@ static void print_dot_function_def_type(struct mCc_ast_function_def *f, void *da
 void mCc_ast_print_dot_function_def(FILE *out, struct mCc_ast_function_def_array *f){
     assert(out);
     assert(f);
-
+    ptr  = malloc(1);
     print_dot_begin(out);
 
     char label[LABEL_SIZE] = { 0 };

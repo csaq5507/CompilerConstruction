@@ -20,8 +20,8 @@ int line_counter = 1;
 %x LEXING_ERROR
 
 
-int_literal   	-?[0-9]+
-float_literal 	-?[0-9]+\.[0-9]+
+int_literal   	[0-9]+
+float_literal 	[0-9]+\.[0-9]+
 string_literal	L?\"(\\.|[^\\"])*\"
 
 identifier		[a-zA-Z_][a-zA-Z0-9_]*

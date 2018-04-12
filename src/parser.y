@@ -177,10 +177,10 @@ statement       : if_stmt                           { $$ = mCc_ast_new_if_stmt($
                 ;
 
 
-if_stmt         : IF LPARENTH expression RPARENTH LBRACE statement RBRACE
-                                                    { $$ = mCc_ast_new_if($3,$6); }
-                | IF LPARENTH expression RPARENTH LBRACE statement RBRACE ELSE LBRACE statement RBRACE
-                                                    { $$ = mCc_ast_new_if_else($3,$6,$10); }
+if_stmt         : IF LPARENTH expression RPARENTH statement
+                                                    { $$ = mCc_ast_new_if($3,$5); }
+                | IF LPARENTH expression RPARENTH statement ELSE statement
+                                                    { $$ = mCc_ast_new_if_else($3,$5,$7); }
                 ;
 
 

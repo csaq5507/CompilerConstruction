@@ -38,11 +38,12 @@ int main(int argc, char *argv[])
 		struct mCc_parser_result result = mCc_parser_parse_file(in);
 		fclose(in);
 		if (result.status != MCC_PARSER_STATUS_OK) {
-            printf("Parser_error:\n");
-			for(int i=0;i<result.errors->counter;i++){
-				printf("Error at line %d\n",result.errors->errors[i].error_line);
-				printf("%s\n",result.errors->errors[i].error_msg);
-
+			printf("Parser_error:\n");
+			for (int i = 0; i < result.errors->counter; i++) {
+				printf("Error at line %d\n",
+				       result.errors->errors[i].error_line);
+				printf("%s\n",
+				       result.errors->errors[i].error_msg);
 			}
 			return EXIT_FAILURE;
 		}
@@ -57,11 +58,11 @@ int main(int argc, char *argv[])
 	 * - invoke backend compiler
 	 */
 
-    FILE *out;
-    out = fopen("output.txt","w");
-    
-    mCc_ast_print_dot_function_def(out,expr);
-    
+	FILE *out;
+	out = fopen("output1.txt", "w");
+
+	mCc_ast_print_dot_function_def(out, expr);
+
 
 	/* cleanup */
 	mCc_ast_delete_function_def(expr);

@@ -92,14 +92,14 @@ char *replace(char const *const original, char const *const pattern,
 
 ast_literal *mCc_ast_new_literal_string(char *value)
 {
+    char * temp = replace(replace(value, "\\n", "enter"), "\"", " ");
 	ast_literal *lit = malloc(sizeof(*lit));
 	if (!lit) {
 		return NULL;
 	}
-	lit->s_value = malloc(sizeof(*(lit->s_value)));
+	lit->s_value = malloc(sizeof(*lit->s_value)*strlen(temp));
 	lit->type = MCC_AST_LITERAL_TYPE_STRING;
-	strcpy(lit->s_value,
-	       replace(replace(value, "\\n", "enter"), "\"", " "));
+	strcpy(lit->s_value,temp);
 	return lit;
 }
 
@@ -224,7 +224,6 @@ ast_single_expr *
 mCc_ast_new_single_expression_unary_op(enum mCc_ast_unary_op unary_op,
 				       ast_expr *unary_expression)
 {
-	assert(unary_op);
 	assert(unary_expression);
 
 	ast_single_expr *expr = malloc(sizeof(*expr));

@@ -25,46 +25,12 @@
 	visit_if((visitor)->order == MCC_AST_VISIT_POST_ORDER, node, callback, \
 		 visitor)
 
-/*
-void mCc_ast_visit_expression(struct mCc_ast_expression *expression,
-			      struct mCc_ast_visitor *visitor)
-{
-	assert(expression);
-	assert(visitor);
-
-	visit_if_pre_order(expression, visitor->expression, visitor);
-
-	switch (expression->type) {
-	case MCC_AST_EXPRESSION_TYPE_LITERAL:
-		visit_if_pre_order(expression, visitor->expression_literal, visitor);
-		mCc_ast_visit_literal(expression->literal, visitor);
-		visit_if_post_order(expression, visitor->expression_literal, visitor);
-		break;
-
-	case MCC_AST_EXPRESSION_TYPE_BINARY_OP:
-		visit_if_pre_order(expression, visitor->expression_binary_op, visitor);
-		mCc_ast_visit_expression(expression->lhs, visitor);
-		mCc_ast_visit_expression(expression->rhs, visitor);
-		visit_if_post_order(expression, visitor->expression_binary_op, visitor);
-		break;
-
-	case MCC_AST_EXPRESSION_TYPE_PARENTH:
-		visit_if_pre_order(expression, visitor->expression_parenth, visitor);
-		mCc_ast_visit_expression(expression->expression, visitor);
-		visit_if_post_order(expression, visitor->expression_parenth, visitor);
-		break;
-	}
-
-	visit_if_post_order(expression, visitor->expression, visitor);
-}
-*/
 
 void mCc_ast_visit_function_def_array(struct mCc_ast_function_def_array *f,
                                       struct mCc_ast_visitor *visitor)
 {
     assert(f);
     assert(visitor);
-
 
     for (int i = 0; i < f->counter; i++) {
         struct mCc_ast_function_def *func = &f->function_def[i];
@@ -115,7 +81,9 @@ void mCc_ast_visit_parameter(struct mCc_ast_parameter *param,
     assert(param);
     assert(visitor);
 
-    //TODO
+    for (int i = 0; i < param->counter; i++) {
+        mCc_ast_visit_decl_stmt(&param->declaration[i], visitor);
+    }
 }
 
 void mCc_ast_visit_stmt(struct mCc_ast_compound_stmt *stmt,
@@ -129,10 +97,57 @@ void mCc_ast_visit_stmt(struct mCc_ast_compound_stmt *stmt,
 
 }
 
+void mCc_ast_visit_stmt_statement(struct mCc_ast_stmt *stmt,
+                                  struct mCc_ast_visitor *visitor){
+    assert(stmt);
+    assert(visitor);
+
+    switch (stmt->type) {
+        case (MCC_AST_IF_STMT):
+            visit_if_pre_order(stmt->if_stmt, visitor->if_stmt, visitor);
+            mCc_ast_visit_if_stmt(stmt->if_stmt, visitor);
+            visit_if_post_order(stmt->if_stmt, visitor->if_stmt, visitor);
+            break;
+        case (MCC_AST_WHILE_STMT):
+            visit_if_pre_order(stmt->while_stmt, visitor->while_stmt, visitor);
+            mCc_ast_visit_while_stmt(stmt->while_stmt, visitor);
+            visit_if_post_order(stmt->while_stmt, visitor->while_stmt, visitor);
+            break;
+        case (MCC_AST_RET_STMT):
+            visit_if_pre_order(stmt->ret_stmt, visitor->ret_stmt, visitor);
+            mCc_ast_visit_ret_stmt(stmt->ret_stmt, visitor);
+            visit_if_post_order(stmt->ret_stmt, visitor->ret_stmt, visitor);
+            break;
+        case (MCC_AST_DECL_STMT):
+            visit(stmt->declaration, visitor->decl_stmt, visitor);
+            mCc_ast_visit_decl_stmt(stmt->declaration, visitor);
+            visit(stmt->declaration, visitor->decl_stmt, visitor);
+            break;
+        case (MCC_AST_ASS_STMT):
+            visit_if_pre_order(stmt->assignment, visitor->ass_stmt, visitor);
+            mCc_ast_visit_ass_stmt(stmt->assignment, visitor);
+            visit_if_post_order(stmt->assignment, visitor->ass_stmt, visitor);
+            break;
+        case (MCC_AST_EXPR_STMT):
+            visit_if_pre_order(stmt->expression, visitor->expression, visitor);
+            mCc_ast_visit_expression(stmt->expression, visitor);
+            visit_if_post_order(stmt->expression, visitor->expression, visitor);
+            break;
+        case (MCC_AST_COMPOUND_STMT):
+            visit_if_pre_order(stmt->compound_stmt, visitor->c_stmt, visitor);
+            mCc_ast_visit_compound_stmt(stmt->compound_stmt, visitor);
+            visit_if_post_order(stmt->compound_stmt, visitor->c_stmt, visitor);
+            break;
+        default:
+            break;
+    }
+}
+
 void mCc_ast_visit_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
                                  struct mCc_ast_visitor *visitor){
     assert(c_stmt);
     assert(visitor);
+
     for (int i = 0; i < c_stmt->counter; i++) {
         /* TYPE */
         switch (c_stmt->statements[i].type) {
@@ -142,22 +157,34 @@ void mCc_ast_visit_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
                 visit_if_post_order(c_stmt->statements[i].if_stmt, visitor->if_stmt, visitor);
                 break;
             case (MCC_AST_WHILE_STMT):
-                visit(c_stmt->statements[i].while_stmt, visitor->while_stmt, visitor);
+                visit_if_pre_order(c_stmt->statements[i].while_stmt, visitor->while_stmt, visitor);
+                mCc_ast_visit_while_stmt(c_stmt->statements[i].while_stmt, visitor);
+                visit_if_post_order(c_stmt->statements[i].while_stmt, visitor->while_stmt, visitor);
                 break;
             case (MCC_AST_RET_STMT):
-                visit(c_stmt->statements[i].ret_stmt, visitor->ret_stmt, visitor);
+                visit_if_pre_order(c_stmt->statements[i].ret_stmt, visitor->ret_stmt, visitor);
+                mCc_ast_visit_ret_stmt(c_stmt->statements[i].ret_stmt, visitor);
+                visit_if_post_order(c_stmt->statements[i].ret_stmt, visitor->ret_stmt, visitor);
                 break;
             case (MCC_AST_DECL_STMT):
-                visit(c_stmt->statements[i].declaration, visitor->decl_stmt, visitor);
+                visit_if_pre_order(c_stmt->statements[i].declaration, visitor->decl_stmt, visitor);
+                mCc_ast_visit_decl_stmt(c_stmt->statements[i].declaration, visitor);
+                visit_if_post_order(c_stmt->statements[i].declaration, visitor->decl_stmt, visitor);
                 break;
             case (MCC_AST_ASS_STMT):
-                visit(c_stmt->statements[i].assignment, visitor->ass_stmt, visitor);
+                visit_if_pre_order(c_stmt->statements[i].assignment, visitor->ass_stmt, visitor);
+                mCc_ast_visit_ass_stmt(c_stmt->statements[i].assignment, visitor);
+                visit_if_post_order(c_stmt->statements[i].assignment, visitor->ass_stmt, visitor);
                 break;
             case (MCC_AST_EXPR_STMT):
-                visit(c_stmt->statements[i].expression, visitor->expression, visitor);
+                visit_if_pre_order(c_stmt->statements[i].expression, visitor->expression, visitor);
+                mCc_ast_visit_expression(c_stmt->statements[i].expression, visitor);
+                visit_if_post_order(c_stmt->statements[i].expression, visitor->expression, visitor);
                 break;
             case (MCC_AST_COMPOUND_STMT):
-                visit(c_stmt->statements[i].compound_stmt, visitor->c_stmt, visitor);
+                visit_if_pre_order(c_stmt->statements[i].compound_stmt, visitor->c_stmt, visitor);
+                mCc_ast_visit_compound_stmt(c_stmt->statements[i].compound_stmt, visitor);
+                visit_if_post_order(c_stmt->statements[i].compound_stmt, visitor->c_stmt, visitor);
                 break;
             default:
                 break;
@@ -170,11 +197,172 @@ void mCc_ast_visit_if_stmt(struct mCc_ast_if_stmt *stmt,
     assert(stmt);
     assert(visitor);
 
-    visit(stmt->expression, visitor->expression, visitor);
+    visit_if_pre_order(stmt->expression, visitor->expression, visitor);
+    mCc_ast_visit_expression(stmt->expression, visitor);
+    visit_if_post_order(stmt->expression, visitor->expression, visitor);
 
-    visit(stmt->statement, visitor->statement, visitor);
+    visit_if_pre_order(stmt->statement, visitor->statement, visitor);
+    mCc_ast_visit_stmt_statement(stmt->statement, visitor);
+    visit_if_post_order(stmt->statement, visitor->statement, visitor);
 
     if(stmt->else_statement != NULL) {
-        visit(stmt->else_statement, visitor->statement, visitor);
+        visit_if_pre_order(stmt->else_statement, visitor->statement, visitor);
+        mCc_ast_visit_stmt_statement(stmt->statement, visitor);
+        visit_if_post_order(stmt->else_statement, visitor->statement, visitor);
     }
+}
+
+void mCc_ast_visit_while_stmt(struct mCc_ast_while_stmt *stmt,
+                              struct mCc_ast_visitor *visitor){
+    assert(stmt);
+    assert(visitor);
+
+    visit_if_pre_order(stmt->expression, visitor->expression, visitor);
+    mCc_ast_visit_expression(stmt->expression, visitor);
+    visit_if_post_order(stmt->expression, visitor->expression, visitor);
+
+    visit_if_pre_order(stmt->statement, visitor->statement, visitor);
+    mCc_ast_visit_stmt_statement(stmt->statement, visitor);
+    visit_if_post_order(stmt->statement, visitor->statement, visitor);
+}
+
+void mCc_ast_visit_ret_stmt(struct mCc_ast_ret_stmt *stmt,
+                            struct mCc_ast_visitor *visitor){
+    assert(stmt);
+    assert(visitor);
+
+    visit_if_pre_order(stmt->expression, visitor->expression, visitor);
+    mCc_ast_visit_expression(stmt->expression, visitor);
+    visit_if_post_order(stmt->expression, visitor->expression, visitor);
+}
+
+void mCc_ast_visit_ass_stmt(struct mCc_ast_assignment *stmt,
+                            struct mCc_ast_visitor *visitor){
+    assert(stmt);
+    assert(visitor);
+
+    visit(stmt->identifier, visitor->identifier, visitor);
+
+    visit_if_pre_order(stmt->expression, visitor->expression, visitor);
+    mCc_ast_visit_expression(stmt->expression, visitor);
+    visit_if_post_order(stmt->expression, visitor->expression, visitor);
+}
+
+void mCc_ast_visit_decl_stmt(struct mCc_ast_declaration *stmt,
+                             struct mCc_ast_visitor *visitor){
+    assert(stmt);
+    assert(visitor);
+
+    switch (stmt->type) {
+        case (MCC_AST_DECLARATION_TYPE_SINGLE):
+            visit(stmt->identifier, visitor->identifier, visitor);
+            break;
+        case (MCC_AST_DECLARATION_TYPE_ARRAY):
+            visit(stmt->array_identifier, visitor->identifier, visitor);
+            break;
+    }
+}
+
+void mCc_ast_visit_expression(struct mCc_ast_expression *expression,
+                              struct mCc_ast_visitor *visitor){
+    assert(expression);
+    assert(visitor);
+
+    switch (expression->type) {
+        case (MCC_AST_EXPRESSION_TYPE_SINGLE):
+            visit_if_pre_order(expression->single_expr, visitor->single_expression, visitor);
+            mCc_ast_visit_expression_single(expression->single_expr, visitor);
+            visit_if_post_order(expression->single_expr, visitor->single_expression, visitor);
+            break;
+        case (MCC_AST_EXPRESSION_TYPE_BINARY):
+            visit_if_pre_order(expression, visitor->binary_expression, visitor);
+            mCc_ast_visit_expression_binary(expression, visitor);
+            visit_if_post_order(expression, visitor->binary_expression, visitor);
+            break;
+    }
+}
+
+void mCc_ast_visit_expression_single(struct mCc_ast_single_expression *expression,
+                                     struct mCc_ast_visitor *visitor){
+    assert(expression);
+    assert(visitor);
+
+    switch (expression->type) {
+        case (MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL):
+            mCc_ast_visit_literal(expression->literal, visitor);
+            break;
+        case (MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER):
+            visit(expression->only_identifier, visitor->identifier, visitor);
+            break;
+        case (MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX):
+            visit(expression->identifier_expression, visitor->expression, visitor);
+            break;
+        case (MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR):
+            visit_if_pre_order(expression->call_expr, visitor->call_expression, visitor);
+            mCc_ast_visit_call_expression(expression->call_expr, visitor);
+            visit_if_post_order(expression->call_expr, visitor->call_expression, visitor);
+            break;
+        case (MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP):
+            visit(expression->unary_expression, visitor->expression, visitor);
+            break;
+        case (MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH):
+            visit(expression->expression, visitor->expression, visitor);
+            break;
+        default:
+            printf("G\n");
+            break;
+    }
+}
+
+void mCc_ast_visit_expression_binary(struct mCc_ast_expression *expression,
+                                     struct mCc_ast_visitor *visitor){
+    assert(expression);
+    assert(visitor);
+
+    visit_if_pre_order(expression->lhs, visitor->single_expression, visitor);
+    mCc_ast_visit_expression_single(expression->lhs, visitor);
+    visit_if_post_order(expression->lhs, visitor->single_expression, visitor);
+
+
+    visit_if_pre_order(expression->rhs, visitor->expression, visitor);
+    mCc_ast_visit_expression(expression->rhs, visitor);
+    visit_if_post_order(expression->rhs, visitor->expression, visitor);
+}
+
+void mCc_ast_visit_call_expression(struct mCc_ast_call_expr *expression,
+                                   struct mCc_ast_visitor *visitor){
+    assert(expression);
+    assert(visitor);
+
+    visit(expression->identifier, visitor->identifier, visitor);
+
+    if(expression->arguments != NULL)
+        for (int i = 0; i < expression->arguments->counter; i++) {
+            visit_if_pre_order(&expression->arguments->expression[i], visitor->expression,
+                                 visitor);
+            mCc_ast_visit_expression(&expression->arguments->expression[i], visitor);
+            visit_if_post_order(&expression->arguments->expression[i], visitor->expression,
+                  visitor);
+        }
+}
+
+void mCc_ast_visit_literal(struct mCc_ast_literal *literal, struct mCc_ast_visitor *visitor)
+{
+    assert(literal);
+    assert(visitor);
+
+    switch (literal->type) {
+        case (MCC_AST_LITERAL_TYPE_INT):
+            visit(literal, visitor->i_literal, visitor);
+            break;
+        case (MCC_AST_LITERAL_TYPE_STRING):
+            visit(literal, visitor->s_literal, visitor);
+            break;
+        case (MCC_AST_LITERAL_TYPE_BOOL):
+            visit(literal, visitor->b_literal, visitor);
+            break;
+        case (MCC_AST_LITERAL_TYPE_FLOAT):
+            visit(literal, visitor->f_literal, visitor);
+            break;
+}
 }

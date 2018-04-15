@@ -23,7 +23,6 @@ static void print_dot_expression_binary(struct mCc_ast_expression *expression,
 
 static void print_dot_identifier(char *identifier, void *data);
 
-static void print_dot_literal(struct mCc_ast_literal *literal, void *data);
 static void print_dot_literal_int(struct mCc_ast_literal *literal, void *data);
 static void print_dot_literal_float(struct mCc_ast_literal *literal, void *data);
 static void print_dot_literal_bool(struct mCc_ast_literal *literal, void *data);
@@ -33,8 +32,7 @@ static void print_dot_stmt_statement(struct mCc_ast_stmt *stmt, void *data);
 static void print_dot_stmt_if(struct mCc_ast_if_stmt *stmt, void *data);
 static void print_dot_stmt_while(struct mCc_ast_while_stmt *stmt, void *data);
 static void print_dot_stmt_ret(struct mCc_ast_ret_stmt *stmt, void *data);
-static void print_dot_stmt_compound(struct mCc_ast_compound_stmt *stmt,
-				    void *data);
+
 static void print_dot_stmt_ass(struct mCc_ast_assignment *stmt, void *data);
 static void print_dot_stmt_decl(struct mCc_ast_declaration *stmt, void *data);
 static void print_dot_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
@@ -66,6 +64,11 @@ static struct mCc_ast_visitor print_dot_visitor(FILE *out)
 
 			.identifier = print_dot_identifier,
 
+            .i_literal = print_dot_literal_int,
+            .f_literal = print_dot_literal_float,
+            .b_literal = print_dot_literal_bool,
+            .s_literal = print_dot_literal_string,
+
 			.function_def_type = print_dot_function_def_type,
 			.function_def_void = print_dot_function_def_void,
             .function_def_identifier = print_dot_func_def_identifier,
@@ -81,6 +84,9 @@ static struct mCc_ast_visitor print_dot_visitor(FILE *out)
             .statement = print_dot_stmt_statement,
 
             .expression = print_dot_expression,
+            .single_expression = print_dot_expression_single,
+            .binary_expression = print_dot_expression_binary,
+            .call_expression = print_dot_call_expr,
 
 	};
 }
@@ -187,11 +193,10 @@ static void print_dot_edge(FILE *out, const void *src_node,
 static void print_dot_identifier(char *identifier, void *data){
 	assert(identifier);
 	assert(data);
-
 	FILE *out = data;
 
 	char label[LABEL_SIZE] = {0};
-	snprintf(label, sizeof(label), "func_def: %s",
+	snprintf(label, sizeof(label), "Identifier: %s",
 			 identifier);
 	print_dot_node(out, identifier, label);
 }
@@ -213,27 +218,6 @@ static void print_dot_func_def_identifier(struct mCc_ast_function_def *f,
 }
 
 /* ------------------------------------------------------------- Literal */
-
-static void print_dot_literal(struct mCc_ast_literal *literal, void *data)
-{
-	assert(literal);
-	assert(data);
-
-	switch (literal->type) {
-	case (MCC_AST_LITERAL_TYPE_INT):
-		print_dot_literal_int(literal, data);
-		break;
-	case (MCC_AST_LITERAL_TYPE_STRING):
-		print_dot_literal_string(literal, data);
-		break;
-	case (MCC_AST_LITERAL_TYPE_BOOL):
-		print_dot_literal_bool(literal, data);
-		break;
-	case (MCC_AST_LITERAL_TYPE_FLOAT):
-		print_dot_literal_float(literal, data);
-		break;
-	}
-}
 
 static void print_dot_literal_int(struct mCc_ast_literal *literal, void *data)
 {
@@ -302,18 +286,10 @@ static void print_dot_expression(struct mCc_ast_expression *expression,
 	FILE *out = data;
 	char label[LABEL_SIZE] = {0};
 
-	switch (expression->type) {
-	case (MCC_AST_EXPRESSION_TYPE_SINGLE):
+	if (expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE){
 		snprintf(label, sizeof(label), "Single expression");
 		print_dot_node(out, expression->single_expr, label);
 		print_dot_edge(out, expression, expression->single_expr, "");
-		print_dot_expression_single(expression->single_expr, data);
-		break;
-	case (MCC_AST_EXPRESSION_TYPE_BINARY):
-		print_dot_expression_binary(expression, data);
-		break;
-	default:
-		break;
 	}
 }
 
@@ -330,7 +306,6 @@ print_dot_expression_single(struct mCc_ast_single_expression *expression,
 
 	switch (expression->type) {
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL):
-		print_dot_literal(expression->literal, data);
 		print_dot_edge(out, expression, expression->literal, "");
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER):
@@ -345,13 +320,11 @@ print_dot_expression_single(struct mCc_ast_single_expression *expression,
 		print_dot_node(out, expression->identifier_expression, label);
 		print_dot_edge(out, expression,
 			       expression->identifier_expression, "");
-		print_dot_expression(expression->identifier_expression, data);
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR):
 		snprintf(label, sizeof(label), "Call expression:");
 		print_dot_node(out, expression->call_expr, label);
 		print_dot_edge(out, expression, expression->call_expr, "");
-		print_dot_call_expr(expression->call_expr, data);
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP):
 		snprintf(label, sizeof(label), "%s",
@@ -363,15 +336,14 @@ print_dot_expression_single(struct mCc_ast_single_expression *expression,
 		print_dot_node(out, expression->unary_expression, label);
 		print_dot_edge(out, expression, expression->unary_expression,
 			       "");
-		print_dot_expression(expression->unary_expression, data);
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH):
 		snprintf(label, sizeof(label), "Parenth expression:");
 		print_dot_node(out, expression->expression, label);
 		print_dot_edge(out, expression, expression->expression, "");
-		print_dot_expression(expression->expression, data);
 		break;
 	default:
+        printf("G\n");
 		break;
 	}
 }
@@ -389,7 +361,6 @@ static void print_dot_expression_binary(struct mCc_ast_expression *expression,
 	snprintf(label, sizeof(label), "Left hand side:");
 	print_dot_node(out, expression->lhs, label);
 	print_dot_edge(out, expression, expression->lhs, "");
-	print_dot_expression_single(expression->lhs, data);
 
 	const char *text = mCc_ast_print_binary_op(expression->op);
 
@@ -400,7 +371,6 @@ static void print_dot_expression_binary(struct mCc_ast_expression *expression,
 	snprintf(label, sizeof(label), "Rigth hand side");
 	print_dot_node(out, expression->rhs, label);
 	print_dot_edge(out, expression, expression->rhs, "");
-	print_dot_expression(expression->rhs, data);
 }
 
 static void print_dot_call_expr(struct mCc_ast_call_expr *expression,
@@ -413,20 +383,16 @@ static void print_dot_call_expr(struct mCc_ast_call_expr *expression,
 
 	char label[LABEL_SIZE] = {0};
 
-	snprintf(label, sizeof(label), "Operator: %s", expression->identifier);
-	print_dot_node(out, expression->identifier, label);
 	print_dot_edge(out, expression, expression->identifier, "");
 
     if(expression->arguments != NULL)
-	for (int i = 0; i < expression->arguments->counter; i++) {
-		snprintf(label, sizeof(label), "Arguments");
-		print_dot_node(out, &expression->arguments->expression[i],
-			       label);
-		print_dot_edge(out, expression,
-			       &expression->arguments->expression[i], "");
-		print_dot_expression(&expression->arguments->expression[i],
-				     data);
-	}
+        for (int i = 0; i < expression->arguments->counter; i++) {
+            snprintf(label, sizeof(label), "Arguments");
+            print_dot_node(out, &expression->arguments->expression[i],
+                       label);
+            print_dot_edge(out, expression,
+                       &expression->arguments->expression[i], "");
+        }
 }
 
 /* ----------------------------------------------------------- stmt */
@@ -445,46 +411,36 @@ static void print_dot_stmt_statement(struct mCc_ast_stmt *stmt, void *data)
 		snprintf(label, sizeof(label), "If_Stmt");
 		print_dot_node(out, stmt->if_stmt, label);
 		print_dot_edge(out, stmt, stmt->if_stmt, "");
-		print_dot_stmt_if(stmt->if_stmt, data);
 		break;
 	case (MCC_AST_WHILE_STMT):
 		snprintf(label, sizeof(label), "While_Stmt");
 		print_dot_node(out, stmt->while_stmt, label);
 		print_dot_edge(out, stmt, stmt->while_stmt, "");
-		print_dot_stmt_while(stmt->while_stmt, data);
 		break;
 	case (MCC_AST_RET_STMT):
 		snprintf(label, sizeof(label), "Ret_Stmt");
 		print_dot_node(out, stmt->ret_stmt, label);
 		print_dot_edge(out, stmt, stmt->ret_stmt, "");
-		print_dot_stmt_ret(stmt->ret_stmt, data);
 		break;
 	case (MCC_AST_DECL_STMT):
 		snprintf(label, sizeof(label), "DECL_Stmt");
 		print_dot_node(out, stmt->declaration, label);
 		print_dot_edge(out, stmt, stmt->declaration, "");
-		print_dot_stmt_decl(stmt->declaration, data);
 		break;
 	case (MCC_AST_ASS_STMT):
 		snprintf(label, sizeof(label), "ASSIGNEMNT_Stmt");
 		print_dot_node(out, stmt->assignment, label);
 		print_dot_edge(out, stmt, stmt->assignment, "");
-		print_dot_stmt_ass(stmt->assignment, data);
 		break;
 	case (MCC_AST_EXPR_STMT):
 		snprintf(label, sizeof(label), "EXPRESSION_Stmt");
 		print_dot_node(out, stmt->expression, label);
 		print_dot_edge(out, stmt, stmt->expression, "");
-		print_dot_expression(stmt->expression, data);
 		break;
 	case (MCC_AST_COMPOUND_STMT):
 		snprintf(label, sizeof(label), "COMPOUND_Stmt");
 		print_dot_node(out, stmt->compound_stmt, label);
 		print_dot_edge(out, stmt, stmt->compound_stmt, "");
-		print_dot_stmt_compound(stmt->compound_stmt, data);
-		break;
-	default:
-		// tODO should not occur,
 		break;
 	}
 }
@@ -529,13 +485,11 @@ static void print_dot_stmt_while(struct mCc_ast_while_stmt *stmt, void *data)
 
 	print_dot_node(out, stmt->expression, label);
 	print_dot_edge(out, stmt, stmt->expression, "");
-	print_dot_expression(stmt->expression, data);
 
 	snprintf(label, sizeof(label), "Statement");
 
 	print_dot_node(out, stmt->statement, label);
 	print_dot_edge(out, stmt, stmt->statement, "");
-	print_dot_stmt_statement(stmt->statement, data);
 }
 
 static void print_dot_stmt_ret(struct mCc_ast_ret_stmt *stmt, void *data)
@@ -550,24 +504,6 @@ static void print_dot_stmt_ret(struct mCc_ast_ret_stmt *stmt, void *data)
 	snprintf(label, sizeof(label), "Expression");
 	print_dot_node(out, stmt->expression, label);
 	print_dot_edge(out, stmt, stmt->expression, "");
-	print_dot_expression(stmt->expression, data);
-}
-
-static void print_dot_stmt_compound(struct mCc_ast_compound_stmt *stmt,
-				    void *data)
-{
-	assert(stmt);
-	assert(data);
-
-	FILE *out = data;
-	char label[LABEL_SIZE] = {0};
-
-	for (int i = 0; i < stmt->counter; i++) {
-		snprintf(label, sizeof(label), "Statment");
-		print_dot_node(out, &stmt->statements[i], label);
-		print_dot_edge(out, stmt, &stmt->statements[i], "");
-		print_dot_stmt_statement(&stmt->statements[i], data);
-	}
 }
 
 static void print_dot_stmt_ass(struct mCc_ast_assignment *stmt, void *data)
@@ -579,14 +515,11 @@ static void print_dot_stmt_ass(struct mCc_ast_assignment *stmt, void *data)
 
 	char label[LABEL_SIZE] = {0};
 
-	snprintf(label, sizeof(label), "Identifier: %s", stmt->identifier);
-	print_dot_node(out, stmt->identifier, label);
 	print_dot_edge(out, stmt, stmt->identifier, "");
 
 	snprintf(label, sizeof(label), "Expression");
 	print_dot_node(out, stmt->expression, label);
 	print_dot_edge(out, stmt, stmt->expression, "");
-	print_dot_expression(stmt->expression, data);
 }
 
 static void print_dot_stmt_decl(struct mCc_ast_declaration *stmt, void *data)
@@ -619,9 +552,6 @@ static void print_dot_stmt_decl(struct mCc_ast_declaration *stmt, void *data)
 
 	switch (stmt->type) {
 	case (MCC_AST_DECLARATION_TYPE_SINGLE):
-		snprintf(label, sizeof(label), "Identifier: %s",
-			 stmt->identifier);
-		print_dot_node(out, stmt->identifier, label);
 		print_dot_edge(out, stmt, stmt->identifier, "");
 		break;
 	case (MCC_AST_DECLARATION_TYPE_ARRAY):
@@ -629,9 +559,6 @@ static void print_dot_stmt_decl(struct mCc_ast_declaration *stmt, void *data)
 			 stmt->numerator);
 		print_dot_node(out, &stmt->numerator, label);
 		print_dot_edge(out, stmt, &stmt->numerator, "");
-		snprintf(label, sizeof(label), "Identifier: %s",
-			 stmt->array_identifier);
-		print_dot_node(out, stmt->array_identifier, label);
 		print_dot_edge(out, stmt, stmt->array_identifier, "");
 		break;
 	}
@@ -716,7 +643,6 @@ static void print_dot_function_def_parameter(struct mCc_ast_function_def *f,
 
     FILE *out = data;
 
-    char label[LABEL_SIZE] = {0};
 
     if (f->params->counter > 0) {
         print_dot_node(out, f->params, "Params");
@@ -724,16 +650,14 @@ static void print_dot_function_def_parameter(struct mCc_ast_function_def *f,
     }
 
     for (int i = 0; i < f->params->counter; i++) {
-        if (f->params->declaration[i].type
-            == MCC_AST_DECLARATION_TYPE_SINGLE)
-            snprintf(label, sizeof(label), "params: %s",
-                     f->params->declaration[i].identifier);
-        else
-            snprintf(label, sizeof(label), "params: %s",
-                     f->params->declaration[i].array_identifier);
-        print_dot_node(out, &f->params->declaration[i], label);
-        print_dot_edge(out, f->params, &f->params->declaration[i], "");
-        print_dot_stmt_decl(&f->params->declaration[i], data);
+        switch (f->params->declaration[i].type) {
+            case (MCC_AST_DECLARATION_TYPE_SINGLE):
+                print_dot_edge(out, f->params, f->params->declaration[i].identifier, "");
+                break;
+            case (MCC_AST_DECLARATION_TYPE_ARRAY):
+                print_dot_edge(out, f->params, f->params->declaration[i].array_identifier, "");
+                break;
+        }
     }
 }
 

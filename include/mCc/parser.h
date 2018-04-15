@@ -28,7 +28,7 @@ struct mCc_parser_error_array {
 };
 
 struct mCc_parser_error {
-	 char error_msg[1024];
+	char error_msg[1024];
 	int error_line;
 };
 

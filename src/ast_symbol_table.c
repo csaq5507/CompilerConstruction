@@ -13,10 +13,24 @@ static char* find_element_symbols(ast_symbol_table *head, char *elem);
 static void delete_symbol_table_node(ast_symbol_table *head);
 
 static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
-                                       void *table);
+                                       void *data);
 static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
-                                       void *table);
-static void ast_symbol_table_identifier(char *identifier, void *data);
+                                       void *data);
+static void ast_symbol_table_parameter(struct mCc_ast_declaration *declaration,
+                                       void *data);
+static void ast_symbol_table_close_func(struct mCc_ast_function_def *f,
+                                       void *data);
+
+static void ast_symbol_table_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
+                                           void *data);
+static void ast_symbol_table_close_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
+                                                 void *data);
+
+static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt, void *data);
+static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt, void *data);
+
+static void ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
+                                               void *data);
 
 static struct mCc_ast_visitor symbol_table_visitor(ast_symbol_table *data)
 {
@@ -28,10 +42,18 @@ static struct mCc_ast_visitor symbol_table_visitor(ast_symbol_table *data)
 
             .userdata = data,
 
-            .identifier = ast_symbol_table_identifier,
-
             .function_def_type = ast_symbol_table_func_type,
             .function_def_void = ast_symbol_table_func_void,
+            .close_function_def = ast_symbol_table_close_func,
+            .parameter = ast_symbol_table_parameter,
+
+            .c_stmt = ast_symbol_table_compound_stmt,
+            .close_c_stmt = ast_symbol_table_close_compound_stmt,
+
+            .ass_stmt = ast_symbol_table_ass_stmt,
+            .decl_stmt = ast_symbol_table_decl_stmt,
+
+            .single_expression = ast_symbol_table_expression_single,
 
     };
 };
@@ -72,11 +94,13 @@ static ast_symbol_table* add_element_symbols(ast_symbol_table *head,
     assert(new);
 
     ast_symbol *symbol = malloc(sizeof(*symbol));
-    symbol->old = old;
-    symbol->new = new;
+    symbol->old = malloc(sizeof(*symbol->old));
+    symbol->new = malloc(sizeof(*symbol->new));
+    strcpy(symbol->old, old);
+    strcpy(symbol->new, new);
 
     ast_symbol *temp = realloc(head->symbols,
-                                    sizeof(*symbol) * (head->symbols_counter + 1));
+                       sizeof(*symbol) * (head->symbols_counter + 1));
     if (temp == NULL) {
         // TODO throw error
         return NULL;
@@ -95,8 +119,9 @@ static char* find_element_symbols(ast_symbol_table *head,
     assert(elem);
 
     for(int i = 0; i < head->symbols_counter; i++) {
-        if (strcmp(head->symbols[i].old, elem) == 0)
+        if (strcmp(head->symbols[i].old, elem) == 0) {
             return head->symbols[i].new;
+        }
     }
     return NULL;
 }
@@ -104,16 +129,12 @@ static char* find_element_symbols(ast_symbol_table *head,
 static void delete_symbol_table_node(ast_symbol_table *head){
     while(true) {
         if (head->prev != NULL) {
-            printf("X1\n");
             head = head->prev;
         } else {
-            printf("X2\n");
             break;
         }
     }
-    printf("%d\n", head->next_counter);
     if (head->next_counter == 0) {
-        printf("ENTERED\n");
         for (int i = 0; i < head->symbols_counter; i++)
             free(&head->symbols[i]);
         // TODO free does not work
@@ -131,15 +152,10 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
     assert(f);
     assert(data);
 
-    printf("HERE TYPE\n");
-    if (table->prev != NULL)
-        printf("HALLO\n");
     ast_symbol_table *new = create_new_symbol_table_node();
     table = add_element_symbol_table(table, new);
     new->prev = table;
     table = new;
-    if (table->prev != NULL)
-        printf("BYE\n");
 }
 
 static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
@@ -147,29 +163,153 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
     assert(f);
     assert(data);
 
-    printf("HERE VOID\n");
-    if (table->prev != NULL)
-        printf("HALLO\n");
     ast_symbol_table *new = create_new_symbol_table_node();
     table = add_element_symbol_table(table, new);
     new->prev = table;
     table = new;
-    if (table->prev != NULL)
-        printf("BYE\n");
 }
 
-static void ast_symbol_table_identifier(char *identifier, void *data) {
-    assert(identifier);
+static void ast_symbol_table_close_func(struct mCc_ast_function_def *f,
+                                        void *data){
+    assert(f);
     assert(data);
 
-    char help[64];
-    sprintf(help, "%s%d", identifier, table->symbols_counter);
-    if (find_element_symbols(table, help) == NULL) {
-        printf("ALLREADY\n");
-        //TODO throw error because already declared
+    if (table->prev != NULL)
+        table = table->prev;
+}
+
+static void ast_symbol_table_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
+                                           void *data){
+    assert(c_stmt);
+    assert(data);
+
+    ast_symbol_table *new = create_new_symbol_table_node();
+    table = add_element_symbol_table(table, new);
+    new->prev = table;
+    table = new;
+}
+
+static void ast_symbol_table_close_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
+                                                 void *data){
+    assert(c_stmt);
+    assert(data);
+
+    if (table->prev != NULL)
+        table = table->prev;
+}
+
+static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt,
+                                      void *data){
+    assert(stmt);
+    assert(data);
+
+    char *new_name = find_element_symbols(table, stmt->identifier);
+    ast_symbol_table *temp = table;
+
+    while(new_name == NULL && temp->prev != NULL) {
+        temp = temp->prev;
+        new_name = find_element_symbols(temp, stmt->identifier);
     }
-    else
-        table = add_element_symbols(table, identifier, help);
+    if (new_name == NULL) {
+        printf("Missing definition of: %s\n", stmt->identifier);
+        //TODO throw error because already declared
+    } else {
+        char *temp = realloc(stmt->identifier, sizeof(*new_name));
+        if (temp == NULL)
+            return;
+        strcpy(stmt->identifier, new_name);
+    }
+}
+
+static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
+                                       void *data){
+    assert(stmt);
+    assert(data);
+
+    char help[2048];
+    switch (stmt->type) {
+        case (MCC_AST_DECLARATION_TYPE_SINGLE):
+            sprintf(help, "%s%d", stmt->identifier, table->symbols_counter);
+            if (find_element_symbols(table, stmt->identifier) != NULL) {
+                printf("Allready defined: %s\n", stmt->identifier);
+                //TODO throw error because already declared
+            }
+            else {
+                table = add_element_symbols(table, stmt->identifier, help);
+                strcpy(stmt->identifier, help);
+            }
+            break;
+        case (MCC_AST_DECLARATION_TYPE_ARRAY):
+            sprintf(help, "%s%d", stmt->array_identifier, table->symbols_counter);
+            if (find_element_symbols(table, stmt->identifier) != NULL) {
+                printf("Allready defined: %s\n", stmt->identifier);
+                //TODO throw error because already declared
+            }
+            else {
+                table = add_element_symbols(table, stmt->array_identifier, help);
+                strcpy(stmt->array_identifier, help);
+            }
+            break;
+    }
+
+}
+
+static void ast_symbol_table_parameter(struct mCc_ast_declaration *declaration,
+                                       void *data){
+    assert(declaration);
+    assert(data);
+
+    char help[2048];
+        switch (declaration->type) {
+            case (MCC_AST_DECLARATION_TYPE_SINGLE):
+                sprintf(help, "%s%d", declaration->identifier, table->symbols_counter);
+                printf("%s\n", help);
+                if (find_element_symbols(table, declaration->identifier) != NULL) {
+                    printf("Allready defined: %s\n", declaration->identifier);
+                    //TODO throw error because already declared
+                }
+                else {
+                    table = add_element_symbols(table, declaration->identifier, help);
+                    strcpy(declaration->identifier, help);
+                }
+                break;
+            case (MCC_AST_DECLARATION_TYPE_ARRAY):
+                sprintf(help, "%s%d", declaration->array_identifier, table->symbols_counter);
+                if (find_element_symbols(table, declaration->array_identifier) != NULL) {
+                    printf("Allready defined: %s\n", declaration->array_identifier);
+                    //TODO throw error because already declared
+                }
+                else {
+                    table = add_element_symbols(table, declaration->array_identifier, help);
+                    strcpy(declaration->array_identifier, help);
+                }
+                break;
+        }
+}
+
+static void ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
+                                               void *data){
+    assert(expression);
+    assert(data);
+
+    if  (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER){
+        char *new_name = find_element_symbols(table, expression->identifier);
+        ast_symbol_table *temp = table;
+
+        while(new_name == NULL && temp->prev != NULL) {
+            temp = temp->prev;
+            new_name = find_element_symbols(temp, expression->identifier);
+        }
+        if (new_name == NULL) {
+            printf("Missing definition of: %s\n", expression->identifier);
+            //TODO throw error because already declared
+        } else {
+            char *temp = realloc(expression->identifier, sizeof(*new_name));
+            if (temp == NULL)
+                return;
+            strcpy(expression->identifier, new_name);
+        }
+    }
 }
 
 struct mCc_ast_function_def_array* mCc_ast_symbol_table

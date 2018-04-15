@@ -61,6 +61,8 @@ void mCc_ast_visit_function_def_type(struct mCc_ast_function_def *f,
     visit_if_pre_order(f, visitor->function_def_stmt, visitor);
     mCc_ast_visit_stmt(f->c_stmt, visitor);
     visit_if_post_order(f, visitor->function_def_stmt, visitor);
+
+    visit(f, visitor->close_function_def, visitor);
 }
 
 void mCc_ast_visit_function_def_void(struct mCc_ast_function_def *f,
@@ -74,6 +76,8 @@ void mCc_ast_visit_function_def_void(struct mCc_ast_function_def *f,
     visit_if_pre_order(f, visitor->function_def_stmt, visitor);
     mCc_ast_visit_stmt(f->c_stmt, visitor);
     visit_if_post_order(f, visitor->function_def_stmt, visitor);
+
+    visit(f, visitor->close_function_def, visitor);
 }
 
 void mCc_ast_visit_parameter(struct mCc_ast_parameter *param,
@@ -82,7 +86,9 @@ void mCc_ast_visit_parameter(struct mCc_ast_parameter *param,
     assert(visitor);
 
     for (int i = 0; i < param->counter; i++) {
+        visit_if_pre_order(&param->declaration[i], visitor->parameter, visitor);
         mCc_ast_visit_decl_stmt(&param->declaration[i], visitor);
+        visit_if_post_order(&param->declaration[i], visitor->parameter, visitor);
     }
 }
 
@@ -136,6 +142,7 @@ void mCc_ast_visit_stmt_statement(struct mCc_ast_stmt *stmt,
         case (MCC_AST_COMPOUND_STMT):
             visit_if_pre_order(stmt->compound_stmt, visitor->c_stmt, visitor);
             mCc_ast_visit_compound_stmt(stmt->compound_stmt, visitor);
+            visit(stmt->compound_stmt, visitor->close_c_stmt, visitor);
             visit_if_post_order(stmt->compound_stmt, visitor->c_stmt, visitor);
             break;
         default:
@@ -184,6 +191,7 @@ void mCc_ast_visit_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
             case (MCC_AST_COMPOUND_STMT):
                 visit_if_pre_order(c_stmt->statements[i].compound_stmt, visitor->c_stmt, visitor);
                 mCc_ast_visit_compound_stmt(c_stmt->statements[i].compound_stmt, visitor);
+                visit(c_stmt->statements[i].compound_stmt, visitor->close_c_stmt, visitor);
                 visit_if_post_order(c_stmt->statements[i].compound_stmt, visitor->c_stmt, visitor);
                 break;
             default:

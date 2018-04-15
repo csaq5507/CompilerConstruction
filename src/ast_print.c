@@ -32,7 +32,6 @@ static void print_dot_stmt_statement(struct mCc_ast_stmt *stmt, void *data);
 static void print_dot_stmt_if(struct mCc_ast_if_stmt *stmt, void *data);
 static void print_dot_stmt_while(struct mCc_ast_while_stmt *stmt, void *data);
 static void print_dot_stmt_ret(struct mCc_ast_ret_stmt *stmt, void *data);
-
 static void print_dot_stmt_ass(struct mCc_ast_assignment *stmt, void *data);
 static void print_dot_stmt_decl(struct mCc_ast_declaration *stmt, void *data);
 static void print_dot_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
@@ -341,9 +340,6 @@ print_dot_expression_single(struct mCc_ast_single_expression *expression,
 		snprintf(label, sizeof(label), "Parenth expression:");
 		print_dot_node(out, expression->expression, label);
 		print_dot_edge(out, expression, expression->expression, "");
-		break;
-	default:
-        printf("G\n");
 		break;
 	}
 }

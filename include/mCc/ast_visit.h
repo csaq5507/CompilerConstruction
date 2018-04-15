@@ -14,7 +14,7 @@ enum mCc_ast_visit_traversal {
 
 enum mCc_ast_visit_order {
 	MCC_AST_VISIT_PRE_ORDER,
-	MCC_AST_VISIT_POST_ORDER,
+    MCC_AST_VISIT_POST_ORDER,
 };
 
 /* Callbacks */
@@ -28,6 +28,8 @@ typedef void (*mCc_ast_function_def_type_cb)(struct mCc_ast_function_def *,
 											 void *);
 typedef void (*mCc_ast_function_def_void_cb)(struct mCc_ast_function_def *,
 											 void *);
+typedef void (*mCc_ast_parameter_cb)(struct mCc_ast_declaration *,
+                                             void *);
 typedef void (*mCc_ast_function_def_identifier_cb)(struct mCc_ast_function_def *,
 												   void *);
 typedef void (*mCc_ast_function_def_parameter_cb)(struct mCc_ast_function_def *,
@@ -65,6 +67,8 @@ struct mCc_ast_visitor {
 
 	mCc_ast_function_def_type_cb function_def_type;
     mCc_ast_function_def_void_cb function_def_void;
+    mCc_ast_function_def_type_cb close_function_def;
+    mCc_ast_parameter_cb parameter;
     mCc_ast_function_def_identifier_cb function_def_identifier;
     mCc_ast_function_def_parameter_cb function_def_parameter;
     mCc_ast_function_def_stmt_cb function_def_stmt;
@@ -76,6 +80,7 @@ struct mCc_ast_visitor {
     mCc_ast_decl_stmt_cb decl_stmt;
     mCc_ast_ass_stmt_cb ass_stmt;
     mCc_ast_ass_stmt_statement_cb statement;
+    mCc_ast_stmt_cb close_c_stmt;
 
     mCc_ast_expression_cb expression;
     mCc_ast_single_expression_cb single_expression;

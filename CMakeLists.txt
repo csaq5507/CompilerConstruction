@@ -16,7 +16,7 @@ set(CMAKE_BUILD_TYPE Debug)
 set(HEADER_FILES ${INCLUDE}/ast.h ${INCLUDE}/ast_print.h
         ${INCLUDE}/ast_visit.h ${INCLUDE}/parser.h)
 
-set(PARSER_FILES ${BUILD}/parser.tab.c ${BUILD}/parser.tab.h ${BUILD}/scanner.c ${BUILD}/scanner.h)
+set(PARSER_FILES ${BUILD}/parser.tab.c ${BUILD}/parser.tab.h ${BUILD}/scanner.c ${BUILD}/scanner.h include/mCc/ast_symbol_table.h src/ast_symbol_table.c)
 aux_source_directory(src/ SRC_FILES)
 
 # Add an executable

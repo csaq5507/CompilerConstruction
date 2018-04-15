@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <mCc/ast_print.h>
+#include <mCc/ast_symbol_table.h>
 
 #include "mCc/ast.h"
 #include "mCc/parser.h"
@@ -31,7 +32,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	struct mCc_ast_function_def_array *expr = NULL;
+	struct mCc_ast_function_def_array *func = NULL;
 
 	/* parsing phase */
 	{
@@ -47,7 +48,7 @@ int main(int argc, char *argv[])
 			}
 			return EXIT_FAILURE;
 		}
-		expr = result.func_def;
+        func = result.func_def;
 	}
 
 	/*    TODO
@@ -58,14 +59,20 @@ int main(int argc, char *argv[])
 	 * - invoke backend compiler
 	 */
 
-	FILE *out;
-	out = fopen("output1.txt", "w");
+	FILE *out1;
+	FILE *out2;
+	out1 = fopen("output1.txt", "w");
+	out2 = fopen("output2.txt", "w");
 
-	mCc_ast_print_dot_function_def(out, expr);
+	mCc_ast_print_dot_function_def(out1, func);
+
+	func = mCc_ast_symbol_table(func);
+
+	mCc_ast_print_dot_function_def(out2, func);
 
 
 	/* cleanup */
-	mCc_ast_delete_function_def(expr);
+	mCc_ast_delete_function_def(func);
 
 	return EXIT_SUCCESS;
  }

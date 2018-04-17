@@ -91,7 +91,7 @@ comment_linebreak_r	[ \t]*[\r][ \t]*
 "else"              { return TK_ELSE; }
 "while"             {return TK_WHILE; }
 
-{identifier}    { yylval->TK_IDENTIFIER = strdup(yytext); return TK_IDENTIFIER; }
+{identifier}    { yylval->TK_IDENTIFIER = malloc(strlen(yytext)); strcpy(yylval->TK_IDENTIFIER,yytext); return TK_IDENTIFIER; }
 
 
 [ \t]*[\n][ \t]*     	{line_counter++; }

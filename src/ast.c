@@ -5,6 +5,42 @@
 #include <memory.h>
 
 #include "mCc/ast.h"
+#include <mCc/ast_visit.h>
+
+/* --------------------------------------------------------------VISITOR */
+static struct mCc_ast_visitor ast_delete_visitor(void * data)
+{
+	return (struct mCc_ast_visitor){
+		.traversal = MCC_AST_VISIT_DEPTH_FIRST,
+		.order = MCC_AST_VISIT_POST_ORDER,
+
+        .userdata = data,
+
+		.identifier = mCc_ast_delete_identifier,
+		.expression = mCc_ast_delete_expression,
+		.statement = mCc_ast_delete_stmt,
+		.literal = mCc_ast_delete_literal,
+		.parameter = mCc_ast_delete_parameter,
+		.ass_stmt = mCc_ast_delete_assignment,
+		.single_expression = mCc_ast_delete_single_expression,
+		.decl_stmt = mCc_ast_delete_declaration,
+		.if_stmt = mCc_ast_delete_if_stmt,
+		.ret_stmt = mCc_ast_delete_ret_stmt,
+		.c_stmt = mCc_ast_delete_compound_stmt,
+		.while_stmt = mCc_ast_delete_while_stmt,
+		.call_expression = mCc_ast_delete_call_expr,
+
+
+	};
+}
+
+void mCc_ast_delete_identifier(char *identifier, void *data)
+{
+    assert(identifier);
+    assert(data);
+
+	free(identifier);
+}
 
 /* ---------------------------------------------------------------- Literals */
 ast_literal *mCc_ast_new_literal_int(long value)
@@ -103,10 +139,25 @@ ast_literal *mCc_ast_new_literal_string(char *value)
 	return lit;
 }
 
-void mCc_ast_delete_literal(ast_literal *literal)
+void mCc_ast_delete_literal(ast_literal *literal, void *data)
 {
 	assert(literal);
-	free(literal);
+    assert(data);
+
+    switch (literal->type) {
+        case (MCC_AST_LITERAL_TYPE_INT):
+            free(literal->i_value);
+            break;
+        case (MCC_AST_LITERAL_TYPE_STRING):
+            free(literal->s_value);
+            break;
+        case (MCC_AST_LITERAL_TYPE_BOOL):
+            free(literal->b_value);
+            break;
+        case (MCC_AST_LITERAL_TYPE_FLOAT):
+            free(literal->f_value);
+            break;
+    }
 }
 
 
@@ -143,22 +194,10 @@ ast_expr *mCc_ast_new_expression_binary_op(enum mCc_ast_binary_op op,
 	return expr;
 }
 
-void mCc_ast_delete_expression(ast_expr *expression)
+void mCc_ast_delete_expression(ast_expr *expression, void *data)
 {
 	assert(expression);
-
-	switch (expression->type) {
-	case MCC_AST_EXPRESSION_TYPE_SINGLE:
-		mCc_ast_delete_single_expression(expression->single_expr);
-		break;
-
-	case MCC_AST_EXPRESSION_TYPE_BINARY:
-		mCc_ast_delete_single_expression(expression->lhs);
-		mCc_ast_delete_expression(expression->rhs);
-		break;
-	}
-
-	free(expression);
+    assert(data);
 }
 
 /* Single Expression */
@@ -249,33 +288,10 @@ ast_single_expr *mCc_ast_new_single_expression_parenth(ast_expr *expression)
 	return expr;
 }
 
-void mCc_ast_delete_single_expression(ast_single_expr *expression)
+void mCc_ast_delete_single_expression(ast_single_expr *expression, void *data)
 {
 	assert(expression);
-
-	switch (expression->type) {
-	case MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL:
-		mCc_ast_delete_literal(expression->literal);
-		break;
-	case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER:
-		free(expression->only_identifier);
-		break;
-	case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX:
-		free(expression->identifier);
-		mCc_ast_delete_expression(expression->identifier_expression);
-		break;
-	case MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP:
-		mCc_ast_delete_expression(expression->unary_expression);
-		break;
-	case MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH:
-		mCc_ast_delete_expression(expression->expression);
-		break;
-	case MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR:
-		free(expression->call_expr);
-		break;
-	}
-
-	free(expression);
+    assert(data);
 }
 
 /* Call Expression */
@@ -295,6 +311,12 @@ ast_call_expr *mCc_ast_new_call_expr(char *identifier, ast_argument *arguments)
 	call_expr->identifier = identifier;
 	call_expr->arguments = arguments;
 	return call_expr;
+}
+
+void mCc_ast_delete_call_expr(ast_call_expr *call_expr, void *data)
+{
+	assert(call_expr);
+    assert(data);
 }
 
 
@@ -368,9 +390,12 @@ ast_function_def_array *mCc_ast_new_function_def_array(ast_function_def *f)
 	return function_array;
 }
 
+
 void mCc_ast_delete_function_def(ast_function_def_array *f)
 {
 	assert(f);
+
+
 
 	free(f->function_def);
 	free(f);
@@ -408,20 +433,12 @@ mCc_ast_new_single_declaration(enum mCc_ast_literal_type literal,
 	return decl;
 }
 
-void mCc_ast_delete_declaration(ast_declaration *decl)
+void mCc_ast_delete_declaration(ast_declaration *decl, void *data)
 {
 	assert(decl);
-	switch (decl->type) {
-	case MCC_AST_DECLARATION_TYPE_SINGLE:
-		free(decl->identifier);
-		break;
-	case MCC_AST_DECLARATION_TYPE_ARRAY:
-		free(decl->array_identifier);
-		break;
-	}
-
-	free(decl);
+    assert(data);
 }
+
 
 
 /* ----------------------------------------------------------- Statement */
@@ -466,6 +483,12 @@ ast_if_stmt *mCc_ast_new_if_else(ast_expr *ex, ast_stmt *stmt,
 	return if_stmt;
 }
 
+void mCc_ast_delete_if_stmt(ast_if_stmt *if_stmt, void *data)
+{
+	assert(if_stmt);
+    assert(data);
+}
+
 // WHILE
 ast_stmt *mCc_ast_new_while_stmt(ast_while_stmt *while_stmt)
 {
@@ -491,6 +514,13 @@ ast_while_stmt *mCc_ast_new_while(ast_expr *ex, ast_stmt *stmt)
 
 	return while_stmt;
 }
+
+void mCc_ast_delete_while_stmt(ast_while_stmt *while_stmt, void *data)
+{
+	assert(while_stmt);
+    assert(data);
+}
+
 
 // RETURN
 ast_stmt *mCc_ast_new_ret_stmt(ast_ret_stmt *ret_stmt)
@@ -522,6 +552,12 @@ ast_ret_stmt *mCc_ast_new_ret(ast_expr *ex)
 	ret_stmt->expression = ex;
 
 	return ret_stmt;
+}
+
+void mCc_ast_delete_ret_stmt(ast_ret_stmt *ret_stmt, void *data)
+{
+	assert(ret_stmt);
+    assert(data);
 }
 
 // DECLARATION
@@ -617,36 +653,18 @@ ast_compound_stmt *mCc_ast_new_compound_array(ast_compound_stmt *stmts,
 	return stmts;
 }
 
+void mCc_ast_delete_compound_stmt(ast_compound_stmt *compound_stmt, void *data)
+{
+	assert(compound_stmt);
+    assert(data);
+}
+
+
 // DELETE
-void mCc_ast_delete_stmt(ast_stmt *stmt)
+void mCc_ast_delete_stmt(ast_stmt *stmt, void *data)
 {
 	assert(stmt);
-
-	switch (stmt->type) {
-	case MCC_AST_COMPOUND_STMT:
-		free(stmt->compound_stmt);
-		break;
-	case MCC_AST_IF_STMT:
-		free(stmt->if_stmt);
-		break;
-	case MCC_AST_RET_STMT:
-		free(stmt->ret_stmt);
-		break;
-	case MCC_AST_WHILE_STMT:
-		free(stmt->while_stmt);
-		break;
-	case MCC_AST_EXPR_STMT:
-		mCc_ast_delete_expression(stmt->expression);
-		break;
-	case MCC_AST_DECL_STMT:
-		free(stmt->declaration);
-		break;
-	case MCC_AST_ASS_STMT:
-		free(stmt->assignment);
-		break;
-	}
-
-	free(stmt);
+    assert(data);
 }
 
 
@@ -675,6 +693,11 @@ ast_assignment *mCc_ast_new_array_assignment(char *identifier, ast_expr *ex,
 	return ass;
 }
 
+void mCc_ast_delete_assignment(ast_assignment *assignment, void *data)
+{
+	assert(assignment);
+    assert(data);
+}
 
 /* ------------------------------------------------------------- Parameter */
 ast_parameter *mCc_ast_new_parameter_array(ast_parameter *params,
@@ -716,6 +739,11 @@ ast_parameter *mCc_ast_new_single_parameter(ast_declaration *decl)
 	return new_params;
 }
 
+void mCc_ast_delete_parameter(ast_declaration *parameter, void *data)
+{
+	assert(parameter);
+    assert(data);
+}
 
 /* ------------------------------------------------------------- Argument */
 ast_argument *mCc_ast_new_single_argument(ast_expr *ex)
@@ -746,4 +774,10 @@ ast_argument *mCc_ast_new_argument_array(ast_argument *arguments, ast_expr *ex)
 	arguments->counter++;
 
 	return arguments;
+}
+
+void mCc_ast_delete_argument(ast_argument *argument, void *data)
+{
+	assert(argument);
+    assert(data);
 }

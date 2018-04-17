@@ -213,8 +213,8 @@ expression      : single_expr binary_op expression  { $$ = mCc_ast_new_expressio
 
 single_expr     : literal                           { $$ = mCc_ast_new_single_expression_literal($1); }
                 | IDENTIFIER LBRACKET expression RBRACKET
-                                                    { $$ = mCc_ast_new_single_expression_identifier_ex($1,$3); }
-                | IDENTIFIER                        { $$ = mCc_ast_new_single_expression_identifier($1); }
+                                                    { printf("%s\n",$1);  $$ = mCc_ast_new_single_expression_identifier_ex($1,$3); }
+                | IDENTIFIER                        { printf("%s\n",$1); $$ = mCc_ast_new_single_expression_identifier($1); }
                 | call_expr                         { $$ = mCc_ast_new_single_expression_call_expr($1); }
                 | unary_op expression               { $$ = mCc_ast_new_single_expression_unary_op($1,$2); }
                 | LPARENTH expression RPARENTH      { $$ = mCc_ast_new_single_expression_parenth($2); }

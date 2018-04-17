@@ -68,8 +68,10 @@ int main(int argc, char *argv[])
 
 	func = mCc_ast_symbol_table(func);
 
-	mCc_ast_print_dot_function_def(out2, func);
+	//mCc_ast_print_dot_function_def(out2, func);
 
+	fclose(out1);
+	fclose(out2);
 
 	/* cleanup */
 	mCc_ast_delete_function_def_array(func);

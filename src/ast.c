@@ -140,7 +140,7 @@ ast_literal *mCc_ast_new_literal_string(char *value)
 	if (!lit) {
 		return NULL;
 	}
-	lit->s_value = malloc(sizeof(*lit->s_value) * strlen(temp));
+	lit->s_value = malloc(sizeof(char *) * strlen(temp));
 	lit->type = MCC_AST_LITERAL_TYPE_STRING;
 	strcpy(lit->s_value, temp);
 	return lit;

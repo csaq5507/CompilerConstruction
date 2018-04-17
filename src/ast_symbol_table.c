@@ -101,8 +101,8 @@ static ast_symbol_table *add_element_symbols(ast_symbol_table *head, char *old,
 	assert(new);
 
 	ast_symbol *symbol = malloc(sizeof(*symbol));
-	symbol->old = malloc(sizeof(*symbol->old) * strlen(old));
-	symbol->new = malloc(sizeof(*symbol->new) * strlen(new));
+	symbol->old = malloc(sizeof(char *) * strlen(old));
+	symbol->new = malloc(sizeof(char *) * strlen(new));
 	strcpy(symbol->old, old);
 	strcpy(symbol->new, new);
 
@@ -144,10 +144,8 @@ static void delete_symbol_table_node(ast_symbol_table *head)
 		}
 	}
 	if (head->next_counter == 0) {
-		for (int i = 0; i < head->symbols_counter; i++)
-			free(&head->symbols[i]);
-		// TODO free does not work
-		// free(head);
+		free(head->symbols);
+		free(head);
 	} else {
 		for (int i = 0; i < head->next_counter; i++) {
 			delete_symbol_table_node(&head->next[i]);
@@ -231,7 +229,7 @@ static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt,
 		// TODO throw error because already declared
 	} else {
 		char *temp = realloc(stmt->identifier,
-				     sizeof(*temp) * strlen(new_name));
+				     sizeof(char *) * strlen(new_name));
 		if (temp == NULL)
 			assert(NULL);
 		stmt->identifier = temp;
@@ -256,7 +254,7 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 			table = add_element_symbols(table, stmt->identifier,
 						    help);
 			char *temp = realloc(stmt->identifier,
-					     sizeof((*temp) * strlen(help)));
+					     (sizeof(char *) * strlen(help)));
 			if (temp == NULL)
 				assert(NULL);
 			stmt->identifier = temp;
@@ -273,7 +271,7 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 			table = add_element_symbols(
 				table, stmt->array_identifier, help);
 			char *temp = realloc(stmt->array_identifier,
-					     sizeof((*temp) * strlen(help)));
+					     (sizeof(char *) * strlen(help)));
 			if (temp == NULL)
 				assert(NULL);
 			stmt->array_identifier = temp;
@@ -304,7 +302,7 @@ static void ast_symbol_table_parameter(struct mCc_ast_declaration *declaration,
 			table = add_element_symbols(
 				table, declaration->identifier, help);
 			char *temp = realloc(declaration->identifier,
-					     sizeof((*temp) * strlen(help)));
+					     (sizeof(char *) * strlen(help)));
 			if (temp == NULL)
 				assert(NULL);
 			declaration->identifier = temp;
@@ -323,7 +321,7 @@ static void ast_symbol_table_parameter(struct mCc_ast_declaration *declaration,
 			table = add_element_symbols(
 				table, declaration->array_identifier, help);
 			char *temp = realloc(declaration->array_identifier,
-					     sizeof((*temp) * strlen(help)));
+					     (sizeof(char *) * strlen(help)));
 			if (temp == NULL)
 				assert(NULL);
 			declaration->array_identifier = temp;
@@ -356,7 +354,7 @@ ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
 			// TODO throw error because already declared
 		} else {
 			char *temp = realloc(expression->identifier,
-					     sizeof(*temp) * strlen(new_name));
+					     sizeof(char *) * strlen(new_name));
 			if (temp == NULL)
 				assert(NULL);
 			expression->identifier = temp;

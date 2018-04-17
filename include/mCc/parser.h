@@ -24,7 +24,7 @@ struct mCc_parser_result {
 
 struct mCc_parser_error_array {
 	int counter;
-	struct mCc_parser_error* errors;
+	struct mCc_parser_error *errors;
 };
 
 struct mCc_parser_error {
@@ -32,9 +32,11 @@ struct mCc_parser_error {
 	int error_line;
 };
 
-struct mCc_parser_error_array* new_parse_error_array();
+struct mCc_parser_error_array *new_parse_error_array();
 
-struct mCc_parser_error_array* add_parse_error(struct mCc_parser_error_array* array, struct mCc_parser_error *error);
+struct mCc_parser_error_array *
+add_parse_error(struct mCc_parser_error_array *array,
+		struct mCc_parser_error *error);
 
 struct mCc_parser_result mCc_parser_parse_string(const char *input);
 

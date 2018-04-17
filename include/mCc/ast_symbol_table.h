@@ -15,8 +15,8 @@ extern "C" {
 typedef struct mCc_ast_symbol_table ast_symbol_table;
 typedef struct mCc_ast_symbol ast_symbol;
 
-struct mCc_ast_function_def_array* mCc_ast_symbol_table
-        (struct mCc_ast_function_def_array *f);
+struct mCc_ast_function_def_array *
+mCc_ast_symbol_table(struct mCc_ast_function_def_array *f);
 
 
 ast_symbol_table *table;
@@ -25,22 +25,22 @@ ast_symbol_table *table;
 
 typedef struct mCc_ast_symbol_table {
 
-    ast_symbol_table *prev;
+	ast_symbol_table *prev;
 
-    int next_counter;
-    ast_symbol_table *next;
+	int next_counter;
+	ast_symbol_table *next;
 
-    int symbols_counter;
-    ast_symbol *symbols;
+	int symbols_counter;
+	ast_symbol *symbols;
 
 } ast_symbol_table;
 
 typedef struct mCc_ast_symbol {
-    char *old;
-    char *new;
+	char *old;
+	char *new;
 } ast_symbol;
 
 #ifdef __cplusplus
 }
 #endif
-#endif //MINICOMPILER_AST_SYMBOL_TABLE_H
+#endif // MINICOMPILER_AST_SYMBOL_TABLE_H

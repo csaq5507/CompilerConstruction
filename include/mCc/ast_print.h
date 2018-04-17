@@ -10,8 +10,8 @@
 extern "C" {
 #endif
 
-void mCc_ast_print_dot_function_def(FILE *out, struct mCc_ast_function_def_array *f);
-
+void mCc_ast_print_dot_function_def(FILE *out,
+				    struct mCc_ast_function_def_array *f);
 
 
 #ifdef __cplusplus

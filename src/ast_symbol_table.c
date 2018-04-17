@@ -263,7 +263,7 @@ static void ast_symbol_table_parameter(struct mCc_ast_declaration *declaration,
         switch (declaration->type) {
             case (MCC_AST_DECLARATION_TYPE_SINGLE):
                 sprintf(help, "%s%d", declaration->identifier, table->symbols_counter);
-                printf("%s\n", help);
+
                 if (find_element_symbols(table, declaration->identifier) != NULL) {
                     printf("Allready defined: %s\n", declaration->identifier);
                     //TODO throw error because already declared

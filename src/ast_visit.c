@@ -238,7 +238,8 @@ void mCc_ast_visit_ret_stmt(struct mCc_ast_ret_stmt *stmt,
                             struct mCc_ast_visitor *visitor){
     assert(stmt);
     assert(visitor);
-
+    if(stmt->expression == NULL)
+        return;
     visit_if_pre_order(stmt->expression, visitor->expression, visitor);
     mCc_ast_visit_expression(stmt->expression, visitor);
     visit_if_post_order(stmt->expression, visitor->expression, visitor);

@@ -5,6 +5,7 @@
 
 #include "mCc/ast.h"
 #include "ast_visit.h"
+#include "parser.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -15,11 +16,13 @@ extern "C" {
 typedef struct mCc_ast_symbol_table ast_symbol_table;
 typedef struct mCc_ast_symbol ast_symbol;
 
-struct mCc_ast_function_def_array *
-mCc_ast_symbol_table(struct mCc_ast_function_def_array *f);
+struct mCc_parser_result *
+mCc_ast_symbol_table(struct mCc_parser_result *result);
 
 
 ast_symbol_table *table;
+int g_counter;
+struct mCc_parser_result *result;
 
 /* ###################### STRUCTS ###################### */
 
@@ -36,8 +39,8 @@ typedef struct mCc_ast_symbol_table {
 } ast_symbol_table;
 
 typedef struct mCc_ast_symbol {
-	char *old;
-	char *new;
+	char *mCc_symbol_old;
+	char *mCc_symbol_new;
 } ast_symbol;
 
 #ifdef __cplusplus

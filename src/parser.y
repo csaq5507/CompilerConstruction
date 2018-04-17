@@ -246,6 +246,8 @@ void yyerror(yyscan_t *scanner, struct mCc_parser_result * result, const char *m
     error->error_line = line_counter;
 	result->errors = add_parse_error(result->errors, error);
 
+    if (scanner == NULL)
+        return;
 }
 
 

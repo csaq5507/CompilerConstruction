@@ -49,6 +49,20 @@ int main(int argc, char *argv[])
 			return EXIT_FAILURE;
 		}
         func = result.func_def;
+
+		FILE *out1;
+		FILE *out2;
+		out1 = fopen("output1.txt", "w");
+		out2 = fopen("output2.txt", "w");
+
+		mCc_ast_print_dot_function_def(out1, func);
+
+		result = *(mCc_ast_symbol_table(&result));
+
+		mCc_ast_print_dot_function_def(out2, result.func_def);
+
+		fclose(out1);
+		fclose(out2);
 	}
 
 	/*    TODO
@@ -59,19 +73,7 @@ int main(int argc, char *argv[])
 	 * - invoke backend compiler
 	 */
 
-	FILE *out1;
-	FILE *out2;
-	out1 = fopen("output1.txt", "w");
-	out2 = fopen("output2.txt", "w");
 
-	mCc_ast_print_dot_function_def(out1, func);
-
-	func = mCc_ast_symbol_table(func);
-
-	//mCc_ast_print_dot_function_def(out2, func);
-
-	fclose(out1);
-	fclose(out2);
 
 	/* cleanup */
 	mCc_ast_delete_function_def_array(func);

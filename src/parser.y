@@ -248,6 +248,40 @@ void yyerror(yyscan_t *scanner, struct mCc_parser_result * result, const char *m
 
 }
 
+
+struct mCc_parser_error_array* new_parse_error_array() {
+    struct mCc_parser_error_array *parser_error_array =
+                malloc(sizeof(*parser_error_array));
+
+    parser_error_array->errors = NULL;
+    parser_error_array->counter = 0;
+
+    return parser_error_array;
+}
+
+struct mCc_parser_error_array* add_parse_error(struct mCc_parser_error_array* array, struct mCc_parser_error *error) {
+    assert(array);
+    assert(error);
+    if(array->counter == 0)
+    {
+        array->errors = malloc(sizeof(*error));
+        array->errors[array->counter] = *error;
+
+    } else
+    {
+        struct mCc_parser_error * temp = realloc(array->errors, sizeof(*error) * (array->counter + 1));
+        if(temp == NULL)
+        {
+            //TODO throw error
+            return NULL;
+        }
+        array->errors = temp;
+        memcpy(&(array->errors[array->counter]),error, sizeof(*error));
+    }
+    array->counter++;
+    return array;
+}
+
 struct mCc_parser_result mCc_parser_parse_string(const char *input)
 {
 	assert(input);

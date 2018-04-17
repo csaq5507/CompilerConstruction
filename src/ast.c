@@ -428,8 +428,8 @@ ast_function_def_array *mCc_ast_new_function_def_array(ast_function_def *f)
 {
 	assert(f);
 
-	ast_function_def_array *function_array =
-		malloc(sizeof(*function_array));
+	ast_function_def_array *function_array = (ast_function_def_array*)
+		malloc(sizeof(ast_function_def_array));
 
 	function_array->counter = 1;
 	function_array->function_def = f;
@@ -468,6 +468,7 @@ void mCc_ast_delete_function_def_array(ast_function_def_array *f)
 	free(f->function_def);
 	if (DEBUG)
 		printf("func_def_array\n");
+    free(f);
 }
 
 
@@ -507,6 +508,7 @@ void mCc_ast_delete_declaration(ast_declaration *decl, void *data)
 	assert(decl);
     assert(data);
 
+    free(decl);
 }
 
 
@@ -569,7 +571,7 @@ void mCc_ast_delete_if_stmt(ast_if_stmt *if_stmt, void *data)
 		if (DEBUG)
 			printf("if_stmt_else_stmt\n");
     }
-
+    free(if_stmt);
 }
 
 // WHILE
@@ -610,6 +612,7 @@ void mCc_ast_delete_while_stmt(ast_while_stmt *while_stmt, void *data)
 	if (DEBUG)
 		printf("while_stmt_stmt\n");
 
+    free(while_stmt);
 }
 
 
@@ -654,6 +657,7 @@ void mCc_ast_delete_ret_stmt(ast_ret_stmt *ret_stmt, void *data)
 		if (DEBUG)
 			printf("ret_ex\n");
     }
+    free(ret_stmt);
 }
 
 // DECLARATION
@@ -848,6 +852,7 @@ void mCc_ast_delete_assignment(ast_assignment *assignment, void *data)
 		if (DEBUG)
 			printf("assi->numerator\n");
     }
+    free(assignment);
 }
 
 /* ------------------------------------------------------------- Parameter */

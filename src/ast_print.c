@@ -6,6 +6,7 @@
 #define LABEL_SIZE 64
 
 char *ptr;
+int counter;
 
 static void print_dot_begin(FILE *out);
 static void print_dot_end(FILE *out);
@@ -359,8 +360,8 @@ static void print_dot_expression_binary(struct mCc_ast_expression *expression,
 	const char *text = mCc_ast_print_binary_op(expression->op);
 
 	snprintf(label, sizeof(label), "Operator: %s", text);
-	print_dot_node(out, ptr, label);
-	print_dot_edge(out, expression, ptr++, "");
+	print_dot_node(out, (ptr+counter), label);
+	print_dot_edge(out, expression, (ptr+counter++), "");
 
 	snprintf(label, sizeof(label), "Rigth hand side");
 	print_dot_node(out, expression->rhs, label);
@@ -713,8 +714,8 @@ static void print_dot_function_def_void(struct mCc_ast_function_def *f,
 
 	/* TYPE */
 	snprintf(label, sizeof(label), "type: VOID");
-	print_dot_node(out, ptr, label);
-	print_dot_edge(out, f->identifier, ptr++, "");
+	print_dot_node(out, (ptr+counter), label);
+	print_dot_edge(out, f->identifier, (ptr+counter++), "");
 }
 
 static void print_dot_function_def_type(struct mCc_ast_function_def *f,
@@ -730,8 +731,8 @@ static void print_dot_function_def_type(struct mCc_ast_function_def *f,
 	/* Type of the function */
 	snprintf(label, sizeof(label), "%s",
 		 mCc_ast_print_literal_type(f->l_type));
-	print_dot_node(out, ptr, label);
-	print_dot_edge(out, f->identifier, ptr++, "");
+	print_dot_node(out, (ptr+counter), label);
+	print_dot_edge(out, f->identifier, (ptr+counter++), "");
 }
 
 void mCc_ast_print_dot_function_def(FILE *out,
@@ -740,6 +741,7 @@ void mCc_ast_print_dot_function_def(FILE *out,
 	assert(out);
 	assert(f);
 	ptr = malloc(1);
+	counter = 0;
 	print_dot_begin(out);
 
 
@@ -748,4 +750,6 @@ void mCc_ast_print_dot_function_def(FILE *out,
 	mCc_ast_visit_function_def_array(f, &visitor);
 
 	print_dot_end(out);
+
+	free(ptr);
 }

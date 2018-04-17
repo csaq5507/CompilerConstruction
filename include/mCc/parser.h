@@ -16,22 +16,6 @@ enum mCc_parser_status {
 	MCC_PARSER_STATUS_UNKNOWN_ERROR,
 };
 
-struct mCc_parser_result {
-	enum mCc_parser_status status;
-	struct mCc_parser_error_array *errors;
-	struct mCc_ast_function_def_array *func_def;
-};
-
-struct mCc_parser_error_array {
-	int counter;
-	struct mCc_parser_error *errors;
-};
-
-struct mCc_parser_error {
-	char error_msg[1024];
-	int error_line;
-};
-
 struct mCc_parser_error_array *new_parse_error_array();
 
 struct mCc_parser_error_array *

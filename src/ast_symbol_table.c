@@ -94,8 +94,8 @@ static ast_symbol_table* add_element_symbols(ast_symbol_table *head,
     assert(new);
 
     ast_symbol *symbol = malloc(sizeof(*symbol));
-    symbol->old = malloc(sizeof(*symbol->old));
-    symbol->new = malloc(sizeof(*symbol->new));
+    symbol->old = malloc(sizeof(*symbol->old) * strlen(old));
+    symbol->new = malloc(sizeof(*symbol->new) * strlen(new));
     strcpy(symbol->old, old);
     strcpy(symbol->new, new);
 
@@ -214,9 +214,10 @@ static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt,
         printf("Missing definition of: %s\n", stmt->identifier);
         //TODO throw error because already declared
     } else {
-        char *temp = realloc(stmt->identifier, sizeof(*new_name));
+        char *temp = realloc(stmt->identifier, sizeof(*temp) * strlen(new_name));
         if (temp == NULL)
-            return;
+            assert(NULL);
+        stmt->identifier=temp;
         strcpy(stmt->identifier, new_name);
     }
 }
@@ -236,6 +237,10 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
             }
             else {
                 table = add_element_symbols(table, stmt->identifier, help);
+                char * temp = realloc(stmt->identifier, sizeof((*temp) * strlen(help)));
+                if(temp==NULL)
+                    assert(NULL);
+                stmt->identifier = temp;
                 strcpy(stmt->identifier, help);
             }
             break;
@@ -247,6 +252,10 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
             }
             else {
                 table = add_element_symbols(table, stmt->array_identifier, help);
+                char * temp = realloc(stmt->array_identifier, sizeof((*temp) * strlen(help)));
+                if(temp==NULL)
+                    assert(NULL);
+                stmt->array_identifier = temp;
                 strcpy(stmt->array_identifier, help);
             }
             break;
@@ -270,6 +279,10 @@ static void ast_symbol_table_parameter(struct mCc_ast_declaration *declaration,
                 }
                 else {
                     table = add_element_symbols(table, declaration->identifier, help);
+                    char * temp = realloc(declaration->identifier, sizeof((*temp) * strlen(help)));
+                    if(temp==NULL)
+                        assert(NULL);
+                    declaration->identifier = temp;
                     strcpy(declaration->identifier, help);
                 }
                 break;
@@ -281,6 +294,10 @@ static void ast_symbol_table_parameter(struct mCc_ast_declaration *declaration,
                 }
                 else {
                     table = add_element_symbols(table, declaration->array_identifier, help);
+                    char * temp = realloc(declaration->array_identifier, sizeof((*temp) * strlen(help)));
+                    if(temp==NULL)
+                        assert(NULL);
+                    declaration->array_identifier = temp;
                     strcpy(declaration->array_identifier, help);
                 }
                 break;
@@ -304,9 +321,10 @@ static void ast_symbol_table_expression_single(struct mCc_ast_single_expression 
             printf("Missing definition of: %s\n", expression->identifier);
             //TODO throw error because already declared
         } else {
-            char *temp = realloc(expression->identifier, sizeof(*new_name));
+            char *temp = realloc(expression->identifier, sizeof(*temp) * strlen(new_name));
             if (temp == NULL)
-                return;
+                assert(NULL);
+            expression->identifier=temp;
             strcpy(expression->identifier, new_name);
         }
     }

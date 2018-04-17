@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 
 
 	/* cleanup */
-	mCc_ast_delete_function_def(func);
+	mCc_ast_delete_function_def_array(func);
 
 	return EXIT_SUCCESS;
  }

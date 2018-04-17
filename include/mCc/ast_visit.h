@@ -51,6 +51,7 @@ typedef void (*mCc_ast_single_expression_cb)(struct mCc_ast_single_expression *,
 typedef void (*mCc_ast_binary_expression_cb)(struct mCc_ast_expression *,
 					     void *);
 typedef void (*mCc_ast_call_expression_cb)(struct mCc_ast_call_expr *, void *);
+typedef void (*mCc_ast_argument_cb)(struct mCc_ast_argument *, void *);
 
 
 struct mCc_ast_visitor {
@@ -84,6 +85,7 @@ struct mCc_ast_visitor {
 	mCc_ast_stmt_cb close_c_stmt;
 
 	mCc_ast_expression_cb expression;
+	mCc_ast_argument_cb argument;
 	mCc_ast_single_expression_cb single_expression;
 	mCc_ast_binary_expression_cb binary_expression;
 	mCc_ast_call_expression_cb call_expression;

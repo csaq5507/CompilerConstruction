@@ -25,6 +25,10 @@
 	visit_if((visitor)->order == MCC_AST_VISIT_POST_ORDER, node, callback, \
 		 visitor)
 
+#define visit_for(visitor,max) for(int i = ((visitor)->order == MCC_AST_VISIT_PRE_ORDER)? 0 : max-1; \
+         ((visitor)->order == MCC_AST_VISIT_PRE_ORDER)? i < max : i >= 0; \
+         ((visitor)->order == MCC_AST_VISIT_PRE_ORDER)? i++ : i--) {
+
 
 void mCc_ast_visit_function_def_array(struct mCc_ast_function_def_array *f,
 				      struct mCc_ast_visitor *visitor)
@@ -32,7 +36,7 @@ void mCc_ast_visit_function_def_array(struct mCc_ast_function_def_array *f,
 	assert(f);
 	assert(visitor);
 
-	for (int i = 0; i < f->counter; i++) {
+    visit_for(visitor,f->counter);
 		struct mCc_ast_function_def *func = &f->function_def[i];
 		visit(func, visitor->function_def_identifier, visitor);
 		switch (func->type) {
@@ -92,7 +96,7 @@ void mCc_ast_visit_parameter(struct mCc_ast_parameter *param,
 	assert(param);
 	assert(visitor);
 
-	for (int i = 0; i < param->counter; i++) {
+    visit_for(visitor,param->counter);
 		visit_if_pre_order(&param->declaration[i], visitor->parameter,
 				   visitor);
 		mCc_ast_visit_decl_stmt(&param->declaration[i], visitor);
@@ -174,7 +178,7 @@ void mCc_ast_visit_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
 	assert(c_stmt);
 	assert(visitor);
 
-	for (int i = 0; i < c_stmt->counter; i++) {
+    visit_for(visitor,c_stmt->counter);
 		/* TYPE */
 		switch (c_stmt->statements[i].type) {
 		case (MCC_AST_IF_STMT):
@@ -402,6 +406,20 @@ void mCc_ast_visit_expression_binary(struct mCc_ast_expression *expression,
 	visit_if_post_order(expression->rhs, visitor->expression, visitor);
 }
 
+void mCc_ast_visit_argument(struct mCc_ast_argument *argument,
+                           struct mCc_ast_visitor *visitor) {
+    assert(argument);
+    assert(visitor);
+
+    visit_for(visitor, argument->counter)
+
+        visit_if_pre_order(&argument->expression[i],visitor->expression,visitor);
+        mCc_ast_visit_expression(&argument->expression[i],visitor);
+        visit_if_post_order(&argument->expression[i],visitor->expression,visitor);
+
+    }
+}
+
 void mCc_ast_visit_call_expression(struct mCc_ast_call_expr *expression,
 				   struct mCc_ast_visitor *visitor)
 {
@@ -411,16 +429,11 @@ void mCc_ast_visit_call_expression(struct mCc_ast_call_expr *expression,
 	visit(expression->identifier, visitor->identifier, visitor);
 
 	if (expression->arguments != NULL)
-		for (int i = 0; i < expression->arguments->counter; i++) {
-			visit_if_pre_order(
-				&expression->arguments->expression[i],
-				visitor->expression, visitor);
-			mCc_ast_visit_expression(
-				&expression->arguments->expression[i], visitor);
-			visit_if_post_order(
-				&expression->arguments->expression[i],
-				visitor->expression, visitor);
-		}
+    {
+        visit_if_pre_order(expression->arguments,visitor->argument,visitor);
+        mCc_ast_visit_argument(expression->arguments,visitor);
+        visit_if_post_order(expression->arguments,visitor->argument,visitor);
+    }
 }
 
 void mCc_ast_visit_literal(struct mCc_ast_literal *literal,

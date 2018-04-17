@@ -51,7 +51,9 @@ static void print_dot_function_def_stmt(struct mCc_ast_function_def *f,
 					void *data);
 
 static void print_dot_call_expr(struct mCc_ast_call_expr *expression,
-				void *data);
+                                void *data);
+static void print_dot_argument(struct mCc_ast_argument *argument,
+                                                                            void *data);
 
 static struct mCc_ast_visitor print_dot_visitor(FILE *out)
 {
@@ -88,6 +90,7 @@ static struct mCc_ast_visitor print_dot_visitor(FILE *out)
 		.single_expression = print_dot_expression_single,
 		.binary_expression = print_dot_expression_binary,
 		.call_expression = print_dot_call_expr,
+        .argument = print_dot_argument
 
 	};
 }
@@ -376,16 +379,37 @@ static void print_dot_call_expr(struct mCc_ast_call_expr *expression,
 
 	print_dot_edge(out, expression, expression->identifier, "");
 
-	if (expression->arguments != NULL)
-		for (int i = 0; i < expression->arguments->counter; i++) {
-			snprintf(label, sizeof(label), "Arguments");
-			print_dot_node(out,
-				       &expression->arguments->expression[i],
-				       label);
-			print_dot_edge(out, expression,
-				       &expression->arguments->expression[i],
-				       "");
-		}
+    if(expression->arguments==NULL)
+        return;
+    snprintf(label, sizeof(label), "Arguments");
+    print_dot_node(out,
+                   expression->arguments,
+                   label);
+
+    print_dot_edge(out, expression,
+                   expression->arguments,
+                   "");
+}
+
+static void print_dot_argument(struct mCc_ast_argument * argument, void * data)
+{
+    assert(argument);
+    assert(data);
+
+    FILE *out = data;
+
+    char label[LABEL_SIZE] = {0};
+
+    for (int i = 0; i < argument->counter; i++) {
+        snprintf(label, sizeof(label), "Expression");
+        print_dot_node(out,
+                    &argument->expression[i],
+                       label);
+        print_dot_edge(out, argument,
+                       &argument->expression[i],
+                       "");
+    }
+
 }
 
 /* ----------------------------------------------------------- stmt */

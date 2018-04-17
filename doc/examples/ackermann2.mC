@@ -27,7 +27,7 @@ void main()
     print_int(p2);
     print(") is: ");
 
-    print_int(ackermann(p1,p2));
+    print_int(ackermann(p1+1,p2));
     print_nl();
     return;
 }

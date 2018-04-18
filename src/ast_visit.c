@@ -27,11 +27,10 @@
 	visit_if((visitor)->order == MCC_AST_VISIT_POST_ORDER, node, callback, \
 		 visitor)
 
-#define visit_for(visitor, max)                                                \
-	for (int i = ((visitor)->order == MCC_AST_VISIT_PRE_ORDER) ? 0         \
-								   : max - 1;  \
-	     ((visitor)->order == MCC_AST_VISIT_PRE_ORDER) ? i < max : i >= 0; \
-	     ((visitor)->order == MCC_AST_VISIT_PRE_ORDER) ? i++ : i--) {
+#define visit_for(order, max) for( int i = \
+        (order == MCC_AST_VISIT_PRE_ORDER) ? 0 : (max - 1); \
+	     (order == MCC_AST_VISIT_PRE_ORDER) ? i < max : i >= 0; \
+	     (order == MCC_AST_VISIT_PRE_ORDER) ? i++ : i--)
 
 
 void mCc_ast_visit_function_def_array(struct mCc_ast_function_def_array *f,
@@ -40,21 +39,26 @@ void mCc_ast_visit_function_def_array(struct mCc_ast_function_def_array *f,
 	assert(f);
 	assert(visitor);
 
-	visit_for(visitor, f->counter);
-	struct mCc_ast_function_def *func = &f->function_def[i];
-	switch (func->type) {
-	case (MCC_AST_FUNCTION_DEF_TYPE_TYPE):
-		visit_if_pre_order(func, visitor->function_def_type, visitor);
-		mCc_ast_visit_function_def_type(func, visitor);
-		visit_if_post_order(func, visitor->function_def_type, visitor);
-		break;
-	case (MCC_AST_FUNCTION_DEF_TYPE_VOID):
-		visit_if_pre_order(func, visitor->function_def_void, visitor);
-		mCc_ast_visit_function_def_void(func, visitor);
-		visit_if_post_order(func, visitor->function_def_void, visitor);
-		break;
+	visit_for(visitor->order, f->counter)
+	{
+		struct mCc_ast_function_def *func = &f->function_def[i];
+		switch (func->type) {
+		case (MCC_AST_FUNCTION_DEF_TYPE_TYPE):
+			visit_if_pre_order(func, visitor->function_def_type,
+					   visitor);
+			mCc_ast_visit_function_def_type(func, visitor);
+			visit_if_post_order(func, visitor->function_def_type,
+					    visitor);
+			break;
+		case (MCC_AST_FUNCTION_DEF_TYPE_VOID):
+			visit_if_pre_order(func, visitor->function_def_void,
+					   visitor);
+			mCc_ast_visit_function_def_void(func, visitor);
+			visit_if_post_order(func, visitor->function_def_void,
+					    visitor);
+			break;
+		}
 	}
-}
 }
 
 void mCc_ast_visit_function_def_type(struct mCc_ast_function_def *f,
@@ -103,12 +107,14 @@ void mCc_ast_visit_parameter(struct mCc_ast_parameter *param,
 	assert(param);
 	assert(visitor);
 
-	visit_for(visitor, param->counter);
-	visit_if_pre_order(&param->declaration[i], visitor->decl_stmt, visitor);
-	mCc_ast_visit_decl_stmt(&param->declaration[i], visitor);
-	visit_if_post_order(&param->declaration[i], visitor->decl_stmt,
-			    visitor);
-}
+	visit_for(visitor->order, param->counter)
+	{
+		visit_if_pre_order(&param->declaration[i], visitor->decl_stmt,
+				   visitor);
+		mCc_ast_visit_decl_stmt(&param->declaration[i], visitor);
+		visit_if_post_order(&param->declaration[i], visitor->decl_stmt,
+				    visitor);
+	}
 }
 
 
@@ -174,12 +180,14 @@ void mCc_ast_visit_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
 	assert(c_stmt);
 	assert(visitor);
 
-	visit_for(visitor, c_stmt->counter);
-	/* TYPE */
-	visit_if_pre_order(&c_stmt->statements[i], visitor->statement, visitor);
-	mCc_ast_visit_stmt_statement(&c_stmt->statements[i], visitor);
-	visit_if_post_order(&c_stmt->statements[i], visitor->statement,
-			    visitor);
+	visit_for(visitor->order, c_stmt->counter)
+	{
+		/* TYPE */
+		visit_if_pre_order(&c_stmt->statements[i], visitor->statement,
+				   visitor);
+		mCc_ast_visit_stmt_statement(&c_stmt->statements[i], visitor);
+		visit_if_post_order(&c_stmt->statements[i], visitor->statement,
+				    visitor);
 	}
 }
 
@@ -200,7 +208,7 @@ void mCc_ast_visit_if_stmt(struct mCc_ast_if_stmt *stmt,
 	if (stmt->else_statement != NULL) {
 		visit_if_pre_order(stmt->else_statement, visitor->statement,
 				   visitor);
-		mCc_ast_visit_stmt_statement(stmt->statement, visitor);
+		mCc_ast_visit_stmt_statement(stmt->else_statement, visitor);
 		visit_if_post_order(stmt->else_statement, visitor->statement,
 				    visitor);
 	}
@@ -283,11 +291,11 @@ void mCc_ast_visit_expression(struct mCc_ast_expression *expression,
 		mCc_ast_visit_expression_single(expression->lhs, visitor);
 		visit_if_post_order(expression->lhs, visitor->single_expression,
 				    visitor);
-			visit_if_pre_order(expression->rhs, visitor->expression,
-							   visitor);
-			mCc_ast_visit_expression(expression->rhs, visitor);
-			visit_if_post_order(expression->rhs, visitor->expression,
-								visitor);
+		visit_if_pre_order(expression->rhs, visitor->expression,
+				   visitor);
+		mCc_ast_visit_expression(expression->rhs, visitor);
+		visit_if_post_order(expression->rhs, visitor->expression,
+				    visitor);
 		break;
 	}
 }
@@ -355,14 +363,15 @@ void mCc_ast_visit_argument(struct mCc_ast_argument *argument,
 	assert(argument);
 	assert(visitor);
 
-	visit_for(visitor, argument->counter)
+	visit_for(visitor->order, argument->counter)
+	{
 
 		visit_if_pre_order(&argument->expression[i],
 				   visitor->expression, visitor);
-	mCc_ast_visit_expression(&argument->expression[i], visitor);
-	visit_if_post_order(&argument->expression[i], visitor->expression,
-			    visitor);
-}
+		mCc_ast_visit_expression(&argument->expression[i], visitor);
+		visit_if_post_order(&argument->expression[i],
+				    visitor->expression, visitor);
+	}
 }
 
 void mCc_ast_visit_call_expression(struct mCc_ast_call_expr *expression,

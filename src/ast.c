@@ -454,6 +454,7 @@ mCc_ast_add_function_def_to_array(ast_function_def_array *f,
 	f->function_def = temp;
 
 	memcpy(&(f->function_def[f->counter]), f2, sizeof(*f2));
+    free(f2);
 	f->counter++;
 	return f;
 }
@@ -772,7 +773,7 @@ ast_compound_stmt *mCc_ast_new_compound_array(ast_compound_stmt *stmts,
 	}
 	stmts->statements = temp;
 	memcpy(&(stmts->statements[stmts->counter]), stmt, sizeof(*stmt));
-
+    free(stmt);
 	stmts->counter++;
 
 	return stmts;
@@ -784,11 +785,10 @@ void mCc_ast_delete_compound_stmt(ast_compound_stmt *compound_stmt, void *data)
 	assert(data);
 
 
-	free(compound_stmt->statements);
-	if (DEBUG)
-		printf("compound\n");
+    if (DEBUG)
+        printf("compound\n");
+    free(compound_stmt->statements);
 }
-
 
 // DELETE
 void mCc_ast_delete_stmt(ast_stmt *stmt, void *data)
@@ -837,7 +837,6 @@ void mCc_ast_delete_stmt(ast_stmt *stmt, void *data)
 		break;
 	}
 }
-
 
 /* ----------------------------------------------------------- Assignment */
 ast_assignment *mCc_ast_new_single_assignment(ast_identifier *identifier,
@@ -895,7 +894,7 @@ ast_parameter *mCc_ast_new_parameter_array(ast_parameter *params,
 	}
 	params->declaration = temp;
 	memcpy(&(params->declaration[params->counter]), decl, sizeof(*decl));
-
+    free(decl);
 	params->counter++;
 
 	return params;
@@ -955,7 +954,7 @@ ast_argument *mCc_ast_new_argument_array(ast_argument *arguments, ast_expr *ex)
 	memcpy(&(arguments->expression[arguments->counter]), ex, sizeof(*ex));
 
 	arguments->counter++;
-
+    free(ex);
 	return arguments;
 }
 

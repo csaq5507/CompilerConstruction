@@ -241,7 +241,6 @@ arguments       : expression                        { $$ = mCc_ast_new_single_ar
 #include "scanner.h"
 
 void yyerror(yyscan_t *scanner, struct mCc_parser_result * result, const char *msg) {
-    fprintf(stdout, "HERE\n");
     struct mCc_parser_error *error =  malloc(sizeof(struct mCc_parser_error));
     strcpy(error->error_msg,msg);
     error->error_line = line_counter;
@@ -315,7 +314,7 @@ struct mCc_parser_result mCc_parser_parse_file(FILE *input)
 	result.errors = new_parse_error_array();
 
 	if (yyparse(scanner, &result) != 0) {
-		result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
+		//result.status = MCC_PARSER_STATUS_UNKNOWN_ERROR;
 	}
 
 	mCc_parser_lex_destroy(scanner);

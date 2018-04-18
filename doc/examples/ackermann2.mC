@@ -4,7 +4,7 @@ int func1() {
 }
 
 int func2() {
-    192 + 3.14;
+    192 + 3.14
 }
 
 void func3() {

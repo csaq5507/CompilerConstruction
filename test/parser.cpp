@@ -46,7 +46,7 @@ TEST(Assignemt_1, Task3) {
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
     ASSERT_STREQ("syntax error, unexpected identifier, expecting ;", result.errors->errors[0].error_msg);
-    ASSERT_EQ(2, result.errors->errors[0].error_line);
+    ASSERT_EQ(4, result.errors->errors[0].error_line);
     //mCc_ast_delete_function_def_array(result.func_def);
 
 }
@@ -68,11 +68,12 @@ TEST(Assignemt_2, Task1) {
 
     ASSERT_STREQ("a", func_def[func_def_arr->counter-1].c_stmt[0].statements[0].declaration->identifier);
 
-    //TODO not working like this -> include not working
     auto result2 = mCc_ast_symbol_table(&result);
     func_def_arr = result2->func_def;
     ASSERT_STREQ("a1", func_def[func_def_arr->counter-1].c_stmt[0].statements[0].declaration->identifier);
-    mCc_ast_delete_function_def_array(result.func_def);
+
+    //TODO errror check for undefined or redefined identifiers
+    //mCc_ast_delete_function_def_array(result.func_def);
 }
 
 TEST(Assignemt_2, Task2) {

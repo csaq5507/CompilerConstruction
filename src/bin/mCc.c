@@ -7,6 +7,8 @@
 #include "mCc/ast.h"
 #include "mCc/parser.h"
 
+#define DEBUG 0
+
 void print_usage(const char *prg)
 {
 	printf("usage: %s <FILE>\n\n", prg);
@@ -38,13 +40,15 @@ int main(int argc, char *argv[])
 	{
 		struct mCc_parser_result result = mCc_parser_parse_file(in);
 		fclose(in);
-		if (result.status != MCC_PARSER_STATUS_OK) {
-			printf("Parser_error:\n");
-			for (int i = 0; i < result.errors->counter; i++) {
-				printf("Error at line %d\n",
-				       result.errors->errors[i].error_line);
-				printf("%s\n",
-				       result.errors->errors[i].error_msg);
+		if (result.status == MCC_PARSER_STATUS_ERROR) {
+			if (DEBUG){
+				printf("Parser_error:\n");
+				for (int i = 0; i < result.errors->counter; i++) {
+					printf("Error at line %d\n",
+						   result.errors->errors[i].error_line);
+					printf("%s\n",
+						   result.errors->errors[i].error_msg);
+				}
 			}
 			return EXIT_FAILURE;
 		}

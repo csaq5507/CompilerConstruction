@@ -43,7 +43,7 @@ TEST(Assignemt_1, Task3) {
             "}";
     auto result = mCc_parser_parse_string(input);
 
-    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+    ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
     ASSERT_STREQ("syntax error, unexpected identifier, expecting ;", result.errors->errors[0].error_msg);
     ASSERT_EQ(4, result.errors->errors[0].error_line);

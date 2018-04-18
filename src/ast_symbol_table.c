@@ -20,7 +20,7 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 				       void *data);
 static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 				       void *data);
-static void ast_symbol_table_parameter(struct mCc_ast_declaration *declaration,
+static void ast_symbol_table_parameter(struct mCc_ast_parameter *param,
 				       void *data);
 static void ast_symbol_table_close_func(struct mCc_ast_function_def *f,
 					void *data);
@@ -332,54 +332,13 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 	}
 }
 
-static void ast_symbol_table_parameter(struct mCc_ast_declaration *declaration,
+static void ast_symbol_table_parameter(struct mCc_ast_parameter *params,
 				       void *data)
 {
-	assert(declaration);
+	assert(params);
 	assert(data);
 
-	char help[2048];
-	switch (declaration->type) {
-	case (MCC_AST_DECLARATION_TYPE_SINGLE):
-		sprintf(help, "%s%d", declaration->identifier->name,
-			g_counter++);
 
-		if (find_element_symbols(table, declaration->identifier->name)
-		    != NULL) {
-			printf("Allready defined: %s\n",
-			       declaration->identifier->name);
-			// TODO throw error because already declared
-		} else {
-			table = add_element_symbols(
-				table, declaration->identifier->name, help);
-			char *temp = realloc(declaration->identifier->renamed,
-					     (sizeof(char *) * strlen(help)));
-			if (temp == NULL)
-				assert(NULL);
-			declaration->identifier->renamed = temp;
-			strcpy(declaration->identifier->renamed, help);
-		}
-		break;
-	case (MCC_AST_DECLARATION_TYPE_ARRAY):
-		sprintf(help, "%s%d", declaration->array_identifier->name,
-                g_counter++);
-		if (find_element_symbols(table, declaration->array_identifier->name)
-		    != NULL) {
-			printf("Allready defined: %s\n",
-			       declaration->array_identifier->name);
-			// TODO throw error because already declared
-		} else {
-			table = add_element_symbols(
-				table, declaration->array_identifier->name, help);
-			char *temp = realloc(declaration->array_identifier->renamed,
-					     (sizeof(char *) * strlen(help)));
-			if (temp == NULL)
-				assert(NULL);
-			declaration->array_identifier->renamed = temp;
-			strcpy(declaration->array_identifier->renamed, help);
-		}
-		break;
-	}
 }
 
 static void

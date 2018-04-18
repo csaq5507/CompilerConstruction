@@ -162,7 +162,7 @@ enum mCc_ast_single_expression_type {
 	MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH
 };
 
-typedef struct mCc_ast_single_expression {
+typedef struct mCc_ast_single_expression 	{
 	ast_node node;
 
 	enum mCc_ast_single_expression_type type;
@@ -322,6 +322,7 @@ ast_literal *mCc_ast_new_literal_bool(bool value);
 
 ast_literal *mCc_ast_new_literal_string(char *value);
 
+void mCc_ast_delete_literal_value(ast_literal *literal, void * data);
 void mCc_ast_delete_literal(ast_literal *literal, void * data);
 
 /* ------------------------------------------------------------- Expressions */
@@ -455,7 +456,7 @@ ast_parameter *mCc_ast_new_empty_parameter_array();
 
 ast_parameter *mCc_ast_new_single_parameter(ast_declaration *decl);
 
-void mCc_ast_delete_parameter(ast_declaration* parameter, void * data);
+void mCc_ast_delete_parameter(ast_parameter *params, void *data);
 
 
 

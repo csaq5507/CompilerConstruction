@@ -28,13 +28,8 @@ typedef void (*mCc_ast_function_def_type_cb)(struct mCc_ast_function_def *,
 					     void *);
 typedef void (*mCc_ast_function_def_void_cb)(struct mCc_ast_function_def *,
 					     void *);
-typedef void (*mCc_ast_parameter_cb)(struct mCc_ast_declaration *, void *);
-typedef void (*mCc_ast_function_def_identifier_cb)(
-	struct mCc_ast_function_def *, void *);
-typedef void (*mCc_ast_function_def_parameter_cb)(struct mCc_ast_function_def *,
-						  void *);
-typedef void (*mCc_ast_function_def_stmt_cb)(struct mCc_ast_function_def *,
-					     void *);
+typedef void (*mCc_ast_parameter_cb)(struct mCc_ast_parameter *, void *);
+
 
 typedef void (*mCc_ast_stmt_cb)(struct mCc_ast_compound_stmt *, void *);
 typedef void (*mCc_ast_if_stmt_cb)(struct mCc_ast_if_stmt *, void *);
@@ -71,9 +66,6 @@ struct mCc_ast_visitor {
 	mCc_ast_function_def_void_cb function_def_void;
 	mCc_ast_function_def_type_cb close_function_def;
 	mCc_ast_parameter_cb parameter;
-	mCc_ast_function_def_identifier_cb function_def_identifier;
-	mCc_ast_function_def_parameter_cb function_def_parameter;
-	mCc_ast_function_def_stmt_cb function_def_stmt;
 
 	mCc_ast_stmt_cb c_stmt;
 	mCc_ast_if_stmt_cb if_stmt;
@@ -101,8 +93,6 @@ void mCc_ast_visit_function_def_void(struct mCc_ast_function_def *f,
 void mCc_ast_visit_parameter(struct mCc_ast_parameter *param,
 			     struct mCc_ast_visitor *visitor);
 
-void mCc_ast_visit_stmt(struct mCc_ast_compound_stmt *stmt,
-			struct mCc_ast_visitor *visitor);
 void mCc_ast_visit_stmt_statement(struct mCc_ast_stmt *stmt,
 				  struct mCc_ast_visitor *visitor);
 void mCc_ast_visit_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,

@@ -31,9 +31,10 @@ TEST(Assignemt_1, Task1_2) {
 
     ASSERT_EQ(MCC_AST_DECL_STMT, func_def[func_def_arr->counter-1].c_stmt->statements[1].type);
 
-    //mCc_ast_delete_function_def_array(func_def_arr);
-}
+    mCc_ast_delete_function_def_array(result.func_def);
 
+}
+/*
 TEST(Assignemt_1, Task3) {
     const char input[] = "void func3() {\n192 + 3.14;\n"
             "int a\n"
@@ -47,7 +48,7 @@ TEST(Assignemt_1, Task3) {
 
     ASSERT_STREQ("syntax error, unexpected identifier, expecting ;", result.errors->errors[0].error_msg);
     ASSERT_EQ(4, result.errors->errors[0].error_line);
-    //mCc_ast_delete_function_def_array(result.func_def);
+   // mCc_ast_delete_function_def_array(result.func_def);
 
 }
 
@@ -73,9 +74,9 @@ TEST(Assignemt_2, Task1) {
     ASSERT_STREQ("a1", func_def[func_def_arr->counter-1].c_stmt[0].statements[0].declaration->identifier->renamed);
 
     //TODO errror check for undefined or redefined identifiers
-    //mCc_ast_delete_function_def_array(result.func_def);
+  //  mCc_ast_delete_function_def_array(result.func_def);
 }
-
+*/
 TEST(Assignemt_2, Task2) {
 
 }

@@ -7,23 +7,25 @@
 #include "mCc/ast.h"
 #include <mCc/ast_visit.h>
 
-#define DEBUG 0
+#define DEBUG 1
 
 /* --------------------------------------------------------------VISITOR */
-static struct mCc_ast_visitor ast_delete_visitor(void * data)
+static struct mCc_ast_visitor ast_delete_visitor(void *data)
 {
 	return (struct mCc_ast_visitor){
 		.traversal = MCC_AST_VISIT_DEPTH_FIRST,
 		.order = MCC_AST_VISIT_POST_ORDER,
 
-        .userdata = data,
+		.userdata = data,
 
 		.identifier = mCc_ast_delete_identifier,
 		.expression = mCc_ast_delete_expression,
-            .argument = mCc_ast_delete_argument,
+		.argument = mCc_ast_delete_argument,
 		.statement = mCc_ast_delete_stmt,
 		.literal = mCc_ast_delete_literal,
-		.parameter = mCc_ast_delete_parameter,
+		.s_literal = mCc_ast_delete_literal_value,
+
+            .parameter = mCc_ast_delete_parameter,
 		.ass_stmt = mCc_ast_delete_assignment,
 		.single_expression = mCc_ast_delete_single_expression,
 		.decl_stmt = mCc_ast_delete_declaration,
@@ -32,38 +34,42 @@ static struct mCc_ast_visitor ast_delete_visitor(void * data)
 		.c_stmt = mCc_ast_delete_compound_stmt,
 		.while_stmt = mCc_ast_delete_while_stmt,
 		.call_expression = mCc_ast_delete_call_expr,
-        .function_def_type = mCc_ast_delete_function_def,
-        .function_def_void = mCc_ast_delete_function_def,
+		.function_def_type = mCc_ast_delete_function_def,
+		.function_def_void = mCc_ast_delete_function_def,
 
 	};
 }
 
-void mCc_ast_delete_identifier(ast_identifier *identifier, void *data) {
-    assert(identifier);
-    assert(data);
-    free(identifier->name);
-    if (identifier->renamed != NULL)
-        free(identifier->renamed);
-    if (DEBUG)
-        printf("identifier: \n");
-    free(identifier);
+void mCc_ast_delete_identifier(ast_identifier *identifier, void *data)
+{
+	assert(identifier);
+	assert(data);
+	free(identifier->name);
+	if (identifier->renamed != NULL)
+		free(identifier->renamed);
+	if (DEBUG)
+		printf("identifier: \n");
+	free(identifier);
 }
 
 /* ---------------------------------------------------------------- Literals */
-ast_identifier *mCc_ast_new_identifier(char *name, int line) {
+ast_identifier *mCc_ast_new_identifier(char *name, int line)
+{
 	assert(name);
 
-    ast_identifier *identifier = (ast_identifier*) malloc(sizeof(ast_identifier));
-    if (identifier == NULL)
-        return NULL;
+	ast_identifier *identifier =
+		(ast_identifier *)malloc(sizeof(ast_identifier));
+	if (identifier == NULL)
+		return NULL;
 
-    identifier->name = malloc(sizeof(char*) * strlen(name));
-    identifier->renamed = malloc(sizeof(char*) * strlen(name));
-    strcpy(identifier->name, name);;
-    strcpy(identifier->renamed, name);
-    identifier->node.sloc.start_line = line;
+	identifier->name = malloc(sizeof(char *) * strlen(name));
+	identifier->renamed = malloc(sizeof(char *) * strlen(name));
+	strcpy(identifier->name, name);
+	;
+	strcpy(identifier->renamed, name);
+	identifier->node.sloc.start_line = line;
 
-    return identifier;
+	return identifier;
 }
 
 /* ---------------------------------------------------------------- Literals */
@@ -152,7 +158,9 @@ char *replace(char const *const original, char const *const pattern,
 
 ast_literal *mCc_ast_new_literal_string(char *value)
 {
-	char *temp = replace(replace(value, "\\n", "enter"), "\"", " ");
+	char *t = replace(value, "\\n", "enter");
+	char *temp = replace(t, "\"", " ");
+	free(t);
 	ast_literal *lit = malloc(sizeof(*lit));
 	if (!lit) {
 		return NULL;
@@ -160,20 +168,27 @@ ast_literal *mCc_ast_new_literal_string(char *value)
 	lit->s_value = malloc(sizeof(char *) * strlen(temp));
 	lit->type = MCC_AST_LITERAL_TYPE_STRING;
 	strcpy(lit->s_value, temp);
+	free(temp);
 	return lit;
+}
+
+void mCc_ast_delete_literal_value(ast_literal *literal, void *data)
+{
+	assert(literal);
+	assert(data);
+
+	free(literal->s_value);
+	if (DEBUG)
+		printf("literal_svalue\n");
 }
 
 void mCc_ast_delete_literal(ast_literal *literal, void *data)
 {
 	assert(literal);
-    assert(data);
+	assert(data);
 
-    if (literal->type==MCC_AST_LITERAL_TYPE_STRING) {
-        free(literal->s_value);
-		if (DEBUG)
-			printf("literal_svalue\n");
-    }
-    free(literal);
+
+	free(literal);
 	if (DEBUG)
 		printf("literal\n");
 }
@@ -215,24 +230,22 @@ ast_expr *mCc_ast_new_expression_binary_op(enum mCc_ast_binary_op op,
 void mCc_ast_delete_expression(ast_expr *expression, void *data)
 {
 	assert(expression);
-    assert(data);
+	assert(data);
 
-    if(expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
-        free(expression->single_expr);
+	if (expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
+		free(expression->single_expr);
 		if (DEBUG)
 			printf("single expr\n");
 
-    }
-    else {
-        free(expression->lhs);
+	} else {
+		free(expression->lhs);
 		if (DEBUG)
 			printf("expr_lhs\n");
 
-        free(expression->rhs);
+		free(expression->rhs);
 		if (DEBUG)
 			printf("expr_rhs\n");
-
-    }
+	}
 }
 
 /* Single Expression */
@@ -250,7 +263,8 @@ ast_single_expr *mCc_ast_new_single_expression_literal(ast_literal *literal)
 	return expr;
 }
 
-ast_single_expr *mCc_ast_new_single_expression_identifier(ast_identifier *identifier)
+ast_single_expr *
+mCc_ast_new_single_expression_identifier(ast_identifier *identifier)
 {
 	assert(identifier);
 
@@ -326,34 +340,34 @@ ast_single_expr *mCc_ast_new_single_expression_parenth(ast_expr *expression)
 void mCc_ast_delete_single_expression(ast_single_expr *expression, void *data)
 {
 	assert(expression);
-    assert(data);
+	assert(data);
 
-    switch(expression->type)
-    {
-        case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX:
-            free(expression->identifier_expression);
-			if (DEBUG)
-				printf("single_expression->ident_expr\n");
-            break;
-        case MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP:
-            free(expression->unary_expression);
-			if (DEBUG)
-				printf("single_expression->unaryexpr\n");
-            break;
-        case MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH:
-            free(expression->expression);
-			if (DEBUG)
-				printf("single_expression->parenthex\n");
-            break;
-        case MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR:
-            free(expression->call_expr);
-			if (DEBUG)
-				printf("single_expression->call_expr\n");
-            break;
-        case MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL:
-        case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER:
-            break;
-    }
+	switch (expression->type) {
+	case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX:
+		free(expression->identifier_expression);
+		if (DEBUG)
+			printf("single_expression->ident_expr\n");
+		break;
+	case MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP:
+		free(expression->unary_expression);
+		if (DEBUG)
+			printf("single_expression->unaryexpr\n");
+		break;
+	case MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH:
+		free(expression->expression);
+		if (DEBUG)
+			printf("single_expression->parenthex\n");
+		break;
+	case MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR:
+		free(expression->call_expr);
+		if (DEBUG)
+			printf("single_expression->call_expr\n");
+		break;
+	case MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL:
+
+	case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER:
+		break;
+	}
 }
 
 /* Call Expression */
@@ -365,7 +379,8 @@ ast_call_expr *mCc_ast_new_empty_call_expr(ast_identifier *identifier)
 	return call_expr;
 }
 
-ast_call_expr *mCc_ast_new_call_expr(ast_identifier *identifier, ast_argument *arguments)
+ast_call_expr *mCc_ast_new_call_expr(ast_identifier *identifier,
+				     ast_argument *arguments)
 {
 	assert(arguments);
 
@@ -378,9 +393,9 @@ ast_call_expr *mCc_ast_new_call_expr(ast_identifier *identifier, ast_argument *a
 void mCc_ast_delete_call_expr(ast_call_expr *call_expr, void *data)
 {
 	assert(call_expr);
-    assert(data);
+	assert(data);
 
-    free(call_expr->arguments);
+	free(call_expr->arguments);
 	if (DEBUG)
 		printf("call_expr_arguments\n");
 }
@@ -405,7 +420,7 @@ ast_function_def *mCc_ast_new_void_function_def(ast_identifier *identifier,
 }
 
 ast_function_def *mCc_ast_new_type_function_def(enum mCc_ast_literal_type type,
-                                                ast_identifier *identifier,
+						ast_identifier *identifier,
 						ast_parameter *params,
 						ast_compound_stmt *c_stmt)
 {
@@ -447,31 +462,29 @@ ast_function_def_array *mCc_ast_new_function_def_array(ast_function_def *f)
 {
 	assert(f);
 
-	ast_function_def_array *function_array = (ast_function_def_array*)
-		malloc(sizeof(ast_function_def_array));
-
+	ast_function_def_array *function_array =
+		(ast_function_def_array *)malloc(
+			sizeof(ast_function_def_array));
 	function_array->counter = 1;
 	function_array->function_def = f;
 
 	return function_array;
 }
 
-void mCc_ast_delete_function_def(ast_function_def *f, void* data)
+void mCc_ast_delete_function_def(ast_function_def *f, void *data)
 {
-    assert(f);
-    assert(data);
+	assert(f);
+	assert(data);
 
-    if(f->type == MCC_AST_FUNCTION_DEF_TYPE_VOID) {
-      //  free(f->void_value);
-
+	if (f->type == MCC_AST_FUNCTION_DEF_TYPE_VOID) {
 		if (DEBUG)
 			printf("function_void_value\n");
-    }
+	}
 
-    free(f->params);
+	free(f->params);
 	if (DEBUG)
 		printf("function_def_params\n");
-    free(f->c_stmt);
+	free(f->c_stmt);
 	if (DEBUG)
 		printf("function_def_c_stmt\n");
 }
@@ -480,21 +493,21 @@ void mCc_ast_delete_function_def_array(ast_function_def_array *f)
 {
 	assert(f);
 
-    struct mCc_ast_visitor visitor = ast_delete_visitor(f);
+	struct mCc_ast_visitor visitor = ast_delete_visitor(f);
 
-    mCc_ast_visit_function_def_array(f, &visitor);
+	mCc_ast_visit_function_def_array(f, &visitor);
 
 	free(f->function_def);
 	if (DEBUG)
 		printf("func_def_array\n");
-    free(f);
+	free(f);
 }
 
 
 /* ----------------------------------------------------------- Declaration */
 ast_declaration *
 mCc_ast_new_array_declaration(enum mCc_ast_literal_type literal, int numerator,
-                              ast_identifier *identifier)
+			      ast_identifier *identifier)
 {
 
 	ast_declaration *decl = malloc(sizeof(*decl));
@@ -510,7 +523,7 @@ mCc_ast_new_array_declaration(enum mCc_ast_literal_type literal, int numerator,
 
 ast_declaration *
 mCc_ast_new_single_declaration(enum mCc_ast_literal_type literal,
-                               ast_identifier *identifier)
+			       ast_identifier *identifier)
 {
 	ast_declaration *decl = malloc(sizeof(*decl));
 	if (!decl) {
@@ -525,11 +538,8 @@ mCc_ast_new_single_declaration(enum mCc_ast_literal_type literal,
 void mCc_ast_delete_declaration(ast_declaration *decl, void *data)
 {
 	assert(decl);
-    assert(data);
-
-    free(decl);
+	assert(data);
 }
-
 
 
 /* ----------------------------------------------------------- Statement */
@@ -577,20 +587,19 @@ ast_if_stmt *mCc_ast_new_if_else(ast_expr *ex, ast_stmt *stmt,
 void mCc_ast_delete_if_stmt(ast_if_stmt *if_stmt, void *data)
 {
 	assert(if_stmt);
-    assert(data);
+	assert(data);
 
-    free(if_stmt->expression);
+	free(if_stmt->expression);
 	if (DEBUG)
 		printf("if_stmt_expr\n");
-    free(if_stmt->statement);
+	free(if_stmt->statement);
 	if (DEBUG)
 		printf("if_stmt_stmt\n");
-    if(if_stmt->else_statement != NULL) {
-        free(if_stmt->else_statement);
+	if (if_stmt->else_statement != NULL) {
+		free(if_stmt->else_statement);
 		if (DEBUG)
 			printf("if_stmt_else_stmt\n");
-    }
-    free(if_stmt);
+	}
 }
 
 // WHILE
@@ -622,16 +631,14 @@ ast_while_stmt *mCc_ast_new_while(ast_expr *ex, ast_stmt *stmt)
 void mCc_ast_delete_while_stmt(ast_while_stmt *while_stmt, void *data)
 {
 	assert(while_stmt);
-    assert(data);
+	assert(data);
 
-    free(while_stmt->expression);
+	free(while_stmt->expression);
 	if (DEBUG)
 		printf("while_stmt_expr\n");
-    free(while_stmt->statement);
+	free(while_stmt->statement);
 	if (DEBUG)
 		printf("while_stmt_stmt\n");
-
-    free(while_stmt);
 }
 
 
@@ -670,13 +677,12 @@ ast_ret_stmt *mCc_ast_new_ret(ast_expr *ex)
 void mCc_ast_delete_ret_stmt(ast_ret_stmt *ret_stmt, void *data)
 {
 	assert(ret_stmt);
-    assert(data);
-    if(ret_stmt->expression != NULL) {
-        free(ret_stmt->expression);
+	assert(data);
+	if (ret_stmt->expression != NULL) {
+		free(ret_stmt->expression);
 		if (DEBUG)
 			printf("ret_ex\n");
-    }
-    free(ret_stmt);
+	}
 }
 
 // DECLARATION
@@ -775,10 +781,10 @@ ast_compound_stmt *mCc_ast_new_compound_array(ast_compound_stmt *stmts,
 void mCc_ast_delete_compound_stmt(ast_compound_stmt *compound_stmt, void *data)
 {
 	assert(compound_stmt);
-    assert(data);
+	assert(data);
 
 
-    free(compound_stmt->statements);
+	free(compound_stmt->statements);
 	if (DEBUG)
 		printf("compound\n");
 }
@@ -788,52 +794,54 @@ void mCc_ast_delete_compound_stmt(ast_compound_stmt *compound_stmt, void *data)
 void mCc_ast_delete_stmt(ast_stmt *stmt, void *data)
 {
 	assert(stmt);
-    assert(data);
+	assert(data);
 
 
-    switch(stmt->type)
-    {
-        case MCC_AST_COMPOUND_STMT:
-            free(stmt->compound_stmt);
-			if (DEBUG)
-				printf("stmt_>compound\n");
-            break;
-        case MCC_AST_IF_STMT:
-            free(stmt->if_stmt);
-			if (DEBUG)
-				printf("stmt_>if\n");
-            break;
-        case MCC_AST_WHILE_STMT:
-            free(stmt->while_stmt);
-			if (DEBUG)
-				printf("stmt_>while\n");
-            break;
-        case MCC_AST_RET_STMT:
-            free(stmt->ret_stmt);
-			if (DEBUG)
-				printf("stmt_>ret\n");
-            break;
-        case MCC_AST_DECL_STMT:
-            free(stmt->declaration);
-			if (DEBUG)
-				printf("stmt_>decl\n");
-            break;
-        case MCC_AST_ASS_STMT:
-            free(stmt->assignment);
-			if (DEBUG)
-				printf("stmt_>assi\n");
-            break;
-        case MCC_AST_EXPR_STMT:
-            free(stmt->expression);
-			if (DEBUG)
-				printf("stmt_>expr\n");
-            break;
-    }
+	printf("\ndelete_stmt\n");
+
+	switch (stmt->type) {
+	case MCC_AST_COMPOUND_STMT:
+		free(stmt->compound_stmt);
+		if (DEBUG)
+			printf("stmt_>compound\n");
+		break;
+	case MCC_AST_IF_STMT:
+		free(stmt->if_stmt);
+		if (DEBUG)
+			printf("stmt_>if\n");
+		break;
+	case MCC_AST_WHILE_STMT:
+		free(stmt->while_stmt);
+		if (DEBUG)
+			printf("stmt_>while\n");
+		break;
+	case MCC_AST_RET_STMT:
+		free(stmt->ret_stmt);
+		if (DEBUG)
+			printf("stmt_>ret\n");
+		break;
+	case MCC_AST_DECL_STMT:
+		free(stmt->declaration);
+		if (DEBUG)
+			printf("stmt_>decl\n");
+		break;
+	case MCC_AST_ASS_STMT:
+		free(stmt->assignment);
+		if (DEBUG)
+			printf("stmt_>assi\n");
+		break;
+	case MCC_AST_EXPR_STMT:
+		free(stmt->expression);
+		if (DEBUG)
+			printf("stmt_>expr\n");
+		break;
+	}
 }
 
 
 /* ----------------------------------------------------------- Assignment */
-ast_assignment *mCc_ast_new_single_assignment(ast_identifier *identifier, ast_expr *ex)
+ast_assignment *mCc_ast_new_single_assignment(ast_identifier *identifier,
+					      ast_expr *ex)
 {
 	assert(ex);
 
@@ -844,8 +852,8 @@ ast_assignment *mCc_ast_new_single_assignment(ast_identifier *identifier, ast_ex
 	return ass;
 }
 
-ast_assignment *mCc_ast_new_array_assignment(ast_identifier *identifier, ast_expr *ex,
-					     ast_expr *ex2)
+ast_assignment *mCc_ast_new_array_assignment(ast_identifier *identifier,
+					     ast_expr *ex, ast_expr *ex2)
 {
 	assert(ex);
 	assert(ex2);
@@ -860,18 +868,16 @@ ast_assignment *mCc_ast_new_array_assignment(ast_identifier *identifier, ast_exp
 void mCc_ast_delete_assignment(ast_assignment *assignment, void *data)
 {
 	assert(assignment);
-    assert(data);
+	assert(data);
 
-    free(assignment->expression);
+	free(assignment->expression);
 	if (DEBUG)
 		printf("assi->expr\n");
-    if(assignment->numerator != NULL)
-    {
-        free(assignment->numerator);
+	if (assignment->numerator != NULL) {
+		free(assignment->numerator);
 		if (DEBUG)
 			printf("assi->numerator\n");
-    }
-    free(assignment);
+	}
 }
 
 /* ------------------------------------------------------------- Parameter */
@@ -914,11 +920,12 @@ ast_parameter *mCc_ast_new_single_parameter(ast_declaration *decl)
 	return new_params;
 }
 
-void mCc_ast_delete_parameter(ast_declaration *parameter, void *data)
+void mCc_ast_delete_parameter(ast_parameter *params, void *data)
 {
-	assert(parameter);
-    assert(data);
+	assert(params);
+	assert(data);
 
+	free(params->declaration);
 }
 
 /* ------------------------------------------------------------- Argument */
@@ -955,12 +962,11 @@ ast_argument *mCc_ast_new_argument_array(ast_argument *arguments, ast_expr *ex)
 void mCc_ast_delete_argument(ast_argument *argument, void *data)
 {
 	assert(argument);
-    assert(data);
-    if(argument->expression!=NULL)
-    {
-        free(argument->expression);
+	assert(data);
+	if (argument->expression != NULL) {
+		free(argument->expression);
 		if (DEBUG)
 			printf("argu_exif (DEBUG)\n"
-						   "    \t");
-    }
+			       "    \t");
+	}
 }

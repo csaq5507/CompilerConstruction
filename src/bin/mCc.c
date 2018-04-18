@@ -61,12 +61,16 @@ int main(int argc, char *argv[])
 
 		mCc_ast_print_dot_function_def(out1, func);
 
-		result = *(mCc_ast_symbol_table(&result));
+	//	result = *(mCc_ast_symbol_table(&result));
+
 
 		mCc_ast_print_dot_function_def(out2, result.func_def);
 
 		fclose(out1);
 		fclose(out2);
+
+        mCc_ast_delete_function_def_array(result.func_def);
+        mCc_delete_result(&result);
 	}
 
 	/*    TODO
@@ -80,7 +84,6 @@ int main(int argc, char *argv[])
 
 
 	/* cleanup */
-	mCc_ast_delete_function_def_array(func);
 
 	return EXIT_SUCCESS;
  }

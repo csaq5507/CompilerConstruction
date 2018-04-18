@@ -286,6 +286,20 @@ struct mCc_parser_error_array* add_parse_error(struct mCc_parser_error_array* ar
     return array;
 }
 
+void mCc_delete_parse_error(struct mCc_parser_error_array* errors)
+{
+	for(int i = 0; i<errors->counter; i++){
+		free(errors->errors[i].error_msg);
+	}
+	free(errors->errors);
+}
+
+void mCc_delete_result(struct mCc_parser_result * result)
+{
+	mCc_delete_parse_error(result->errors);
+	free(result->errors);
+}
+
 struct mCc_parser_result mCc_parser_parse_string(const char *input)
 {
 	assert(input);

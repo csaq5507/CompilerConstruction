@@ -278,11 +278,16 @@ void mCc_ast_visit_expression(struct mCc_ast_expression *expression,
 				    visitor->single_expression, visitor);
 		break;
 	case (MCC_AST_EXPRESSION_TYPE_BINARY):
-		visit_if_pre_order(expression, visitor->binary_expression,
+		visit_if_pre_order(expression->lhs, visitor->single_expression,
 				   visitor);
-		mCc_ast_visit_expression_binary(expression, visitor);
-		visit_if_post_order(expression, visitor->binary_expression,
+		mCc_ast_visit_expression_single(expression->lhs, visitor);
+		visit_if_post_order(expression->lhs, visitor->single_expression,
 				    visitor);
+			visit_if_pre_order(expression->rhs, visitor->expression,
+							   visitor);
+			mCc_ast_visit_expression(expression->rhs, visitor);
+			visit_if_post_order(expression->rhs, visitor->expression,
+								visitor);
 		break;
 	}
 }
@@ -343,23 +348,6 @@ void mCc_ast_visit_expression_single(
 	}
 }
 
-void mCc_ast_visit_expression_binary(struct mCc_ast_expression *expression,
-				     struct mCc_ast_visitor *visitor)
-{
-	assert(expression);
-	assert(visitor);
-
-	visit_if_pre_order(expression->lhs, visitor->single_expression,
-			   visitor);
-	mCc_ast_visit_expression_single(expression->lhs, visitor);
-	visit_if_post_order(expression->lhs, visitor->single_expression,
-			    visitor);
-
-
-	visit_if_pre_order(expression->rhs, visitor->expression, visitor);
-	mCc_ast_visit_expression(expression->rhs, visitor);
-	visit_if_post_order(expression->rhs, visitor->expression, visitor);
-}
 
 void mCc_ast_visit_argument(struct mCc_ast_argument *argument,
 			    struct mCc_ast_visitor *visitor)

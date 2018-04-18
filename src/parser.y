@@ -241,13 +241,11 @@ arguments       : expression                        { $$ = mCc_ast_new_single_ar
 #include "scanner.h"
 
 void yyerror(yyscan_t *scanner, struct mCc_parser_result * result, const char *msg) {
+    fprintf(stdout, "HERE\n");
     struct mCc_parser_error *error =  malloc(sizeof(struct mCc_parser_error));
     strcpy(error->error_msg,msg);
     error->error_line = line_counter;
 	result->errors = add_parse_error(result->errors, error);
-
-    if (scanner == NULL)
-        return;
 }
 
 

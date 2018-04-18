@@ -166,10 +166,12 @@ static void delete_symbol_table_node(ast_symbol_table *head)
 	if (head->next_counter == 0) {
 		free(head->symbols);
         free(head->next);
+        //free(head);
 	} else {
 		for (int i = 0; i < head->next_counter; i++) {
 			delete_symbol_table_node(&head->next[i]);
 		}
+        free(head->symbols);
         free(head->next);
 		free(head);
 	}

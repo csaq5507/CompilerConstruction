@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include "mCc/ast.h"
 #include "mCc/parser.h"
-//#include "mCc/ast_symbol_table.h"
+#include "mCc/ast_symbol_table.h"
 
 TEST(Assignemt_1, Task1_2) {
     const char input[] = "/* Comment */ int func1() {192 + 3.14;} "
@@ -31,13 +31,11 @@ TEST(Assignemt_1, Task1_2) {
 
     ASSERT_EQ(MCC_AST_DECL_STMT, func_def[func_def_arr->counter-1].c_stmt->statements[1].type);
 
-    mCc_ast_delete_function_def_array(func_def_arr);
+    //mCc_ast_delete_function_def_array(func_def_arr);
 }
 
 TEST(Assignemt_1, Task3) {
-    const char input[] = "/* Comment */ int func1() {192 + 3.14;}\n"
-            "int func2() {192 + 3.14;}\n"
-            "void func3() {192 + 3.14;\n"
+    const char input[] = "void func3() {\n192 + 3.14;\n"
             "int a\n"
             "a = 10;\n"
             "if (a == 10)\n"
@@ -45,9 +43,11 @@ TEST(Assignemt_1, Task3) {
             "}";
     auto result = mCc_parser_parse_string(input);
 
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
     ASSERT_STREQ("syntax error, unexpected identifier, expecting ;", result.errors->errors[0].error_msg);
-    ASSERT_EQ(5, result.errors->errors[0].error_line);
-    mCc_ast_delete_function_def_array(result.func_def);
+    ASSERT_EQ(2, result.errors->errors[0].error_line);
+    //mCc_ast_delete_function_def_array(result.func_def);
 
 }
 
@@ -69,10 +69,10 @@ TEST(Assignemt_2, Task1) {
     ASSERT_STREQ("a", func_def[func_def_arr->counter-1].c_stmt[0].statements[0].declaration->identifier);
 
     //TODO not working like this -> include not working
-    //auto result2 = mCc_ast_symbol_table(result.func_def);
-    //ASSERT_STREQ("a0", func_def[func_def_arr->counter-1].c_stmt[0].statements[0].declaration->identifier);
+    auto result2 = mCc_ast_symbol_table(&result);
+    func_def_arr = result2->func_def;
+    ASSERT_STREQ("a1", func_def[func_def_arr->counter-1].c_stmt[0].statements[0].declaration->identifier);
     mCc_ast_delete_function_def_array(result.func_def);
-
 }
 
 TEST(Assignemt_2, Task2) {

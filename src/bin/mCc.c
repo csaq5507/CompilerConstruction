@@ -61,8 +61,7 @@ int main(int argc, char *argv[])
 
 		mCc_ast_print_dot_function_def(out1, func);
 
-	//	result = *(mCc_ast_symbol_table(&result));
-
+		result = *(mCc_ast_symbol_table(&result));
 
 		mCc_ast_print_dot_function_def(out2, result.func_def);
 

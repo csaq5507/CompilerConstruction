@@ -22,15 +22,14 @@ mCc_ast_symbol_table(struct mCc_parser_result *result);
 
 ast_symbol_table *table;
 int g_counter;
-struct mCc_parser_result *result;
+struct mCc_parser_result *h_result;
+bool has_main;
 
 /* ###################### STRUCTS ###################### */
 
 typedef struct mCc_ast_symbol_table {
 
 	ast_symbol_table *prev;
-
-	int next_counter;
 	ast_symbol_table *next;
 
 	int symbols_counter;

@@ -7,7 +7,7 @@
 #include "mCc/ast.h"
 #include <mCc/ast_visit.h>
 
-#define DEBUG 1
+#define DEBUG 0
 
 /* --------------------------------------------------------------VISITOR */
 static struct mCc_ast_visitor ast_delete_visitor(void *data)
@@ -796,8 +796,8 @@ void mCc_ast_delete_stmt(ast_stmt *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
-
-	printf("\ndelete_stmt\n");
+    if (DEBUG)
+	    printf("\ndelete_stmt\n");
 
 	switch (stmt->type) {
 	case MCC_AST_COMPOUND_STMT:

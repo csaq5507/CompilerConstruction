@@ -143,9 +143,9 @@ void mCc_ast_visit_stmt_statement(struct mCc_ast_stmt *stmt,
 		visit_if_post_order(stmt->ret_stmt, visitor->ret_stmt, visitor);
 		break;
 	case (MCC_AST_DECL_STMT):
-		visit(stmt->declaration, visitor->decl_stmt, visitor);
+        visit_if_pre_order(stmt->declaration, visitor->decl_stmt, visitor);
 		mCc_ast_visit_decl_stmt(stmt->declaration, visitor);
-		visit(stmt->declaration, visitor->decl_stmt, visitor);
+            visit_if_post_order(stmt->declaration, visitor->decl_stmt, visitor);
 		break;
 	case (MCC_AST_ASS_STMT):
 		visit_if_pre_order(stmt->assignment, visitor->ass_stmt,
@@ -349,9 +349,6 @@ void mCc_ast_visit_expression_single(
 		mCc_ast_visit_expression(expression->expression, visitor);
 		visit_if_post_order(expression->expression, visitor->expression,
 				    visitor);
-		break;
-	default:
-		printf("G\n");
 		break;
 	}
 }

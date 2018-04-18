@@ -138,7 +138,7 @@ literal         : INT_LITERAL       { $$ = mCc_ast_new_literal_int($1);    }
                 | STRING_LITERAL    { $$ = mCc_ast_new_literal_string($1); }
                 ;
 
-identifier      : IDENTIFIER        {$$ = mCc_ast_new_identifier($1, line_counter);}
+identifier      : IDENTIFIER        {$$ = mCc_ast_new_identifier($1, line_counter); free($1);}
                 ;
 
 toplevel        : function_def_arr                  { result->func_def = $1; }
@@ -273,7 +273,7 @@ struct mCc_parser_error_array* add_parse_error(struct mCc_parser_error_array* ar
 
     } else
     {
-        struct mCc_parser_error * temp = realloc(array->errors, sizeof(*error) * (array->counter + 1));
+        struct mCc_parser_error * temp = realloc(array->errors, sizeof(struct mCc_parser_error*) * (array->counter + 1));
         if(temp == NULL)
         {
             //TODO throw error
@@ -286,17 +286,9 @@ struct mCc_parser_error_array* add_parse_error(struct mCc_parser_error_array* ar
     return array;
 }
 
-void mCc_delete_parse_error(struct mCc_parser_error_array* errors)
-{
-	for(int i = 0; i<errors->counter; i++){
-		free(errors->errors[i].error_msg);
-	}
-	free(errors->errors);
-}
-
 void mCc_delete_result(struct mCc_parser_result * result)
 {
-	mCc_delete_parse_error(result->errors);
+	free(result->errors->errors);
 	free(result->errors);
 }
 

@@ -43,8 +43,6 @@ struct mCc_parser_result mCc_parser_parse_string(const char *input);
 
 struct mCc_parser_result mCc_parser_parse_file(FILE *input);
 
-void mCc_delete_parse_error(struct mCc_parser_error_array* errors);
-
 void mCc_delete_result(struct mCc_parser_result * result);
 
 

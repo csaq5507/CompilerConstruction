@@ -99,6 +99,8 @@ extern int line_counter;
 %type <struct mCc_ast_while_stmt *> while_stmt
 %type <struct mCc_ast_ret_stmt *> ret_stmt
 
+%type <struct mCc_ast_identifier *> identifier
+
 
 %start toplevel
 
@@ -136,6 +138,8 @@ literal         : INT_LITERAL       { $$ = mCc_ast_new_literal_int($1);    }
                 | STRING_LITERAL    { $$ = mCc_ast_new_literal_string($1); }
                 ;
 
+identifier      : IDENTIFIER        {$$ = mCc_ast_new_identifier($1, line_counter);}
+                ;
 
 toplevel        : function_def_arr                  { result->func_def = $1; }
                 ;
@@ -145,10 +149,10 @@ function_def_arr: function_def_arr function_def     { $$ = mCc_ast_add_function_
                 ;
 
 
-function_def    : VOID IDENTIFIER LPARENTH parameter
+function_def    : VOID identifier LPARENTH parameter
                     RPARENTH LBRACE compound_stmt RBRACE          { $$ = mCc_ast_new_void_function_def($2,$4,$7); }
 
-                | type IDENTIFIER LPARENTH parameter
+                | type identifier LPARENTH parameter
                     RPARENTH LBRACE compound_stmt RBRACE         { $$ = mCc_ast_new_type_function_def($1,$2,$4,$7); }
 
                 ;
@@ -195,14 +199,14 @@ ret_stmt        : RETURN                          { $$ = mCc_ast_new_empty_ret()
 
 
 declaration     : type LBRACKET INT_LITERAL RBRACKET
-                    IDENTIFIER                      { $$ = mCc_ast_new_array_declaration($1,$3,$5);}
-                | type IDENTIFIER                { $$ = mCc_ast_new_single_declaration($1,$2);}
+                    identifier                      { $$ = mCc_ast_new_array_declaration($1,$3,$5);}
+                | type identifier                { $$ = mCc_ast_new_single_declaration($1,$2);}
                 ;
 
 
-assignment      : IDENTIFIER LBRACKET expression RBRACKET "=" expression
+assignment      : identifier LBRACKET expression RBRACKET "=" expression
                                                     { $$ = mCc_ast_new_array_assignment($1,$3,$6); }
-                | IDENTIFIER ASSIGNMENT expression  { $$ = mCc_ast_new_single_assignment($1,$3); }
+                | identifier ASSIGNMENT expression  { $$ = mCc_ast_new_single_assignment($1,$3); }
                 ;
 
 
@@ -212,17 +216,17 @@ expression      : single_expr binary_op expression  { $$ = mCc_ast_new_expressio
 
 
 single_expr     : literal                           { $$ = mCc_ast_new_single_expression_literal($1); }
-                | IDENTIFIER LBRACKET expression RBRACKET
+                | identifier LBRACKET expression RBRACKET
                                                     { $$ = mCc_ast_new_single_expression_identifier_ex($1,$3); }
-                | IDENTIFIER                        { $$ = mCc_ast_new_single_expression_identifier($1); }
+                | identifier                        { $$ = mCc_ast_new_single_expression_identifier($1); }
                 | call_expr                         { $$ = mCc_ast_new_single_expression_call_expr($1); }
                 | unary_op expression               { $$ = mCc_ast_new_single_expression_unary_op($1,$2); }
                 | LPARENTH expression RPARENTH      { $$ = mCc_ast_new_single_expression_parenth($2); }
                 ;
 
 
-call_expr       : IDENTIFIER LPARENTH RPARENTH      { $$ = mCc_ast_new_empty_call_expr($1); }
-                | IDENTIFIER LPARENTH arguments RPARENTH
+call_expr       : identifier LPARENTH RPARENTH      { $$ = mCc_ast_new_empty_call_expr($1); }
+                | identifier LPARENTH arguments RPARENTH
                                                     { $$ = mCc_ast_new_call_expr($1,$3); }
                 ;
 

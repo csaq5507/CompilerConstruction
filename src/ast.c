@@ -38,13 +38,32 @@ static struct mCc_ast_visitor ast_delete_visitor(void * data)
 	};
 }
 
-void mCc_ast_delete_identifier(char *identifier, void *data)
-{
+void mCc_ast_delete_identifier(ast_identifier *identifier, void *data) {
     assert(identifier);
     assert(data);
-	free(identifier);
-	if (DEBUG)
-    	printf("identifier: \n");
+    free(identifier->name);
+    if (identifier->renamed != NULL)
+        free(identifier->renamed);
+    if (DEBUG)
+        printf("identifier: \n");
+    free(identifier);
+}
+
+/* ---------------------------------------------------------------- Literals */
+ast_identifier *mCc_ast_new_identifier(char *name, int line) {
+	assert(name);
+
+    ast_identifier *identifier = (ast_identifier*) malloc(sizeof(ast_identifier));
+    if (identifier == NULL)
+        return NULL;
+
+    identifier->name = malloc(sizeof(char*) * strlen(name));
+    identifier->renamed = malloc(sizeof(char*) * strlen(name));
+    strcpy(identifier->name, name);;
+    strcpy(identifier->renamed, name);
+    identifier->node.sloc.start_line = line;
+
+    return identifier;
 }
 
 /* ---------------------------------------------------------------- Literals */
@@ -231,7 +250,7 @@ ast_single_expr *mCc_ast_new_single_expression_literal(ast_literal *literal)
 	return expr;
 }
 
-ast_single_expr *mCc_ast_new_single_expression_identifier(char *identifier)
+ast_single_expr *mCc_ast_new_single_expression_identifier(ast_identifier *identifier)
 {
 	assert(identifier);
 
@@ -245,7 +264,7 @@ ast_single_expr *mCc_ast_new_single_expression_identifier(char *identifier)
 }
 
 ast_single_expr *
-mCc_ast_new_single_expression_identifier_ex(char *identifier,
+mCc_ast_new_single_expression_identifier_ex(ast_identifier *identifier,
 					    ast_expr *identifier_expression)
 {
 	assert(identifier);
@@ -338,7 +357,7 @@ void mCc_ast_delete_single_expression(ast_single_expr *expression, void *data)
 }
 
 /* Call Expression */
-ast_call_expr *mCc_ast_new_empty_call_expr(char *identifier)
+ast_call_expr *mCc_ast_new_empty_call_expr(ast_identifier *identifier)
 {
 	ast_call_expr *call_expr = malloc(sizeof(*call_expr));
 	call_expr->identifier = identifier;
@@ -346,7 +365,7 @@ ast_call_expr *mCc_ast_new_empty_call_expr(char *identifier)
 	return call_expr;
 }
 
-ast_call_expr *mCc_ast_new_call_expr(char *identifier, ast_argument *arguments)
+ast_call_expr *mCc_ast_new_call_expr(ast_identifier *identifier, ast_argument *arguments)
 {
 	assert(arguments);
 
@@ -368,7 +387,7 @@ void mCc_ast_delete_call_expr(ast_call_expr *call_expr, void *data)
 
 
 /* ----------------------------------------------------------- Function Def */
-ast_function_def *mCc_ast_new_void_function_def(char *identifier,
+ast_function_def *mCc_ast_new_void_function_def(ast_identifier *identifier,
 						ast_parameter *params,
 						ast_compound_stmt *c_stmt)
 {
@@ -386,7 +405,7 @@ ast_function_def *mCc_ast_new_void_function_def(char *identifier,
 }
 
 ast_function_def *mCc_ast_new_type_function_def(enum mCc_ast_literal_type type,
-						char *identifier,
+                                                ast_identifier *identifier,
 						ast_parameter *params,
 						ast_compound_stmt *c_stmt)
 {
@@ -475,7 +494,7 @@ void mCc_ast_delete_function_def_array(ast_function_def_array *f)
 /* ----------------------------------------------------------- Declaration */
 ast_declaration *
 mCc_ast_new_array_declaration(enum mCc_ast_literal_type literal, int numerator,
-			      char *identifier)
+                              ast_identifier *identifier)
 {
 
 	ast_declaration *decl = malloc(sizeof(*decl));
@@ -491,7 +510,7 @@ mCc_ast_new_array_declaration(enum mCc_ast_literal_type literal, int numerator,
 
 ast_declaration *
 mCc_ast_new_single_declaration(enum mCc_ast_literal_type literal,
-			       char *identifier)
+                               ast_identifier *identifier)
 {
 	ast_declaration *decl = malloc(sizeof(*decl));
 	if (!decl) {
@@ -814,7 +833,7 @@ void mCc_ast_delete_stmt(ast_stmt *stmt, void *data)
 
 
 /* ----------------------------------------------------------- Assignment */
-ast_assignment *mCc_ast_new_single_assignment(char *identifier, ast_expr *ex)
+ast_assignment *mCc_ast_new_single_assignment(ast_identifier *identifier, ast_expr *ex)
 {
 	assert(ex);
 
@@ -825,7 +844,7 @@ ast_assignment *mCc_ast_new_single_assignment(char *identifier, ast_expr *ex)
 	return ass;
 }
 
-ast_assignment *mCc_ast_new_array_assignment(char *identifier, ast_expr *ex,
+ast_assignment *mCc_ast_new_array_assignment(ast_identifier *identifier, ast_expr *ex,
 					     ast_expr *ex2)
 {
 	assert(ex);

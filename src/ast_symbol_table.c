@@ -184,19 +184,19 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 	assert(data);
 
     char help[2048];
-    sprintf(help, "%s%d", f->identifier, g_counter++);
-    if (find_element_symbols(table, f->identifier) != NULL) {
-        printf("Allready defined: %s\n", f->identifier);
+    sprintf(help, "%s%d", f->identifier->name, g_counter++);
+    if (find_element_symbols(table, f->identifier->name) != NULL) {
+        printf("Allready defined: %s\n", f->identifier->name);
         // TODO throw error because already declared
     } else {
-        table = add_element_symbols(table, f->identifier,
+        table = add_element_symbols(table, f->identifier->name,
                                     help);
-        char *temp = realloc(f->identifier,
+        char *temp = realloc(f->identifier->renamed,
                              (sizeof(char *) * strlen(help)));
         if (temp == NULL)
             assert(NULL);
-        f->identifier = temp;
-        strcpy(f->identifier, help);
+        f->identifier->renamed = temp;
+        strcpy(f->identifier->renamed, help);
     }
 }
 
@@ -207,19 +207,19 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 	assert(data);
 
     char help[2048];
-    sprintf(help, "%s%d", f->identifier, g_counter++);
-    if (find_element_symbols(table, f->identifier) != NULL) {
-        printf("Allready defined: %s\n", f->identifier);
+    sprintf(help, "%s%d", f->identifier->name, g_counter++);
+    if (find_element_symbols(table, f->identifier->name) != NULL) {
+        printf("Allready defined: %s\n", f->identifier->name);
         // TODO throw error because already declared
     } else {
-        table = add_element_symbols(table, f->identifier,
+        table = add_element_symbols(table, f->identifier->name,
                                     help);
-        char *temp = realloc(f->identifier,
+        char *temp = realloc(f->identifier->renamed,
                              (sizeof(char *) * strlen(help)));
         if (temp == NULL)
             assert(NULL);
-        f->identifier = temp;
-        strcpy(f->identifier, help);
+        f->identifier->renamed = temp;
+        strcpy(f->identifier->renamed, help);
     }
 }
 
@@ -268,23 +268,23 @@ static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt,
 	assert(stmt);
 	assert(data);
 
-	char *new_name = find_element_symbols(table, stmt->identifier);
+	char *new_name = find_element_symbols(table, stmt->identifier->name);
 	ast_symbol_table *temp = table;
 
 	while (new_name == NULL && temp->prev != NULL) {
 		temp = temp->prev;
-		new_name = find_element_symbols(temp, stmt->identifier);
+		new_name = find_element_symbols(temp, stmt->identifier->name);
 	}
 	if (new_name == NULL) {
-		printf("Missing definition of: %s\n", stmt->identifier);
+		printf("Missing definition of: %s\n", stmt->identifier->name);
 		// TODO throw error because already declared
 	} else {
-		char *temp = realloc(stmt->identifier,
+		char *temp = realloc(stmt->identifier->renamed,
 				     sizeof(char *) * strlen(new_name));
 		if (temp == NULL)
 			assert(NULL);
-		stmt->identifier = temp;
-		strcpy(stmt->identifier, new_name);
+		stmt->identifier->renamed = temp;
+		strcpy(stmt->identifier->renamed, new_name);
 	}
 }
 
@@ -297,36 +297,36 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 	char help[2048];
 	switch (stmt->type) {
 	case (MCC_AST_DECLARATION_TYPE_SINGLE):
-		sprintf(help, "%s%d", stmt->identifier, g_counter++);
-		if (find_element_symbols(table, stmt->identifier) != NULL) {
-			printf("Allready defined: %s\n", stmt->identifier);
+		sprintf(help, "%s%d", stmt->identifier->name, g_counter++);
+		if (find_element_symbols(table, stmt->identifier->name) != NULL) {
+			printf("Allready defined: %s\n", stmt->identifier->name);
 			// TODO throw error because already declared
 		} else {
-			table = add_element_symbols(table, stmt->identifier,
+			table = add_element_symbols(table, stmt->identifier->name,
 						    help);
-			char *temp = realloc(stmt->identifier,
+			char *temp = realloc(stmt->identifier->renamed,
 					     (sizeof(char *) * strlen(help)));
 			if (temp == NULL)
 				assert(NULL);
-			stmt->identifier = temp;
-			strcpy(stmt->identifier, help);
+			stmt->identifier->renamed = temp;
+			strcpy(stmt->identifier->renamed, help);
 		}
 		break;
 	case (MCC_AST_DECLARATION_TYPE_ARRAY):
-		sprintf(help, "%s%d", stmt->array_identifier,
+		sprintf(help, "%s%d", stmt->array_identifier->name,
 			g_counter++);
-		if (find_element_symbols(table, stmt->identifier) != NULL) {
-			printf("Allready defined: %s\n", stmt->identifier);
+		if (find_element_symbols(table, stmt->identifier->name) != NULL) {
+			printf("Allready defined: %s\n", stmt->identifier->name);
 			// TODO throw error because already declared
 		} else {
 			table = add_element_symbols(
-				table, stmt->array_identifier, help);
-			char *temp = realloc(stmt->array_identifier,
+				table, stmt->array_identifier->renamed, help);
+			char *temp = realloc(stmt->array_identifier->renamed,
 					     (sizeof(char *) * strlen(help)));
 			if (temp == NULL)
 				assert(NULL);
-			stmt->array_identifier = temp;
-			strcpy(stmt->array_identifier, help);
+			stmt->array_identifier->name = temp;
+			strcpy(stmt->array_identifier->name, help);
 		}
 		break;
 	}
@@ -341,42 +341,42 @@ static void ast_symbol_table_parameter(struct mCc_ast_declaration *declaration,
 	char help[2048];
 	switch (declaration->type) {
 	case (MCC_AST_DECLARATION_TYPE_SINGLE):
-		sprintf(help, "%s%d", declaration->identifier,
+		sprintf(help, "%s%d", declaration->identifier->name,
 			g_counter++);
 
-		if (find_element_symbols(table, declaration->identifier)
+		if (find_element_symbols(table, declaration->identifier->name)
 		    != NULL) {
 			printf("Allready defined: %s\n",
-			       declaration->identifier);
+			       declaration->identifier->name);
 			// TODO throw error because already declared
 		} else {
 			table = add_element_symbols(
-				table, declaration->identifier, help);
-			char *temp = realloc(declaration->identifier,
+				table, declaration->identifier->name, help);
+			char *temp = realloc(declaration->identifier->renamed,
 					     (sizeof(char *) * strlen(help)));
 			if (temp == NULL)
 				assert(NULL);
-			declaration->identifier = temp;
-			strcpy(declaration->identifier, help);
+			declaration->identifier->renamed = temp;
+			strcpy(declaration->identifier->renamed, help);
 		}
 		break;
 	case (MCC_AST_DECLARATION_TYPE_ARRAY):
-		sprintf(help, "%s%d", declaration->array_identifier,
+		sprintf(help, "%s%d", declaration->array_identifier->name,
                 g_counter++);
-		if (find_element_symbols(table, declaration->array_identifier)
+		if (find_element_symbols(table, declaration->array_identifier->name)
 		    != NULL) {
 			printf("Allready defined: %s\n",
-			       declaration->array_identifier);
+			       declaration->array_identifier->name);
 			// TODO throw error because already declared
 		} else {
 			table = add_element_symbols(
-				table, declaration->array_identifier, help);
-			char *temp = realloc(declaration->array_identifier,
+				table, declaration->array_identifier->name, help);
+			char *temp = realloc(declaration->array_identifier->renamed,
 					     (sizeof(char *) * strlen(help)));
 			if (temp == NULL)
 				assert(NULL);
-			declaration->array_identifier = temp;
-			strcpy(declaration->array_identifier, help);
+			declaration->array_identifier->renamed = temp;
+			strcpy(declaration->array_identifier->renamed, help);
 		}
 		break;
 	}
@@ -391,25 +391,25 @@ ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
 
 	if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER) {
 		char *new_name =
-			find_element_symbols(table, expression->identifier);
+			find_element_symbols(table, expression->identifier->name);
 		ast_symbol_table *temp = table;
 
 		while (new_name == NULL && temp->prev != NULL) {
 			temp = temp->prev;
 			new_name = find_element_symbols(temp,
-							expression->identifier);
+							expression->identifier->name);
 		}
 		if (new_name == NULL) {
 			printf("Missing definition of: %s\n",
-			       expression->identifier);
+			       expression->identifier->name);
 			// TODO throw error because already declared
 		} else {
-			char *temp = realloc(expression->identifier,
+			char *temp = realloc(expression->identifier->renamed,
 					     sizeof(char *) * strlen(new_name));
 			if (temp == NULL)
 				assert(NULL);
-			expression->identifier = temp;
-			strcpy(expression->identifier, new_name);
+			expression->identifier->renamed = temp;
+			strcpy(expression->identifier->renamed, new_name);
 		}
 	}
 }
@@ -421,13 +421,13 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
     assert(data);
 
     char *new_name =
-            find_element_symbols(table, expression->identifier);
+            find_element_symbols(table, expression->identifier->name);
     ast_symbol_table *temp = table;
 
     while (new_name == NULL && temp->prev != NULL) {
         temp = temp->prev;
         new_name = find_element_symbols(temp,
-                                        expression->identifier);
+                                        expression->identifier->name);
     }
     if (new_name == NULL) {
         //struct mCc_parser_error *error =  malloc(sizeof(struct mCc_parser_error));
@@ -436,15 +436,15 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
         //result->errors = add_parse_error(result->errors, error);
 
         printf("Missing definition of: %s\n",
-               expression->identifier);
+               expression->identifier->name);
         // TODO throw error because already declared
     } else {
-        char *temp = realloc(expression->identifier,
+        char *temp = realloc(expression->identifier->renamed,
                              sizeof(char *) * strlen(new_name));
         if (temp == NULL)
             assert(NULL);
-        expression->identifier = temp;
-        strcpy(expression->identifier, new_name);
+        expression->identifier->renamed = temp;
+        strcpy(expression->identifier->renamed, new_name);
     }
 }
 

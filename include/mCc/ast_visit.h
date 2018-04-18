@@ -21,7 +21,7 @@ enum mCc_ast_visit_order {
 // typedef void (*mCc_ast_visit_expression_cb)(struct mCc_ast_expression *,
 //                                           void *);
 
-typedef void (*mCc_ast_identifier_cb)(char *, void *);
+typedef void (*mCc_ast_identifier_cb)(ast_identifier *, void *);
 typedef void (*mCc_ast_literal_cb)(struct mCc_ast_literal *, void *);
 
 typedef void (*mCc_ast_function_def_type_cb)(struct mCc_ast_function_def *,

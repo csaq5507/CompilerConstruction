@@ -66,11 +66,11 @@ TEST(Assignemt_2, Task1) {
     struct mCc_ast_function_def_array *func_def_arr = result.func_def;
     auto func_def = func_def_arr->function_def;
 
-    ASSERT_STREQ("a", func_def[func_def_arr->counter-1].c_stmt[0].statements[0].declaration->identifier);
+    ASSERT_STREQ("a", func_def[func_def_arr->counter-1].c_stmt[0].statements[0].declaration->identifier->name);
 
     auto result2 = mCc_ast_symbol_table(&result);
     func_def_arr = result2->func_def;
-    ASSERT_STREQ("a1", func_def[func_def_arr->counter-1].c_stmt[0].statements[0].declaration->identifier);
+    ASSERT_STREQ("a1", func_def[func_def_arr->counter-1].c_stmt[0].statements[0].declaration->identifier->renamed);
 
     //TODO errror check for undefined or redefined identifiers
     //mCc_ast_delete_function_def_array(result.func_def);

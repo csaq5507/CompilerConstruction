@@ -7,7 +7,7 @@
 #include "mCc/ast.h"
 #include "mCc/parser.h"
 
-#define DEBUG 0
+#define DEBUG 1
 
 void print_usage(const char *prg)
 {

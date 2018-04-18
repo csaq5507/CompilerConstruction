@@ -32,7 +32,7 @@ TEST(Assignemt_1, Task1_2) {
     ASSERT_EQ(MCC_AST_DECL_STMT, func_def[func_def_arr->counter-1].c_stmt->statements[1].type);
 
     mCc_ast_delete_function_def_array(result.func_def);
-
+    mCc_delete_result(&result);
 }
 
 TEST(Assignemt_1, Task3) {
@@ -48,8 +48,9 @@ TEST(Assignemt_1, Task3) {
 
     ASSERT_STREQ("syntax error, unexpected identifier, expecting ;", result.errors->errors[0].error_msg);
     ASSERT_EQ(4, result.errors->errors[0].error_line);
-   // mCc_ast_delete_function_def_array(result.func_def);
 
+    mCc_delete_result(&result);
+    //TODO delete errors not working properly
 }
 
 TEST(Assignemt_2, Task1) {
@@ -76,8 +77,9 @@ TEST(Assignemt_2, Task1) {
     func_def_arr = result2->func_def;
     ASSERT_STREQ("a0", func_def[func_def_arr->counter-1].c_stmt[0].statements[0].declaration->identifier->renamed);
 
-    //TODO errror check for undefined or redefined identifiers
-  //  mCc_ast_delete_function_def_array(result.func_def);
+
+    mCc_ast_delete_function_def_array(result.func_def);
+    mCc_delete_result(&result);
 }
 
 TEST(Assignemt_2, Task2) {

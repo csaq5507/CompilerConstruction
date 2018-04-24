@@ -110,6 +110,7 @@ static ast_symbol_table *add_element_symbols(ast_symbol_table *head, char *old,
 	strcpy(symbol->mCc_symbol_old, old);
 	strcpy(symbol->mCc_symbol_new, new);
 
+
 	ast_symbol *temp = realloc(
 		head->symbols, sizeof(*symbol) * (head->symbols_counter + 1));
 	if (temp == NULL) {
@@ -119,7 +120,7 @@ static ast_symbol_table *add_element_symbols(ast_symbol_table *head, char *old,
 	memcpy(&(head->symbols[head->symbols_counter]), symbol,
 	       sizeof(*symbol));
 	head->symbols_counter++;
-
+	free(symbol);
 	return head;
 }
 
@@ -144,9 +145,11 @@ static void delete_symbol_table_node(ast_symbol_table *head)
     ast_symbol_table *current = head;
     while( current != NULL ) {
         ast_symbol_table *next = current->next;
-        free(current->symbols->mCc_symbol_new);
-        free(current->symbols->mCc_symbol_old);
-        free(current->symbols);
+        if (current->symbols != NULL) {
+            free(current->symbols->mCc_symbol_new);
+            free(current->symbols->mCc_symbol_old);
+            free(current->symbols);
+        }
         free( current );
         current = next;
     }
@@ -325,7 +328,7 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 	case (MCC_AST_DECLARATION_TYPE_ARRAY):
 		sprintf(help, "%s%d", stmt->array_identifier->name,
 			g_counter++);
-		if (find_element_symbols(table, stmt->identifier->name) != NULL) {
+		if (find_element_symbols(table, stmt->array_identifier->name) != NULL) {
             char error_msg[1024] = {0};
             snprintf(error_msg, sizeof(error_msg), "Allready defined: %s", stmt->array_identifier->name);
             struct mCc_parser_error *error =  malloc(sizeof(struct mCc_parser_error));

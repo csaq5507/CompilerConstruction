@@ -65,10 +65,10 @@ ast_identifier *mCc_ast_new_identifier(char *name, int line)
 	identifier->name = malloc(sizeof(char *) * strlen(name));
 	identifier->renamed = malloc(sizeof(char *) * strlen(name));
 	strcpy(identifier->name, name);
-	;
+
 	strcpy(identifier->renamed, name);
 	identifier->node.sloc.start_line = line;
-
+    free(name);
 	return identifier;
 }
 
@@ -366,6 +366,7 @@ void mCc_ast_delete_single_expression(ast_single_expr *expression, void *data)
 	case MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL:
 
 	case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER:
+
 		break;
 	}
 }

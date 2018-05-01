@@ -43,6 +43,8 @@ typedef struct mCc_ast_symbol {
 	char *mCc_symbol_old;
 	char *mCc_symbol_new;
 	enum mCc_ast_type d_type;
+
+    int func_param_counter;
 } ast_symbol;
 
 typedef struct mCc_ast_current_func {

@@ -88,12 +88,26 @@ int main(int argc, char *argv[])
 
         result = *(mCc_ast_semantic_check(&result));
 
+        if (result.status == MCC_PARSER_STATUS_ERROR) {
+            if (DEBUG){
+                printf("Parser_error:\n");
+                for (int i = 0; i < result.errors->counter; i++) {
+                    printf("Error at line %d: ",
+                           result.errors->errors[i].error_line);
+                    printf("%s\n",
+                           result.errors->errors[i].error_msg);
+                }
+                mCc_ast_delete_function_def_array(result.func_def);
+                mCc_delete_result(&result);
+                return EXIT_SUCCESS;
+            }
+        }
+
         mCc_ast_delete_function_def_array(result.func_def);
         mCc_delete_result(&result);
 	}
 
 	/*    TODO
-	 * - run semantic checks
 	 * - create three-address code
 	 * - do some optimisations
 	 * - output assembly code

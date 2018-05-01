@@ -12,10 +12,14 @@ static void ast_semantic_check_expression(struct mCc_ast_expression *expression,
 static void ast_semantic_check_call_expression(struct mCc_ast_call_expr *expression,
                                                void *data);
 
-static void ast_semantic_check_decl_stmt(struct mCc_ast_declaration *stmt,
-                                                 void *data);
 static void ast_semantic_check_ret_stmt(struct mCc_ast_ret_stmt *stmt,
                                          void *data);
+static void ast_semantic_check_ass_stmt(struct mCc_ast_assignment *stmt,
+                                        void *data);
+static void ast_semantic_check_if_stmt(struct mCc_ast_if_stmt *stmt,
+                                        void *data);
+static void ast_semantic_check_while_stmt(struct mCc_ast_while_stmt *stmt,
+                                        void *data);
 
 static struct mCc_ast_visitor symbol_table_visitor(void *data)
 {
@@ -30,8 +34,10 @@ static struct mCc_ast_visitor symbol_table_visitor(void *data)
             .expression = ast_semantic_check_expression,
             .call_expression = ast_semantic_check_call_expression,
 
-            .decl_stmt = ast_semantic_check_decl_stmt,
             .ret_stmt = ast_semantic_check_ret_stmt,
+            .ass_stmt = ast_semantic_check_ass_stmt,
+            .if_stmt = ast_semantic_check_if_stmt,
+            .while_stmt = ast_semantic_check_while_stmt,
 
     };
 };
@@ -87,12 +93,35 @@ static void ast_semantic_check_expression(struct mCc_ast_expression *expression,
             expression->d_type = expression->single_expr->d_type;
             break;
         case (MCC_AST_EXPRESSION_TYPE_BINARY):
-            if (expression->lhs->d_type == expression->rhs->d_type) {
-                expression->d_type = expression->lhs->d_type;
-            } else {
-                printf("ERROR: %d -- %d\n", expression->lhs->d_type, expression->rhs->d_type);
-                // TODO error message because type is not equal for lhs and rhs
+            if (expression->lhs->d_type != expression->rhs->d_type)  {
+                char error_msg[1024] = {0};
+                snprintf(error_msg, sizeof(error_msg), "Expression types not compatible");
+                struct mCc_parser_error *error =  malloc(sizeof(struct mCc_parser_error));
+                strcpy(error->error_msg, error_msg);
+                error->error_line = 0;
+                g_result->errors = add_parse_error(g_result->errors, error);
+                g_result->status = MCC_PARSER_STATUS_ERROR;
+
             }
+            switch (expression->op) {
+                case (MCC_AST_BINARY_OP_ADD):
+                case (MCC_AST_BINARY_OP_DIV):
+                case (MCC_AST_BINARY_OP_MUL):
+                case (MCC_AST_BINARY_OP_SUB):
+                    expression->d_type = expression->lhs->d_type;
+                    break;
+                case (MCC_AST_BINARY_OP_AND):
+                case (MCC_AST_BINARY_OP_EQ):
+                case (MCC_AST_BINARY_OP_GE):
+                case (MCC_AST_BINARY_OP_GT):
+                case (MCC_AST_BINARY_OP_LE):
+                case (MCC_AST_BINARY_OP_LT):
+                case (MCC_AST_BINARY_OP_NEQ):
+                case (MCC_AST_BINARY_OP_OR):
+                    expression->d_type = MCC_AST_TYPE_BOOL;
+                    break;
+            }
+
             break;
     }
 }
@@ -103,44 +132,8 @@ static void ast_semantic_check_call_expression(struct mCc_ast_call_expr *express
     assert(data);
 
     expression->d_type = expression->identifier->d_type;
-}
 
-static void ast_semantic_check_decl_stmt(struct mCc_ast_declaration *stmt,
-                                         void *data){
-    assert(stmt);
-    assert(data);
-
-    if (stmt->type == MCC_AST_DECLARATION_TYPE_SINGLE) {
-        switch(stmt->literal){
-            case (MCC_AST_LITERAL_TYPE_INT):
-                stmt->identifier->d_type = MCC_AST_TYPE_INT;
-                break;
-            case (MCC_AST_LITERAL_TYPE_FLOAT):
-                stmt->identifier->d_type = MCC_AST_TYPE_FLOAT;
-                break;
-            case (MCC_AST_LITERAL_TYPE_STRING):
-                stmt->identifier->d_type = MCC_AST_TYPE_STRING;
-                break;
-            case (MCC_AST_LITERAL_TYPE_BOOL):
-                stmt->identifier->d_type = MCC_AST_TYPE_BOOL;
-                break;
-        }
-    } else if(stmt->type == MCC_AST_DECLARATION_TYPE_ARRAY) {
-        switch(stmt->literal){
-            case (MCC_AST_LITERAL_TYPE_INT):
-                stmt->identifier->d_type = MCC_AST_TYPE_INT_ARRAY;
-                break;
-            case (MCC_AST_LITERAL_TYPE_FLOAT):
-                stmt->identifier->d_type = MCC_AST_TYPE_FLOAT_ARRAY;
-                break;
-            case (MCC_AST_LITERAL_TYPE_STRING):
-                stmt->identifier->d_type = MCC_AST_TYPE_STRING_ARRAY;
-                break;
-            case (MCC_AST_LITERAL_TYPE_BOOL):
-                stmt->identifier->d_type = MCC_AST_TYPE_BOOL_ARRAY;
-                break;
-        }
-    }
+    // TODO check type of params
 }
 
 static void ast_semantic_check_ret_stmt(struct mCc_ast_ret_stmt *stmt,
@@ -149,8 +142,61 @@ static void ast_semantic_check_ret_stmt(struct mCc_ast_ret_stmt *stmt,
     assert(data);
 
     if(stmt->d_type != stmt->expression->d_type) {
-        // TODO wrong return type
-        printf("ERROR return has wrong data type\n");
+        char error_msg[1024] = {0};
+        snprintf(error_msg, sizeof(error_msg), "Wrong return type");
+        struct mCc_parser_error *error =  malloc(sizeof(struct mCc_parser_error));
+        strcpy(error->error_msg, error_msg);
+        error->error_line = 0;
+        g_result->errors = add_parse_error(g_result->errors, error);
+        g_result->status = MCC_PARSER_STATUS_ERROR;
+    }
+}
+
+static void ast_semantic_check_ass_stmt(struct mCc_ast_assignment *stmt,
+                                        void *data) {
+    assert(stmt);
+    assert(data);
+
+    if (stmt->identifier->d_type != stmt->expression->d_type) {
+        char error_msg[1024] = {0};
+        snprintf(error_msg, sizeof(error_msg), "Wrong type for assignment");
+        struct mCc_parser_error *error =  malloc(sizeof(struct mCc_parser_error));
+        strcpy(error->error_msg, error_msg);
+        error->error_line = 0;
+        g_result->errors = add_parse_error(g_result->errors, error);
+        g_result->status = MCC_PARSER_STATUS_ERROR;
+    }
+}
+
+static void ast_semantic_check_if_stmt(struct mCc_ast_if_stmt *stmt,
+                                       void *data){
+    assert(stmt);
+    assert(data);
+
+    if (stmt->expression->d_type != MCC_AST_TYPE_BOOL) {
+        char error_msg[1024] = {0};
+        snprintf(error_msg, sizeof(error_msg), "Not boolean expression");
+        struct mCc_parser_error *error =  malloc(sizeof(struct mCc_parser_error));
+        strcpy(error->error_msg, error_msg);
+        error->error_line = 0;
+        g_result->errors = add_parse_error(g_result->errors, error);
+        g_result->status = MCC_PARSER_STATUS_ERROR;
+    }
+}
+
+static void ast_semantic_check_while_stmt(struct mCc_ast_while_stmt *stmt,
+                                          void *data){
+    assert(stmt);
+    assert(data);
+
+    if (stmt->expression->d_type != MCC_AST_TYPE_BOOL) {
+        char error_msg[1024] = {0};
+        snprintf(error_msg, sizeof(error_msg), "Not boolean expression");
+        struct mCc_parser_error *error =  malloc(sizeof(struct mCc_parser_error));
+        strcpy(error->error_msg, error_msg);
+        error->error_line = 0;
+        g_result->errors = add_parse_error(g_result->errors, error);
+        g_result->status = MCC_PARSER_STATUS_ERROR;
     }
 }
 

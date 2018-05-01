@@ -49,8 +49,8 @@ int main(int argc, char *argv[])
 					printf("%s\n",
 						   result.errors->errors[i].error_msg);
 				}
-			}
 			return EXIT_FAILURE;
+            }
 		}
         func = result.func_def;
 
@@ -67,6 +67,19 @@ int main(int argc, char *argv[])
 
 		fclose(out1);
 		fclose(out2);
+
+        if (result.status == MCC_PARSER_STATUS_ERROR) {
+            if (DEBUG){
+                printf("Parser_error:\n");
+                for (int i = 0; i < result.errors->counter; i++) {
+                    printf("Error at line %d\n",
+                           result.errors->errors[i].error_line);
+                    printf("%s\n",
+                           result.errors->errors[i].error_msg);
+                }
+                return EXIT_FAILURE;
+            }
+        }
 
         mCc_ast_delete_function_def_array(result.func_def);
         mCc_delete_result(&result);

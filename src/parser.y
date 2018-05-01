@@ -138,7 +138,7 @@ literal         : INT_LITERAL       { $$ = mCc_ast_new_literal_int($1);    }
                 | STRING_LITERAL    { $$ = mCc_ast_new_literal_string($1); }
                 ;
 
-identifier      : IDENTIFIER        {$$ = mCc_ast_new_identifier($1, line_counter);}
+identifier      : IDENTIFIER        {$$ = mCc_ast_new_identifier($1, line_counter); }
                 ;
 
 toplevel        : function_def_arr                  { result->func_def = $1; }

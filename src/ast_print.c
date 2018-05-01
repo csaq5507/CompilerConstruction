@@ -4,7 +4,7 @@
 #include <memory.h>
 #include "mCc/ast_print.h"
 
-#define LABEL_SIZE 64
+#define LABEL_SIZE 4096
 
 char *ptr;
 int counter;
@@ -283,7 +283,7 @@ print_dot_expression_single(struct mCc_ast_single_expression *expression,
 		print_dot_node(out, expression, label);
 
 		print_dot_edge(out, expression,
-			       expression->identifier_expression, "numerator");
+			       &expression->identifier_expression, "numerator");
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR):
 		print_dot_node(out, expression, "Call_expression");
@@ -334,7 +334,7 @@ static void print_dot_stmt_statement(struct mCc_ast_stmt *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
-		FILE *out = data;
+    FILE *out = data;
     print_dot_node(out, stmt, "Statement");
 
     switch (stmt->type) {
@@ -425,7 +425,7 @@ static void print_dot_stmt_ass(struct mCc_ast_assignment *stmt, void *data)
 	FILE *out = data;
 	print_dot_node(out, stmt, " = ");
 
-	print_dot_edge(out, stmt, stmt->identifier->renamed, "");
+	print_dot_edge(out, stmt, &stmt->identifier->renamed, "");
 
 	if (stmt->numerator != NULL)
 		print_dot_edge(out, stmt, stmt->numerator, "numerator");
@@ -435,7 +435,7 @@ static void print_dot_stmt_ass(struct mCc_ast_assignment *stmt, void *data)
 
 	char label[LABEL_SIZE] = {0};
 	snprintf(label, sizeof(label), "%s", stmt->identifier->renamed);
-	print_dot_node(out, stmt->identifier->renamed, label);
+	print_dot_node(out, &stmt->identifier->renamed, label);
 }
 
 static void print_dot_stmt_decl(struct mCc_ast_declaration *stmt, void *data)
@@ -451,14 +451,14 @@ static void print_dot_stmt_decl(struct mCc_ast_declaration *stmt, void *data)
 		snprintf(label, sizeof(label), "%s %s;",
 			 mCc_ast_print_literal_type(stmt->literal),
 			 stmt->identifier->renamed);
-		print_dot_edge(out, stmt, stmt->identifier->renamed, "");
-		print_dot_node(out, stmt->identifier->renamed, label);
+		print_dot_edge(out, stmt, &stmt->identifier->renamed, "");
+		print_dot_node(out, &stmt->identifier->renamed, label);
 	} else {
 		snprintf(label, sizeof(label), "%s [%d] %s;",
 			 mCc_ast_print_literal_type(stmt->literal),
 			 stmt->numerator, stmt->array_identifier->renamed);
-		print_dot_edge(out, stmt, stmt->array_identifier->renamed, "");
-		print_dot_node(out, stmt->array_identifier->renamed, label);
+		print_dot_edge(out, stmt, &stmt->array_identifier->renamed, "");
+		print_dot_node(out, &stmt->array_identifier->renamed, label);
 	}
 }
 

@@ -6,6 +6,7 @@
 #include "mCc/parser.h"
 
 #define DEBUG 0
+#define ARRAY_SIZE 2048
 
 static ast_symbol_table *create_new_symbol_table_node();
 static void mCc_ast_symbol_table_add_default_function_names();
@@ -97,7 +98,6 @@ static void mCc_ast_symbol_table_add_default_function_names() {
 
 }
 
-int counter= 0;
 
 static ast_symbol_table *add_element_symbols(ast_symbol_table *head, char *old,
 					     char *new)
@@ -106,13 +106,9 @@ static ast_symbol_table *add_element_symbols(ast_symbol_table *head, char *old,
 	assert(old);
 	assert(new);
 
-    counter++;
 	ast_symbol *symbol = malloc(sizeof(*symbol));
-	symbol->mCc_symbol_old = malloc(sizeof(char *) * strlen(old));
-	symbol->mCc_symbol_new = malloc(sizeof(char *) * strlen(new));
-	strcpy(symbol->mCc_symbol_old, old);
-	strcpy(symbol->mCc_symbol_new, new);
-
+	symbol->mCc_symbol_old = old;
+	symbol->mCc_symbol_new = new;
 
 	ast_symbol *temp = realloc(
 		head->symbols, sizeof(*symbol) * (head->symbols_counter + 1));
@@ -151,8 +147,6 @@ static void delete_symbol_table_node(ast_symbol_table *head)
     while( current != NULL ) {
         ast_symbol_table *next = current->next;
         if (current->symbols != NULL) {
-            free(current->symbols->mCc_symbol_new);
-            free(current->symbols->mCc_symbol_old);
             free(current->symbols);
         }
         free( current );
@@ -166,7 +160,7 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 	assert(f);
 	assert(data);
 
-    char help[2048];
+    char help[ARRAY_SIZE] = {0};
     sprintf(help, "%s%d", f->identifier->name, g_counter++);
     if (find_element_symbols(table, f->identifier->name) != NULL) {
         char error_msg[1024] = {0};
@@ -180,13 +174,13 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
         table = add_element_symbols(table, f->identifier->name,
                                     help);
 
-        char *temp = realloc(f->identifier->renamed,
-                             (sizeof(char *) * strlen(help)));
-        if (temp == NULL)
-            assert(NULL);
-        f->identifier->renamed = temp;
-        strcpy(f->identifier->renamed, help);
-
+        //char *temp = realloc(f->identifier->renamed,
+        //                     (sizeof(char *) * strlen(help)));
+       // if (temp == NULL)
+        //    assert(NULL);
+        //f->identifier->renamed = temp;
+        //strcpy(f->identifier->renamed, help);
+		f->identifier->renamed = help;
 
     }
 }
@@ -197,7 +191,7 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 	assert(f);
 	assert(data);
 
-    char help[2048];
+    char help[ARRAY_SIZE] = {0};
     sprintf(help, "%s%d", f->identifier->name, g_counter++);
     if (find_element_symbols(table, f->identifier->name) != NULL) {
         char error_msg[1024] = {0};
@@ -210,13 +204,14 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
     } else {
         table = add_element_symbols(table, f->identifier->name,
                                     help);
-        char *temp = realloc(f->identifier->renamed,
-                             (sizeof(char *) * strlen(help)));
-        if (temp == NULL) {
-            assert(NULL);
-        }
-        f->identifier->renamed = temp;
-        strcpy(f->identifier->renamed, help);
+        //char *temp = realloc(f->identifier->renamed,
+        //                     (sizeof(char *) * strlen(help)));
+        //if (temp == NULL) {
+        //    assert(NULL);
+        //}
+        //f->identifier->renamed = temp;
+        //strcpy(f->identifier->renamed, help);
+		f->identifier->renamed = help;
     }
 
     if (strcmp(f->identifier->name, "main") == 1) {
@@ -294,13 +289,14 @@ static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt,
         h_result->errors = add_parse_error(h_result->errors, error);
         h_result->status = MCC_PARSER_STATUS_ERROR;
 	} else {
-		char *temp = realloc(stmt->identifier->renamed,
-				     sizeof(char *) * strlen(new_name) );
-        if (temp == NULL) {
-            assert(NULL);
-        }
-		stmt->identifier->renamed = temp;
-		strcpy(stmt->identifier->renamed, new_name);
+		//char *temp = realloc(stmt->identifier->renamed,
+		//		     sizeof(char *) * strlen(new_name) );
+        //if (temp == NULL) {
+        //    assert(NULL);
+        //}
+		//stmt->identifier->renamed = temp;
+		//strcpy(stmt->identifier->renamed, new_name);
+		stmt->identifier->renamed = new_name;
 	}
 }
 
@@ -309,7 +305,7 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 {
 	assert(stmt);
 	assert(data);
-	char help[2048];
+	char help[ARRAY_SIZE] = {0};
 	switch (stmt->type) {
 	case (MCC_AST_DECLARATION_TYPE_SINGLE):
 		sprintf(help, "%s%d", stmt->identifier->name, g_counter++);
@@ -324,13 +320,14 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 		} else {
 			table = add_element_symbols(table, stmt->identifier->name,
 						    help);
-			char *temp = realloc(stmt->identifier->renamed,
-					     (sizeof(char *) * strlen(help)));
-            if (temp == NULL) {
-                assert(NULL);
-            }
-			stmt->identifier->renamed = temp;
-			strcpy(stmt->identifier->renamed, help);
+			//char *temp = realloc(stmt->identifier->renamed,
+			//		     (sizeof(char *) * strlen(help)));
+            //if (temp == NULL) {
+            //   assert(NULL);
+            //}
+			//stmt->identifier->renamed = temp;
+			//strcpy(stmt->identifier->renamed, help);
+			stmt->identifier->renamed = help;
 		}
 		break;
 	case (MCC_AST_DECLARATION_TYPE_ARRAY):
@@ -347,13 +344,14 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 		} else {
 			table = add_element_symbols(
 				table, stmt->array_identifier->renamed, help);
-			char *temp = realloc(stmt->array_identifier->renamed,
-					     (sizeof(char *) * strlen(help)));
-            if (temp == NULL) {
-                assert(NULL);
-            }
-			stmt->array_identifier->renamed = temp;
-			strcpy(stmt->array_identifier->renamed, help);
+			//char *temp = realloc(stmt->array_identifier->renamed,
+			//		     (sizeof(char *) * strlen(help)));
+            //if (temp == NULL) {
+            //    assert(NULL);
+            //}
+			//stmt->array_identifier->renamed = temp;
+			//strcpy(stmt->array_identifier->renamed, help);
+			stmt->array_identifier->renamed = help;
 		}
 		break;
 	}
@@ -395,13 +393,14 @@ ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
             h_result->errors = add_parse_error(h_result->errors, error);
             h_result->status = MCC_PARSER_STATUS_ERROR;
 		} else {
-			char *temp = realloc(expression->identifier->renamed,
-					     sizeof(char *) * strlen(new_name));
-			if (temp == NULL) {
-                assert(NULL);
-            }
-			expression->identifier->renamed = temp;
-			strcpy(expression->identifier->renamed, new_name);
+			//char *temp = realloc(expression->identifier->renamed,
+			//		     sizeof(char *) * strlen(new_name));
+			//if (temp == NULL) {
+            //    assert(NULL);
+            //}
+			//expression->identifier->renamed = temp;
+			//strcpy(expression->identifier->renamed, new_name);
+			expression->identifier->renamed = new_name;
 		}
 	}
 }
@@ -430,13 +429,13 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
         h_result->errors = add_parse_error(h_result->errors, error);
         h_result->status = MCC_PARSER_STATUS_ERROR;
     } else {
-        char *temp = realloc(expression->identifier->renamed,
-                             sizeof(char *) * strlen(new_name));
-        if (temp == NULL) {
-            assert(NULL);
-        }
-        expression->identifier->renamed = temp;
-        strcpy(expression->identifier->renamed, new_name);
+       // char *temp = realloc(expression->identifier->renamed,
+         //                    sizeof(char *) * strlen(new_name));
+        //if (temp == NULL) {
+         //   assert(NULL);
+        //}
+       // expression->identifier->renamed = temp;
+        expression->identifier->renamed = new_name;
     }
 }
 
@@ -456,7 +455,6 @@ mCc_ast_symbol_table(struct mCc_parser_result *result)
     mCc_ast_symbol_table_add_default_function_names();
 
 	mCc_ast_visit_function_def_array(f, &visitor);
-    printf("%d",counter);
 	delete_symbol_table_node(table);
 /*
     if(!has_main) {

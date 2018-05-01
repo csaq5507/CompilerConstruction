@@ -44,12 +44,14 @@ int main(int argc, char *argv[])
 			if (DEBUG){
 				printf("Parser_error:\n");
 				for (int i = 0; i < result.errors->counter; i++) {
-					printf("Error at line %d\n",
+					printf("Error at line %d: ",
 						   result.errors->errors[i].error_line);
 					printf("%s\n",
 						   result.errors->errors[i].error_msg);
 				}
-			return EXIT_FAILURE;
+                mCc_ast_delete_function_def_array(result.func_def);
+                mCc_delete_result(&result);
+			    return EXIT_SUCCESS;
             }
 		}
         func = result.func_def;
@@ -72,12 +74,14 @@ int main(int argc, char *argv[])
             if (DEBUG){
                 printf("Parser_error:\n");
                 for (int i = 0; i < result.errors->counter; i++) {
-                    printf("Error at line %d\n",
+                    printf("Error at line %d: ",
                            result.errors->errors[i].error_line);
                     printf("%s\n",
                            result.errors->errors[i].error_msg);
                 }
-                return EXIT_FAILURE;
+                mCc_ast_delete_function_def_array(result.func_def);
+                mCc_delete_result(&result);
+                return EXIT_SUCCESS;
             }
         }
 

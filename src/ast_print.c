@@ -5,13 +5,18 @@
 #include "mCc/ast_print.h"
 
 #define LABEL_SIZE 4096
+#define COLOR_FUNC_DEF "#CC0000"
+#define COLOR_STMT "#99FF99"
+#define COLOR_IDENTIFIER "#0000FF"
+#define COLOR_EXPRESSION "#80FF00"
+#define COLOR_LITERAL "#FFFF00"
+#define COLOR_OPERATOR "#FF3399"
 
 char *ptr;
-int counter;
 
 static void print_dot_begin(FILE *out);
 static void print_dot_end(FILE *out);
-static void print_dot_node(FILE *out, const void *node, const char *label);
+static void print_dot_node(FILE *out, const void *node, const char *label, const char *color);
 static void print_dot_arrow(FILE *out, const void *node,const char * label);
 static void print_dot_edge(FILE *out, const void *src_node,
 			   const void *dst_node, const char *label);
@@ -155,13 +160,13 @@ static void print_dot_end(FILE *out)
 	fprintf(out, "}\n");
 }
 
-static void print_dot_node(FILE *out, const void *node, const char *label)
+static void print_dot_node(FILE *out, const void *node, const char *label, const char *color)
 {
 	assert(out);
 	assert(node);
 	assert(label);
 
-	fprintf(out, "\t\"%p\" [shape=box, label=\"%s\"];\n", node, label);
+	fprintf(out, "\t\"%p\" [shape=box, style=filled, fillcolor=\"%s\" , label=\"%s\"];\n", node, color, label);
 }
 
 static void print_dot_arrow(FILE *out, const void *node,const char*label)
@@ -195,7 +200,7 @@ static void print_dot_literal_int(struct mCc_ast_literal *literal, void *data)
 	char label[LABEL_SIZE] = {0};
 
 	snprintf(label, sizeof(label), "ILiteral: %ld", literal->i_value);
-	print_dot_node(out, literal, label);
+	print_dot_node(out, literal, label, COLOR_LITERAL);
 }
 
 static void print_dot_literal_float(struct mCc_ast_literal *literal, void *data)
@@ -207,7 +212,7 @@ static void print_dot_literal_float(struct mCc_ast_literal *literal, void *data)
 	char label[LABEL_SIZE] = {0};
 
 	snprintf(label, sizeof(label), "FLiteral: %lf", literal->f_value);
-	print_dot_node(out, literal, label);
+	print_dot_node(out, literal, label, COLOR_LITERAL);
 }
 
 static void print_dot_literal_bool(struct mCc_ast_literal *literal, void *data)
@@ -219,7 +224,7 @@ static void print_dot_literal_bool(struct mCc_ast_literal *literal, void *data)
 	char label[LABEL_SIZE] = {0};
 
 	snprintf(label, sizeof(label), "BLiteral: %d", literal->b_value);
-	print_dot_node(out, literal, label);
+	print_dot_node(out, literal, label, COLOR_LITERAL);
 }
 
 static void print_dot_literal_string(struct mCc_ast_literal *literal,
@@ -231,7 +236,7 @@ static void print_dot_literal_string(struct mCc_ast_literal *literal,
 	FILE *out = data;
 	char label[LABEL_SIZE] = {0};
 	snprintf(label, sizeof(label), "SLiteral: %s", literal->s_value);
-	print_dot_node(out, literal, label);
+	print_dot_node(out, literal, label, COLOR_LITERAL);
 }
 
 /* ------------------------------------------------------------- Expressions */
@@ -245,11 +250,11 @@ static void print_dot_expression(struct mCc_ast_expression *expression,
 	FILE *out = data;
 
 	if (expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
-		print_dot_node(out, expression,"Expression");
+		print_dot_node(out, expression,"Expression", COLOR_EXPRESSION);
 		print_dot_edge(out, expression, expression->single_expr, "");
 	} else {
 		print_dot_node(out, expression,
-			       mCc_ast_print_binary_op(expression->op));
+			       mCc_ast_print_binary_op(expression->op), COLOR_OPERATOR);
 		print_dot_edge(out, expression, expression->lhs, "left");
 		print_dot_edge(out, expression, expression->rhs, "right");
 	}
@@ -268,36 +273,36 @@ print_dot_expression_single(struct mCc_ast_single_expression *expression,
 
 	switch (expression->type) {
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL):
-		print_dot_node(out, expression, "Literal_expression");
+		print_dot_node(out, expression, "Literal_expression", COLOR_EXPRESSION);
 		print_dot_edge(out, expression, expression->literal, "");
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER):
 		snprintf(label, sizeof(label), "Identifier: %s",
 			 expression->only_identifier->renamed);
-		print_dot_node(out, expression, label);
+		print_dot_node(out, expression, label, COLOR_EXPRESSION);
 
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX):
 		snprintf(label, sizeof(label), "Identifier: %s []",
 			 expression->only_identifier->renamed);
-		print_dot_node(out, expression, label);
+		print_dot_node(out, expression, label, COLOR_EXPRESSION);
 
 		print_dot_edge(out, expression,
-			       &expression->identifier_expression, "numerator");
+			       &expression->identifier_expression, COLOR_EXPRESSION);
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR):
-		print_dot_node(out, expression, "Call_expression");
+		print_dot_node(out, expression, "Call_expression", COLOR_EXPRESSION);
 		print_dot_edge(out, expression, expression->call_expr, "");
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP):
 		print_dot_node(
 			out, expression,
-			mCc_ast_print_unary_op(expression->unary_operator));
+			mCc_ast_print_unary_op(expression->unary_operator), COLOR_OPERATOR);
 		print_dot_edge(out, expression, expression->unary_expression,
 			       "");
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH):
-		print_dot_node(out, expression, "Parenth_expression");
+		print_dot_node(out, expression, "Parenth_expression", COLOR_EXPRESSION);
 		print_dot_edge(out, expression, expression->expression, "( )");
 		break;
 	}
@@ -316,7 +321,7 @@ static void print_dot_call_expr(struct mCc_ast_call_expr *expression,
 	snprintf(label, sizeof(label), "%s( )",
 		 expression->identifier->renamed);
 
-	print_dot_node(out, expression, label);
+	print_dot_node(out, expression, label, COLOR_EXPRESSION);
 
 	if (expression->arguments != NULL)
 		for (int i = 0; i < expression->arguments->counter; i++) {
@@ -335,7 +340,7 @@ static void print_dot_stmt_statement(struct mCc_ast_stmt *stmt, void *data)
 	assert(data);
 
     FILE *out = data;
-    print_dot_node(out, stmt, "Statement");
+    print_dot_node(out, stmt, "Statement", COLOR_STMT);
 
     switch (stmt->type) {
 		case (MCC_AST_IF_STMT):
@@ -378,7 +383,7 @@ static void print_dot_stmt_if(struct mCc_ast_if_stmt *stmt, void *data)
 
 	FILE *out = data;
 
-	print_dot_node(out, stmt, "if");
+	print_dot_node(out, stmt, "if", COLOR_STMT);
 
 	print_dot_edge(out, stmt, stmt->expression, "cond");
 
@@ -397,7 +402,7 @@ static void print_dot_stmt_while(struct mCc_ast_while_stmt *stmt, void *data)
 
 	FILE *out = data;
 
-	print_dot_node(out, stmt, "while");
+	print_dot_node(out, stmt, "while", COLOR_STMT);
 
 	print_dot_edge(out, stmt, stmt->expression, "cond");
 
@@ -410,7 +415,7 @@ static void print_dot_stmt_ret(struct mCc_ast_ret_stmt *stmt, void *data)
 	assert(data);
 
 	FILE *out = data;
-	print_dot_node(out, stmt, "return");
+	print_dot_node(out, stmt, "return", COLOR_STMT);
 
 	if (stmt->expression == NULL)
 		return;
@@ -423,7 +428,7 @@ static void print_dot_stmt_ass(struct mCc_ast_assignment *stmt, void *data)
 	assert(data);
 
 	FILE *out = data;
-	print_dot_node(out, stmt, " = ");
+	print_dot_node(out, stmt, " = ", COLOR_STMT);
 
 	print_dot_edge(out, stmt, &stmt->identifier->renamed, "");
 
@@ -435,7 +440,7 @@ static void print_dot_stmt_ass(struct mCc_ast_assignment *stmt, void *data)
 
 	char label[LABEL_SIZE] = {0};
 	snprintf(label, sizeof(label), "%s", stmt->identifier->renamed);
-	print_dot_node(out, &stmt->identifier->renamed, label);
+	print_dot_node(out, &stmt->identifier->renamed, label, COLOR_IDENTIFIER);
 }
 
 static void print_dot_stmt_decl(struct mCc_ast_declaration *stmt, void *data)
@@ -444,7 +449,7 @@ static void print_dot_stmt_decl(struct mCc_ast_declaration *stmt, void *data)
 	assert(data);
 
 	FILE *out = data;
-	print_dot_node(out, stmt, "Declaration");
+	print_dot_node(out, stmt, "Declaration", COLOR_STMT);
 
 	char label[LABEL_SIZE] = {0};
 	if (stmt->type == MCC_AST_DECLARATION_TYPE_SINGLE) {
@@ -452,13 +457,13 @@ static void print_dot_stmt_decl(struct mCc_ast_declaration *stmt, void *data)
 			 mCc_ast_print_literal_type(stmt->literal),
 			 stmt->identifier->renamed);
 		print_dot_edge(out, stmt, &stmt->identifier->renamed, "");
-		print_dot_node(out, &stmt->identifier->renamed, label);
+		print_dot_node(out, &stmt->identifier->renamed, label, COLOR_IDENTIFIER);
 	} else {
 		snprintf(label, sizeof(label), "%s [%d] %s;",
 			 mCc_ast_print_literal_type(stmt->literal),
 			 stmt->numerator, stmt->array_identifier->renamed);
 		print_dot_edge(out, stmt, &stmt->array_identifier->renamed, "");
-		print_dot_node(out, &stmt->array_identifier->renamed, label);
+		print_dot_node(out, &stmt->array_identifier->renamed, label, COLOR_IDENTIFIER);
 	}
 }
 
@@ -472,7 +477,7 @@ static void print_dot_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
 	FILE *out = data;
 
 	char label[LABEL_SIZE] = {0};
-	print_dot_node(out, c_stmt, "{ }");
+	print_dot_node(out, c_stmt, "{ }", COLOR_STMT);
 
 	for (int i = 0; i < c_stmt->counter; i++) {
         snprintf(label, sizeof(label), "%d", i);
@@ -498,7 +503,7 @@ static void print_dot_function_def_void(struct mCc_ast_function_def *f,
 
 	/* TYPE */
 	snprintf(label, sizeof(label), "void %s( )", f->identifier->renamed);
-	print_dot_node(out, f, label);
+	print_dot_node(out, f, label, COLOR_FUNC_DEF);
 	print_dot_edge(out, f, f->c_stmt, "body");
     if(f->params!= NULL)
     for(int i=0;i<f->params->counter;i++) {
@@ -519,7 +524,7 @@ static void print_dot_function_def_type(struct mCc_ast_function_def *f,
     /* Type of the function */
 	snprintf(label, sizeof(label), "%s %s( )",
 		 mCc_ast_print_literal_type(f->l_type), f->identifier->renamed);
-	print_dot_node(out, f, label);
+	print_dot_node(out, f, label, COLOR_FUNC_DEF);
     print_dot_edge(out, f, f->c_stmt, "body");
     if(f->params!= NULL)
         for(int i=0;i<f->params->counter;i++) {
@@ -534,7 +539,6 @@ void mCc_ast_print_dot_function_def(FILE *out,
 	assert(out);
 	assert(f);
 	ptr = malloc(1);
-	counter = 0;
 	print_dot_begin(out);
 
 

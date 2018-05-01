@@ -44,9 +44,12 @@ void mCc_ast_delete_identifier(ast_identifier *identifier, void *data)
 {
 	assert(identifier);
 	assert(data);
-	free(identifier->name);
-	if (identifier->renamed != NULL)
-		//free(identifier->renamed);
+    if (identifier->name != identifier->renamed) {
+        free(identifier->name);
+        free(identifier->renamed);
+    } else {
+        free(identifier->name);
+    }
 	if (DEBUG)
 		printf("identifier: \n");
 	free(identifier);
@@ -62,14 +65,9 @@ ast_identifier *mCc_ast_new_identifier(char *name, int line)
 	if (identifier == NULL)
 		return NULL;
 
-	//identifier->name = malloc(sizeof(char *) * strlen(name));
-	//identifier->renamed = malloc(sizeof(char *) * strlen(name));
-	//strcpy(identifier->name, name);
-
-	//strcpy(identifier->renamed, name);
-
 	identifier->name = name;
-	identifier->renamed = name;
+    identifier->renamed = malloc(sizeof(char *) * strlen(name));
+	memcpy(identifier->renamed, name, sizeof(char *) * strlen(name));
 	identifier->node.sloc.start_line = line;
 	return identifier;
 }

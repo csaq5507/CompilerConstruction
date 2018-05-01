@@ -764,6 +764,14 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
         }
         expression->identifier->renamed = temp;
         strcpy(expression->identifier->renamed, new_name);
+        if (expression->arguments != NULL) {
+            expression->identifier->param_types = malloc(
+                    sizeof(enum mCc_ast_literal_type) * expression->arguments->counter);
+            enum mCc_ast_literal_type h_param[expression->arguments->counter];
+            for (int i = 0; i < expression->arguments->counter; i++) {
+                // h_param[i] =
+            }
+        }
     }
 }
 

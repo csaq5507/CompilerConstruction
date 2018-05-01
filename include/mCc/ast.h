@@ -9,8 +9,8 @@ extern "C" {
 #endif
 
 /* Forward Declarations */
-typedef struct mCc_ast_identifier ast_identifier;
 typedef struct mCc_ast_literal ast_literal;
+typedef struct mCc_ast_identifier ast_identifier;
 typedef struct mCc_ast_function_def ast_function_def;
 typedef struct mCc_ast_function_def_array ast_function_def_array;
 typedef struct mCc_ast_expression ast_expr;
@@ -71,21 +71,6 @@ enum mCc_ast_binary_op {
 
 enum mCc_ast_unary_op { MCC_AST_UNARY_OP_NEGATION, MCC_AST_UNARY_OP_FAC };
 
-/* ---------------------------------------------------------------- Identifier */
-
-typedef struct mCc_ast_identifier {
-	ast_node node;
-
-	char *name;
-	char *renamed;
-
-    bool name_changed;
-
-	enum mCc_ast_type d_type;
-} ast_identifier;
-
-ast_identifier *mCc_ast_new_identifier(char *name, int line);
-
 /* ---------------------------------------------------------------- Literals */
 enum mCc_ast_literal_type {
 	MCC_AST_LITERAL_TYPE_INT,
@@ -110,6 +95,20 @@ typedef struct mCc_ast_literal {
 		char *s_value;
 	};
 } ast_literal;
+
+/* ---------------------------------------------------------------- Identifier */
+
+typedef struct mCc_ast_identifier {
+	ast_node node;
+
+	char *name;
+	char *renamed;
+
+	enum mCc_ast_type d_type;
+	enum mCc_ast_literal_type *param_types;
+} ast_identifier;
+
+ast_identifier *mCc_ast_new_identifier(char *name, int line);
 
 /* ----------------------------------------------------------- Function Def */
 enum mCc_ast_function_def_type {

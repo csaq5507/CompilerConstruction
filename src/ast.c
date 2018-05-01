@@ -50,6 +50,9 @@ void mCc_ast_delete_identifier(ast_identifier *identifier, void *data)
     } else {
         free(identifier->name);
     }
+	if (identifier->param_types != NULL) {
+		free(identifier->param_types );
+	}
 	if (DEBUG)
 		printf("identifier: \n");
 	free(identifier);
@@ -70,6 +73,7 @@ ast_identifier *mCc_ast_new_identifier(char *name, int line)
 	memcpy(identifier->renamed, name, sizeof(char *) * strlen(name));
 	identifier->node.sloc.start_line = line;
 	identifier->d_type = MCC_AST_TYPE_VOID;
+	identifier->param_types = NULL;
 	return identifier;
 }
 

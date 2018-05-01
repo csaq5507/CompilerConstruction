@@ -17,7 +17,6 @@ char *ptr;
 static void print_dot_begin(FILE *out);
 static void print_dot_end(FILE *out);
 static void print_dot_node(FILE *out, const void *node, const char *label, const char *color);
-static void print_dot_arrow(FILE *out, const void *node,const char * label);
 static void print_dot_edge(FILE *out, const void *src_node,
 			   const void *dst_node, const char *label);
 
@@ -167,14 +166,6 @@ static void print_dot_node(FILE *out, const void *node, const char *label, const
 	assert(label);
 
 	fprintf(out, "\t\"%p\" [shape=box, style=filled, fillcolor=\"%s\" , label=\"%s\"];\n", node, color, label);
-}
-
-static void print_dot_arrow(FILE *out, const void *node,const char*label)
-{
-    assert(out);
-    assert(node);
-
-    fprintf(out, "\t\"%p\" [shape=plaintext, label=\"%s\"];\n", node,label);
 }
 
 static void print_dot_edge(FILE *out, const void *src_node,

@@ -38,6 +38,7 @@ typedef void (*mCc_ast_ret_stmt_cb)(struct mCc_ast_ret_stmt *, void *);
 typedef void (*mCc_ast_decl_stmt_cb)(struct mCc_ast_declaration *, void *);
 typedef void (*mCc_ast_ass_stmt_cb)(struct mCc_ast_assignment *, void *);
 typedef void (*mCc_ast_ass_stmt_statement_cb)(struct mCc_ast_stmt *, void *);
+typedef void (*mCc_ast_stmt_statement_cb)(struct mCc_ast_stmt *, void *);
 
 
 typedef void (*mCc_ast_expression_cb)(struct mCc_ast_expression *, void *);
@@ -73,6 +74,8 @@ struct mCc_ast_visitor {
 	mCc_ast_ass_stmt_cb ass_stmt;
 	mCc_ast_ass_stmt_statement_cb statement;
 	mCc_ast_stmt_cb close_c_stmt;
+	mCc_ast_stmt_statement_cb close_statement;
+	mCc_ast_if_stmt_cb close_if_stmt;
 
 	mCc_ast_expression_cb expression;
 	mCc_ast_argument_cb argument;

@@ -69,6 +69,7 @@ ast_identifier *mCc_ast_new_identifier(char *name, int line)
     identifier->renamed = malloc(sizeof(char *) * strlen(name));
 	memcpy(identifier->renamed, name, sizeof(char *) * strlen(name));
 	identifier->node.sloc.start_line = line;
+	identifier->d_type = MCC_AST_TYPE_VOID;
 	return identifier;
 }
 
@@ -206,6 +207,7 @@ ast_expr *mCc_ast_new_expression_single(ast_single_expr *single_expr)
 
 	expr->type = MCC_AST_EXPRESSION_TYPE_SINGLE;
 	expr->single_expr = single_expr;
+    expr->d_type = MCC_AST_TYPE_VOID;
 	return expr;
 }
 
@@ -224,6 +226,7 @@ ast_expr *mCc_ast_new_expression_binary_op(enum mCc_ast_binary_op op,
 	expr->op = op;
 	expr->lhs = lhs;
 	expr->rhs = rhs;
+    expr->d_type = MCC_AST_TYPE_VOID;
 	return expr;
 }
 
@@ -260,6 +263,7 @@ ast_single_expr *mCc_ast_new_single_expression_literal(ast_literal *literal)
 
 	expr->type = MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL;
 	expr->literal = literal;
+	expr->d_type = MCC_AST_TYPE_VOID;
 	return expr;
 }
 
@@ -388,6 +392,7 @@ ast_call_expr *mCc_ast_new_call_expr(ast_identifier *identifier,
 	ast_call_expr *call_expr = malloc(sizeof(*call_expr));
 	call_expr->identifier = identifier;
 	call_expr->arguments = arguments;
+    call_expr->d_type = MCC_AST_TYPE_VOID;
 	return call_expr;
 }
 
@@ -415,6 +420,7 @@ ast_function_def *mCc_ast_new_void_function_def(ast_identifier *identifier,
 
 	f->void_value = "void";
 	f->identifier = identifier;
+    f->identifier->d_type = MCC_AST_TYPE_VOID;
 	f->params = params;
 	f->c_stmt = c_stmt;
 	return f;
@@ -434,6 +440,20 @@ ast_function_def *mCc_ast_new_type_function_def(enum mCc_ast_literal_type type,
 
 	f->l_type = type;
 	f->identifier = identifier;
+    switch (f->l_type) {
+        case (MCC_AST_LITERAL_TYPE_INT):
+            f->identifier->d_type = MCC_AST_TYPE_INT;
+            break;
+        case (MCC_AST_LITERAL_TYPE_FLOAT):
+            f->identifier->d_type = MCC_AST_TYPE_FLOAT;
+            break;
+        case (MCC_AST_LITERAL_TYPE_STRING):
+            f->identifier->d_type = MCC_AST_TYPE_STRING;
+            break;
+        case (MCC_AST_LITERAL_TYPE_BOOL):
+            f->identifier->d_type = MCC_AST_TYPE_BOOL;
+            break;
+    }
 	f->params = params;
 	f->c_stmt = c_stmt;
 	return f;
@@ -654,6 +674,7 @@ ast_stmt *mCc_ast_new_ret_stmt(ast_ret_stmt *ret_stmt)
 		return NULL;
 	}
 	stmt->type = MCC_AST_RET_STMT;
+    ret_stmt->d_type = MCC_AST_TYPE_VOID;
 	stmt->ret_stmt = ret_stmt;
 	return stmt;
 }

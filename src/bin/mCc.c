@@ -3,6 +3,7 @@
 #include <string.h>
 #include <mCc/ast_print.h>
 #include <mCc/ast_symbol_table.h>
+#include <mCc/ast_semantic_checks.h>
 
 #include "mCc/ast.h"
 #include "mCc/parser.h"
@@ -84,6 +85,8 @@ int main(int argc, char *argv[])
                 return EXIT_SUCCESS;
             }
         }
+
+        result = *(mCc_ast_semantic_check(&result));
 
         mCc_ast_delete_function_def_array(result.func_def);
         mCc_delete_result(&result);

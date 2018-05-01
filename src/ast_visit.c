@@ -172,6 +172,7 @@ void mCc_ast_visit_stmt_statement(struct mCc_ast_stmt *stmt,
 	default:
 		break;
 	}
+
 }
 
 void mCc_ast_visit_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
@@ -205,12 +206,15 @@ void mCc_ast_visit_if_stmt(struct mCc_ast_if_stmt *stmt,
 	mCc_ast_visit_stmt_statement(stmt->statement, visitor);
 	visit_if_post_order(stmt->statement, visitor->statement, visitor);
 
+    visit(stmt, visitor->close_if_stmt, visitor);
+
 	if (stmt->else_statement != NULL) {
 		visit_if_pre_order(stmt->else_statement, visitor->statement,
 				   visitor);
 		mCc_ast_visit_stmt_statement(stmt->else_statement, visitor);
 		visit_if_post_order(stmt->else_statement, visitor->statement,
 				    visitor);
+        visit(stmt->else_statement, visitor->close_statement, visitor);
 	}
 }
 
@@ -395,17 +399,17 @@ void mCc_ast_visit_literal(struct mCc_ast_literal *literal,
 	assert(visitor);
 
 	switch (literal->type) {
-	case (MCC_AST_LITERAL_TYPE_INT):
-		visit(literal, visitor->i_literal, visitor);
-		break;
-	case (MCC_AST_LITERAL_TYPE_STRING):
-		visit(literal, visitor->s_literal, visitor);
-		break;
-	case (MCC_AST_LITERAL_TYPE_BOOL):
-		visit(literal, visitor->b_literal, visitor);
-		break;
-	case (MCC_AST_LITERAL_TYPE_FLOAT):
-		visit(literal, visitor->f_literal, visitor);
-		break;
+        case (MCC_AST_LITERAL_TYPE_INT):
+            visit(literal, visitor->i_literal, visitor);
+            break;
+        case (MCC_AST_LITERAL_TYPE_STRING):
+            visit(literal, visitor->s_literal, visitor);
+            break;
+        case (MCC_AST_LITERAL_TYPE_BOOL):
+            visit(literal, visitor->b_literal, visitor);
+            break;
+        case (MCC_AST_LITERAL_TYPE_FLOAT):
+            visit(literal, visitor->f_literal, visitor);
+            break;
 	}
 }

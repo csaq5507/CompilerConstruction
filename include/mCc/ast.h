@@ -29,6 +29,17 @@ typedef struct mCc_ast_argument ast_argument;
 /* ###################### STRUCTS/ENUMS ###################### */
 
 
+enum mCc_ast_type {
+    MCC_AST_TYPE_INT,
+    MCC_AST_TYPE_FLOAT,
+    MCC_AST_TYPE_STRING,
+    MCC_AST_TYPE_BOOL,
+    MCC_AST_TYPE_INT_ARRAY,
+    MCC_AST_TYPE_FLOAT_ARRAY,
+    MCC_AST_TYPE_STRING_ARRAY,
+    MCC_AST_TYPE_BOOL_ARRAY,
+    MCC_AST_TYPE_VOID
+};
 
 /* ---------------------------------------------------------------- AST Node */
 typedef struct mCc_ast_source_location {
@@ -70,6 +81,7 @@ typedef struct mCc_ast_identifier {
 
     bool name_changed;
 
+	enum mCc_ast_type d_type;
 } ast_identifier;
 
 ast_identifier *mCc_ast_new_identifier(char *name, int line);
@@ -135,6 +147,8 @@ enum mCc_ast_expression_type {
 typedef struct mCc_ast_expression {
 	ast_node node;
 
+    enum mCc_ast_type d_type;
+
 	enum mCc_ast_expression_type type;
 
 	union {
@@ -165,6 +179,8 @@ enum mCc_ast_single_expression_type {
 typedef struct mCc_ast_single_expression 	{
 	ast_node node;
 
+	enum mCc_ast_type d_type;
+
 	enum mCc_ast_single_expression_type type;
 
 	union {
@@ -191,6 +207,8 @@ typedef struct mCc_ast_single_expression 	{
 /* Call Expression */
 typedef struct mCc_ast_call_expr {
 	ast_node node;
+
+    enum mCc_ast_type d_type;
 
     ast_identifier *identifier;
 
@@ -269,6 +287,8 @@ typedef struct mCc_ast_while_stmt {
 /* RETURN Statement */
 typedef struct mCc_ast_ret_stmt {
 	ast_node node;
+
+    enum mCc_ast_type d_type;
 
 	ast_expr *expression;
 

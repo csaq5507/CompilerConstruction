@@ -3,7 +3,7 @@ void find_even(int n)
     int i;
     i = 0;
 	while (i < n) {
-	    if ((i / 2) * 2 == i) {
+	    if (((i / 2) * 2) == i) {
 	        print_int(i);
 	        print(" ");
 	    }

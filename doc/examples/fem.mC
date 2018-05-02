@@ -25,10 +25,10 @@ void main()
 	print("Capictor value: ");
 	C = read_float();
 
-	if (R < 0.0 || C < 0.0) {
+	if ((R < 0.0) || (C < 0.0)) {
 		print("Part values must be positive");
 		print_nl();
-		return -1;
+		return;
 	}
 
 	print("Time step: ");
@@ -37,17 +37,17 @@ void main()
 	print("Number of iterations: ");
 	iter = read_int();
 
-	if (dt < 0.0 && iter < 0.0) {
+	if ((dt < 0.0) && (iter < 0)) {
 		dt = -dt;
 		iter = -iter;
 		print("IC what you did there");
 		print_nl();
 	}
 
-	if (dt < 0.0 || iter < 0) {
+	if ((dt < 0.0) || (iter < 0)) {
 		print("Cowardly refusing to go backwards in time");
 		print_nl();
-		return -1;
+		return;
 	}
 
 	Vc = 0.0;

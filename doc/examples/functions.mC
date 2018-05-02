@@ -1,11 +1,3 @@
-void main() {
-    int test;
-    while_function (3.3, true);
-    test = dangling_else_function();
-    print(test);
-    array_functions();
-}
-
 int dangling_else_function() {
     if (true && true) (42 + 2) * 4;
         if (false || false) 42 * 1 + 14;
@@ -39,3 +31,13 @@ void array_functions() {
     print(arr[3]);
     return;
 }
+
+
+void main() {
+    int test;
+    while_function (3.3, true);
+    test = dangling_else_function();
+    print(test);
+    array_functions();
+}
+

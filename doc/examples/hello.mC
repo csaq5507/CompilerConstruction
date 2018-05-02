@@ -9,12 +9,12 @@ void main(){
     g="";
     foo(1,2,3,4,5,6,7,8,9,10,11);
 
-    if (b>5.0||a>=1.5 && !false){
+    if ((b>5.0) || (a>=1.5) && (!false)){
         g="Hello";
     }
     print(g);
     print_nl();
-    if (a!=b && b!= 1){
+    if ((a!=b) && (b!= 1.0)){
         g="Compiler Construction";
     }
     print(g);

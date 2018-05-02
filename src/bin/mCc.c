@@ -42,20 +42,23 @@ int main(int argc, char *argv[])
 		struct mCc_parser_result result = mCc_parser_parse_file(in);
 		fclose(in);
 		if (result.status == MCC_PARSER_STATUS_ERROR) {
-			if (DEBUG){
+			if (DEBUG) {
 				printf("Parser_error:\n");
-				for (int i = 0; i < result.errors->counter; i++) {
+				for (int i = 0; i < result.errors->counter;
+				     i++) {
 					printf("Error at line %d: ",
-						   result.errors->errors[i].error_line);
-					printf("%s\n",
-						   result.errors->errors[i].error_msg);
+					       result.errors->errors[i]
+						       .error_line);
+					printf("%s\n", result.errors->errors[i]
+							       .error_msg);
 				}
-                mCc_ast_delete_function_def_array(result.func_def);
-                mCc_delete_result(&result);
-			    return EXIT_SUCCESS;
-            }
+				mCc_ast_delete_function_def_array(
+					result.func_def);
+				mCc_delete_result(&result);
+				return EXIT_SUCCESS;
+			}
 		}
-        func = result.func_def;
+		func = result.func_def;
 
 		FILE *out1;
 		FILE *out2;
@@ -71,40 +74,46 @@ int main(int argc, char *argv[])
 		fclose(out1);
 		fclose(out2);
 
-        if (result.status == MCC_PARSER_STATUS_ERROR) {
-            if (DEBUG){
-                printf("Parser_error:\n");
-                for (int i = 0; i < result.errors->counter; i++) {
-                    printf("Error at line %d: ",
-                           result.errors->errors[i].error_line);
-                    printf("%s\n",
-                           result.errors->errors[i].error_msg);
-                }
-                mCc_ast_delete_function_def_array(result.func_def);
-                mCc_delete_result(&result);
-                return EXIT_SUCCESS;
-            }
-        }
+		if (result.status == MCC_PARSER_STATUS_ERROR) {
+			if (DEBUG) {
+				printf("Parser_error:\n");
+				for (int i = 0; i < result.errors->counter;
+				     i++) {
+					printf("Error at line %d: ",
+					       result.errors->errors[i]
+						       .error_line);
+					printf("%s\n", result.errors->errors[i]
+							       .error_msg);
+				}
+				mCc_ast_delete_function_def_array(
+					result.func_def);
+				mCc_delete_result(&result);
+				return EXIT_SUCCESS;
+			}
+		}
 
-        result = *(mCc_ast_semantic_check(&result));
+		result = *(mCc_ast_semantic_check(&result));
 
-        if (result.status == MCC_PARSER_STATUS_ERROR) {
-            if (DEBUG){
-                printf("Parser_error:\n");
-                for (int i = 0; i < result.errors->counter; i++) {
-                    printf("Error at line %d: ",
-                           result.errors->errors[i].error_line);
-                    printf("%s\n",
-                           result.errors->errors[i].error_msg);
-                }
-                mCc_ast_delete_function_def_array(result.func_def);
-                mCc_delete_result(&result);
-                return EXIT_SUCCESS;
-            }
-        }
+		if (result.status == MCC_PARSER_STATUS_ERROR) {
+			if (DEBUG) {
+				printf("Parser_error:\n");
+				for (int i = 0; i < result.errors->counter;
+				     i++) {
+					printf("Error at line %d: ",
+					       result.errors->errors[i]
+						       .error_line);
+					printf("%s\n", result.errors->errors[i]
+							       .error_msg);
+				}
+				mCc_ast_delete_function_def_array(
+					result.func_def);
+				mCc_delete_result(&result);
+				return EXIT_SUCCESS;
+			}
+		}
 
-        mCc_ast_delete_function_def_array(result.func_def);
-        mCc_delete_result(&result);
+		mCc_ast_delete_function_def_array(result.func_def);
+		mCc_delete_result(&result);
 	}
 
 	/*    TODO
@@ -115,8 +124,7 @@ int main(int argc, char *argv[])
 	 */
 
 
-
 	/* cleanup */
 
 	return EXIT_SUCCESS;
- }
+}

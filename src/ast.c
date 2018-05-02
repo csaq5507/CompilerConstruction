@@ -25,7 +25,7 @@ static struct mCc_ast_visitor ast_delete_visitor(void *data)
 		.literal = mCc_ast_delete_literal,
 		.s_literal = mCc_ast_delete_literal_value,
 
-            .parameter = mCc_ast_delete_parameter,
+		.parameter = mCc_ast_delete_parameter,
 		.ass_stmt = mCc_ast_delete_assignment,
 		.single_expression = mCc_ast_delete_single_expression,
 		.decl_stmt = mCc_ast_delete_declaration,
@@ -44,14 +44,14 @@ void mCc_ast_delete_identifier(ast_identifier *identifier, void *data)
 {
 	assert(identifier);
 	assert(data);
-    if (identifier->name != identifier->renamed) {
-        free(identifier->name);
-        free(identifier->renamed);
-    } else {
-        free(identifier->name);
-    }
+	if (identifier->name != identifier->renamed) {
+		free(identifier->name);
+		free(identifier->renamed);
+	} else {
+		free(identifier->name);
+	}
 	if (identifier->param_types != NULL) {
-		free(identifier->param_types );
+		free(identifier->param_types);
 	}
 	if (DEBUG)
 		printf("identifier: \n");
@@ -69,7 +69,7 @@ ast_identifier *mCc_ast_new_identifier(char *name, int line)
 		return NULL;
 
 	identifier->name = name;
-    identifier->renamed = malloc(sizeof(char *) * strlen(name));
+	identifier->renamed = malloc(sizeof(char *) * strlen(name));
 	memcpy(identifier->renamed, name, sizeof(char *) * strlen(name));
 	identifier->node.sloc.start_line = line;
 	identifier->d_type = MCC_AST_TYPE_VOID;
@@ -211,7 +211,7 @@ ast_expr *mCc_ast_new_expression_single(ast_single_expr *single_expr)
 
 	expr->type = MCC_AST_EXPRESSION_TYPE_SINGLE;
 	expr->single_expr = single_expr;
-    expr->d_type = MCC_AST_TYPE_VOID;
+	expr->d_type = MCC_AST_TYPE_VOID;
 	return expr;
 }
 
@@ -230,7 +230,7 @@ ast_expr *mCc_ast_new_expression_binary_op(enum mCc_ast_binary_op op,
 	expr->op = op;
 	expr->lhs = lhs;
 	expr->rhs = rhs;
-    expr->d_type = MCC_AST_TYPE_VOID;
+	expr->d_type = MCC_AST_TYPE_VOID;
 	return expr;
 }
 
@@ -282,6 +282,7 @@ mCc_ast_new_single_expression_identifier(ast_identifier *identifier)
 	}
 	expr->type = MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER;
 	expr->only_identifier = identifier;
+
 	return expr;
 }
 
@@ -396,7 +397,7 @@ ast_call_expr *mCc_ast_new_call_expr(ast_identifier *identifier,
 	ast_call_expr *call_expr = malloc(sizeof(*call_expr));
 	call_expr->identifier = identifier;
 	call_expr->arguments = arguments;
-    call_expr->d_type = MCC_AST_TYPE_VOID;
+	call_expr->d_type = MCC_AST_TYPE_VOID;
 	return call_expr;
 }
 
@@ -424,7 +425,7 @@ ast_function_def *mCc_ast_new_void_function_def(ast_identifier *identifier,
 
 	f->void_value = "void";
 	f->identifier = identifier;
-    f->identifier->d_type = MCC_AST_TYPE_VOID;
+	f->identifier->d_type = MCC_AST_TYPE_VOID;
 	f->params = params;
 	f->c_stmt = c_stmt;
 	return f;
@@ -444,20 +445,20 @@ ast_function_def *mCc_ast_new_type_function_def(enum mCc_ast_literal_type type,
 
 	f->l_type = type;
 	f->identifier = identifier;
-    switch (f->l_type) {
-        case (MCC_AST_LITERAL_TYPE_INT):
-            f->identifier->d_type = MCC_AST_TYPE_INT;
-            break;
-        case (MCC_AST_LITERAL_TYPE_FLOAT):
-            f->identifier->d_type = MCC_AST_TYPE_FLOAT;
-            break;
-        case (MCC_AST_LITERAL_TYPE_STRING):
-            f->identifier->d_type = MCC_AST_TYPE_STRING;
-            break;
-        case (MCC_AST_LITERAL_TYPE_BOOL):
-            f->identifier->d_type = MCC_AST_TYPE_BOOL;
-            break;
-    }
+	switch (f->l_type) {
+	case (MCC_AST_LITERAL_TYPE_INT):
+		f->identifier->d_type = MCC_AST_TYPE_INT;
+		break;
+	case (MCC_AST_LITERAL_TYPE_FLOAT):
+		f->identifier->d_type = MCC_AST_TYPE_FLOAT;
+		break;
+	case (MCC_AST_LITERAL_TYPE_STRING):
+		f->identifier->d_type = MCC_AST_TYPE_STRING;
+		break;
+	case (MCC_AST_LITERAL_TYPE_BOOL):
+		f->identifier->d_type = MCC_AST_TYPE_BOOL;
+		break;
+	}
 	f->params = params;
 	f->c_stmt = c_stmt;
 	return f;
@@ -479,7 +480,7 @@ mCc_ast_add_function_def_to_array(ast_function_def_array *f,
 	f->function_def = temp;
 
 	memcpy(&(f->function_def[f->counter]), f2, sizeof(*f2));
-    free(f2);
+	free(f2);
 	f->counter++;
 	return f;
 }
@@ -678,7 +679,7 @@ ast_stmt *mCc_ast_new_ret_stmt(ast_ret_stmt *ret_stmt)
 		return NULL;
 	}
 	stmt->type = MCC_AST_RET_STMT;
-    ret_stmt->d_type = MCC_AST_TYPE_VOID;
+	ret_stmt->d_type = MCC_AST_TYPE_VOID;
 	stmt->ret_stmt = ret_stmt;
 	return stmt;
 }
@@ -799,7 +800,7 @@ ast_compound_stmt *mCc_ast_new_compound_array(ast_compound_stmt *stmts,
 	}
 	stmts->statements = temp;
 	memcpy(&(stmts->statements[stmts->counter]), stmt, sizeof(*stmt));
-    free(stmt);
+	free(stmt);
 	stmts->counter++;
 
 	return stmts;
@@ -811,9 +812,9 @@ void mCc_ast_delete_compound_stmt(ast_compound_stmt *compound_stmt, void *data)
 	assert(data);
 
 
-    if (DEBUG)
-        printf("compound\n");
-    free(compound_stmt->statements);
+	if (DEBUG)
+		printf("compound\n");
+	free(compound_stmt->statements);
 }
 
 // DELETE
@@ -822,8 +823,8 @@ void mCc_ast_delete_stmt(ast_stmt *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
-    if (DEBUG)
-	    printf("\ndelete_stmt\n");
+	if (DEBUG)
+		printf("\ndelete_stmt\n");
 
 	switch (stmt->type) {
 	case MCC_AST_COMPOUND_STMT:
@@ -920,7 +921,7 @@ ast_parameter *mCc_ast_new_parameter_array(ast_parameter *params,
 	}
 	params->declaration = temp;
 	memcpy(&(params->declaration[params->counter]), decl, sizeof(*decl));
-    free(decl);
+	free(decl);
 	params->counter++;
 
 	return params;
@@ -980,7 +981,7 @@ ast_argument *mCc_ast_new_argument_array(ast_argument *arguments, ast_expr *ex)
 	memcpy(&(arguments->expression[arguments->counter]), ex, sizeof(*ex));
 
 	arguments->counter++;
-    free(ex);
+	free(ex);
 	return arguments;
 }
 

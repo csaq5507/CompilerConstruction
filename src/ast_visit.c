@@ -27,9 +27,9 @@
 	visit_if((visitor)->order == MCC_AST_VISIT_POST_ORDER, node, callback, \
 		 visitor)
 
-#define visit_for(order, max) for( int i = \
-        (order == MCC_AST_VISIT_PRE_ORDER) ? 0 : (max - 1); \
-	     (order == MCC_AST_VISIT_PRE_ORDER) ? i < max : i >= 0; \
+#define visit_for(order, max)                                                  \
+	for (int i = (order == MCC_AST_VISIT_PRE_ORDER) ? 0 : (max - 1);       \
+	     (order == MCC_AST_VISIT_PRE_ORDER) ? i < max : i >= 0;            \
 	     (order == MCC_AST_VISIT_PRE_ORDER) ? i++ : i--)
 
 
@@ -143,9 +143,11 @@ void mCc_ast_visit_stmt_statement(struct mCc_ast_stmt *stmt,
 		visit_if_post_order(stmt->ret_stmt, visitor->ret_stmt, visitor);
 		break;
 	case (MCC_AST_DECL_STMT):
-        visit_if_pre_order(stmt->declaration, visitor->decl_stmt, visitor);
+		visit_if_pre_order(stmt->declaration, visitor->decl_stmt,
+				   visitor);
 		mCc_ast_visit_decl_stmt(stmt->declaration, visitor);
-            visit_if_post_order(stmt->declaration, visitor->decl_stmt, visitor);
+		visit_if_post_order(stmt->declaration, visitor->decl_stmt,
+				    visitor);
 		break;
 	case (MCC_AST_ASS_STMT):
 		visit_if_pre_order(stmt->assignment, visitor->ass_stmt,
@@ -172,7 +174,6 @@ void mCc_ast_visit_stmt_statement(struct mCc_ast_stmt *stmt,
 	default:
 		break;
 	}
-
 }
 
 void mCc_ast_visit_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
@@ -206,7 +207,7 @@ void mCc_ast_visit_if_stmt(struct mCc_ast_if_stmt *stmt,
 	mCc_ast_visit_stmt_statement(stmt->statement, visitor);
 	visit_if_post_order(stmt->statement, visitor->statement, visitor);
 
-    visit(stmt, visitor->close_if_stmt, visitor);
+	visit(stmt, visitor->close_if_stmt, visitor);
 
 	if (stmt->else_statement != NULL) {
 		visit_if_pre_order(stmt->else_statement, visitor->statement,
@@ -214,7 +215,7 @@ void mCc_ast_visit_if_stmt(struct mCc_ast_if_stmt *stmt,
 		mCc_ast_visit_stmt_statement(stmt->else_statement, visitor);
 		visit_if_post_order(stmt->else_statement, visitor->statement,
 				    visitor);
-        visit(stmt->else_statement, visitor->close_statement, visitor);
+		visit(stmt->else_statement, visitor->close_statement, visitor);
 	}
 }
 
@@ -252,7 +253,13 @@ void mCc_ast_visit_ass_stmt(struct mCc_ast_assignment *stmt,
 	assert(visitor);
 
 	visit(stmt->identifier, visitor->identifier, visitor);
-
+	if (stmt->numerator != NULL) {
+		visit_if_pre_order(stmt->numerator, visitor->expression,
+				   visitor);
+		mCc_ast_visit_expression(stmt->numerator, visitor);
+		visit_if_post_order(stmt->numerator, visitor->expression,
+				    visitor);
+	}
 	visit_if_pre_order(stmt->expression, visitor->expression, visitor);
 	mCc_ast_visit_expression(stmt->expression, visitor);
 	visit_if_post_order(stmt->expression, visitor->expression, visitor);
@@ -399,17 +406,17 @@ void mCc_ast_visit_literal(struct mCc_ast_literal *literal,
 	assert(visitor);
 
 	switch (literal->type) {
-        case (MCC_AST_LITERAL_TYPE_INT):
-            visit(literal, visitor->i_literal, visitor);
-            break;
-        case (MCC_AST_LITERAL_TYPE_STRING):
-            visit(literal, visitor->s_literal, visitor);
-            break;
-        case (MCC_AST_LITERAL_TYPE_BOOL):
-            visit(literal, visitor->b_literal, visitor);
-            break;
-        case (MCC_AST_LITERAL_TYPE_FLOAT):
-            visit(literal, visitor->f_literal, visitor);
-            break;
+	case (MCC_AST_LITERAL_TYPE_INT):
+		visit(literal, visitor->i_literal, visitor);
+		break;
+	case (MCC_AST_LITERAL_TYPE_STRING):
+		visit(literal, visitor->s_literal, visitor);
+		break;
+	case (MCC_AST_LITERAL_TYPE_BOOL):
+		visit(literal, visitor->b_literal, visitor);
+		break;
+	case (MCC_AST_LITERAL_TYPE_FLOAT):
+		visit(literal, visitor->f_literal, visitor);
+		break;
 	}
 }

@@ -12,7 +12,7 @@ extern "C" {
 
 enum mCc_parser_status {
 	MCC_PARSER_STATUS_OK,
-    MCC_PARSER_STATUS_ERROR,
+	MCC_PARSER_STATUS_ERROR,
 	MCC_PARSER_STATUS_UNABLE_TO_OPEN_STREAM,
 	MCC_PARSER_STATUS_UNKNOWN_ERROR,
 };
@@ -43,7 +43,7 @@ struct mCc_parser_result mCc_parser_parse_string(const char *input);
 
 struct mCc_parser_result mCc_parser_parse_file(FILE *input);
 
-void mCc_delete_result(struct mCc_parser_result * result);
+void mCc_delete_result(struct mCc_parser_result *result);
 
 
 #ifdef __cplusplus

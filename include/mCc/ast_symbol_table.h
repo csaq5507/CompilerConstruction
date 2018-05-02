@@ -44,21 +44,21 @@ typedef struct mCc_ast_symbol {
 	char *mCc_symbol_new;
 	enum mCc_ast_type d_type;
 
-    int func_param_counter;
+	int func_param_counter;
 } ast_symbol;
 
 typedef struct mCc_ast_current_func {
 	struct mCc_ast_current_func *prev;
 	struct mCc_ast_current_func *next;
 
-    struct mCc_ast_identifier *identifier;
+	struct mCc_ast_identifier *identifier;
 
 	enum mCc_ast_type type;
 	bool has_ret;
 
-    bool in_if;
-    bool in_else;
-}ast_current_fun;
+	bool in_if;
+	bool in_else;
+} ast_current_fun;
 
 
 #ifdef __cplusplus

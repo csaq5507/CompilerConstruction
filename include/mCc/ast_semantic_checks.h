@@ -17,10 +17,9 @@ struct mCc_parser_result *
 mCc_ast_semantic_check(struct mCc_parser_result *result);
 
 
-
 struct mCc_parser_result *g_result;
 
 #ifdef __cplusplus
 }
 #endif
-#endif //MINICOMPILER_AST_SEMANTIC_CHECKS_H
+#endif // MINICOMPILER_AST_SEMANTIC_CHECKS_H

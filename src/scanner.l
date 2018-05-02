@@ -12,7 +12,7 @@
 
 #define YYSTYPE MCC_PARSER_STYPE
 
-int line_counter = 2;
+int line_counter = 1;
 %}
 
 %x comment

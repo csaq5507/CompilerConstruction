@@ -106,7 +106,7 @@ typedef struct mCc_ast_identifier {
 	char *renamed;
 
 	enum mCc_ast_type d_type;
-	enum mCc_ast_literal_type *param_types;
+	enum mCc_ast_type *param_types;
 } ast_identifier;
 
 ast_identifier *mCc_ast_new_identifier(char *name, int line);

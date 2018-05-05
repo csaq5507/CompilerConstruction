@@ -133,7 +133,6 @@ static void ast_semantic_check_expression(struct mCc_ast_expression *expression,
 	case (MCC_AST_EXPRESSION_TYPE_BINARY):
 		if (expression->lhs->d_type != expression->rhs->d_type) {
 			char error_msg[1024] = {0};
-            printf("%d %d %d\n", expression->lhs->identifier->d_type, expression->op, expression->rhs->d_type);
 			snprintf(error_msg, sizeof(error_msg),
 				 "Expression types not compatible");
 			struct mCc_parser_error *error =
@@ -176,7 +175,23 @@ ast_semantic_check_call_expression(struct mCc_ast_call_expr *expression,
 
 	expression->d_type = expression->identifier->d_type;
 
-	// TODO check type of params
+	if (expression->arguments != NULL) {
+		for (int i = 0; i < expression->arguments->counter; i++) {
+            if (expression->identifier->param_types != NULL) {
+                if (expression->arguments->expression[i].d_type != expression->identifier->param_types[i]) {
+                    printf("%d -- %d", expression->arguments->expression[i].d_type, expression->identifier->param_types[i]);
+                    char error_msg[1024] = {0};
+                    snprintf(error_msg, sizeof(error_msg), "Wrong type of parameter for function %s", expression->identifier->name);
+                    struct mCc_parser_error *error =
+                            malloc(sizeof(struct mCc_parser_error));
+                    strcpy(error->error_msg, error_msg);
+                    error->error_line = expression->identifier->node.sloc.start_line;
+                    g_result->errors = add_parse_error(g_result->errors, error);
+                    g_result->status = MCC_PARSER_STATUS_ERROR;
+                }
+            }
+		}
+	}
 }
 
 static void ast_semantic_check_ret_stmt(struct mCc_ast_ret_stmt *stmt,
@@ -249,7 +264,6 @@ static void ast_semantic_check_ass_stmt(struct mCc_ast_assignment *stmt,
         }
     }
         if (stmt->identifier->d_type != stmt->expression->d_type) {
-            printf("%s: %d != %d\n", stmt->identifier->name, stmt->identifier->d_type, stmt->expression->d_type);
             char error_msg[1024] = {0};
             snprintf(error_msg, sizeof(error_msg),
                      "Wrong type for assignment");

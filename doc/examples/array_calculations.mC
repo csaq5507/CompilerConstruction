@@ -44,3 +44,4 @@ void main() {
     run_calculation(first_array, processed);
     print_bool_array(processed);
 }
+

@@ -4,6 +4,7 @@
 #include <mCc/ast_print.h>
 #include <mCc/ast_symbol_table.h>
 #include <mCc/ast_semantic_checks.h>
+#include <mCc/tac.h>
 
 #include "mCc/ast.h"
 #include "mCc/parser.h"
@@ -210,12 +211,20 @@ int main(int argc, char *argv[])
 		}
 
         fprintf(file_std_err,"No Errors\n");
+
+		struct mCc_tac_list *tac;
+		tac = mCc_tac_generate(result.func_def);
+
         fclose(file_error);
         fclose(file_graph);
-        fclose(file_tac);
-        fclose(file_std_err);
 		mCc_ast_delete_function_def_array(result.func_def);
 		mCc_delete_result(&result);
+
+		mCc_tac_print(file_tac, tac);
+		mCc_tac_delete(tac);
+
+		fclose(file_tac);
+		fclose(file_std_err);
 	}
 
 	/*    TODO

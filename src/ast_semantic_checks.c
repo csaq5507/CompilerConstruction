@@ -144,22 +144,22 @@ static void ast_semantic_check_expression(struct mCc_ast_expression *expression,
 			g_result->status = MCC_PARSER_STATUS_ERROR;
 		}
 		switch (expression->op) {
-		case (MCC_AST_BINARY_OP_ADD):
-		case (MCC_AST_BINARY_OP_DIV):
-		case (MCC_AST_BINARY_OP_MUL):
-		case (MCC_AST_BINARY_OP_SUB):
-			expression->d_type = expression->lhs->d_type;
-			break;
-		case (MCC_AST_BINARY_OP_AND):
-		case (MCC_AST_BINARY_OP_EQ):
-		case (MCC_AST_BINARY_OP_GE):
-		case (MCC_AST_BINARY_OP_GT):
-		case (MCC_AST_BINARY_OP_LE):
-		case (MCC_AST_BINARY_OP_LT):
-		case (MCC_AST_BINARY_OP_NEQ):
-		case (MCC_AST_BINARY_OP_OR):
-			expression->d_type = MCC_AST_TYPE_BOOL;
-			break;
+			case (MCC_AST_BINARY_OP_ADD):
+			case (MCC_AST_BINARY_OP_DIV):
+			case (MCC_AST_BINARY_OP_MUL):
+			case (MCC_AST_BINARY_OP_SUB):
+				expression->d_type = expression->lhs->d_type;
+				break;
+			case (MCC_AST_BINARY_OP_AND):
+			case (MCC_AST_BINARY_OP_EQ):
+			case (MCC_AST_BINARY_OP_GE):
+			case (MCC_AST_BINARY_OP_GT):
+			case (MCC_AST_BINARY_OP_LE):
+			case (MCC_AST_BINARY_OP_LT):
+			case (MCC_AST_BINARY_OP_NEQ):
+			case (MCC_AST_BINARY_OP_OR):
+				expression->d_type = MCC_AST_TYPE_BOOL;
+				break;
 		}
 
 		break;

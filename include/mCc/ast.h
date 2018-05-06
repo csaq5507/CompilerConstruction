@@ -164,6 +164,9 @@ typedef struct mCc_ast_expression {
 		};
 	};
 
+    void *tac_start;
+    void *tac_end;
+
 } ast_expr;
 
 /* Single Expression */
@@ -202,6 +205,9 @@ typedef struct mCc_ast_single_expression {
 
 		ast_expr *expression;
 	};
+
+    void *tac_start;
+    void *tac_end;
 } ast_single_expr;
 
 /* Call Expression */
@@ -213,6 +219,9 @@ typedef struct mCc_ast_call_expr {
 	ast_identifier *identifier;
 
 	ast_argument *arguments; // OPTIONAL
+
+	void *tac_start;
+	void *tac_end;
 } ast_call_expr;
 
 /* ----------------------------------------------------------- Declaration */
@@ -236,6 +245,8 @@ typedef struct mCc_ast_declaration {
 		ast_identifier *identifier;
 	};
 
+	void *tac_start;
+	void *tac_end;
 } ast_declaration;
 
 /* ----------------------------------------------------------- Statement */
@@ -264,6 +275,9 @@ typedef struct mCc_ast_stmt {
 		ast_expr *expression;
 		ast_compound_stmt *compound_stmt;
 	};
+
+	void *tac_start;
+	void *tac_end;
 } ast_stmt;
 
 /* IF Statement */
@@ -274,6 +288,8 @@ typedef struct mCc_ast_if_stmt {
 	ast_stmt *statement;
 	ast_stmt *else_statement; // OPTIONAL
 
+	void *tac_start;
+	void *tac_end;
 } ast_if_stmt;
 
 /* WHILE Statement */
@@ -282,6 +298,9 @@ typedef struct mCc_ast_while_stmt {
 
 	ast_expr *expression;
 	ast_stmt *statement;
+
+	void *tac_start;
+	void *tac_end;
 } ast_while_stmt;
 
 /* RETURN Statement */
@@ -292,6 +311,8 @@ typedef struct mCc_ast_ret_stmt {
 
 	ast_expr *expression;
 
+	void *tac_start;
+	void *tac_end;
 } ast_ret_stmt;
 
 /* COMPOUND Statement */
@@ -301,6 +322,9 @@ typedef struct mCc_ast_compound_stmt {
 	int counter;
 
 	ast_stmt *statements; // OPTIONAL
+
+	void *tac_start;
+	void *tac_end;
 } ast_compound_stmt;
 
 /* ----------------------------------------------------------- Assignment */
@@ -312,6 +336,8 @@ typedef struct mCc_ast_assignment {
 	ast_expr *numerator; // OPTIONAL
 	ast_expr *expression;
 
+	void *tac_start;
+	void *tac_end;
 } ast_assignment;
 
 /* ------------------------------------------------------------- Parameter */
@@ -321,6 +347,9 @@ typedef struct mCc_ast_parameter {
 	int counter;
 
 	ast_declaration *declaration;
+
+	void *tac_start;
+	void *tac_end;
 } ast_parameter;
 
 /* ------------------------------------------------------------- Argument */
@@ -330,6 +359,9 @@ typedef struct mCc_ast_argument {
 	int counter;
 
 	ast_expr *expression;
+
+	void *tac_start;
+	void *tac_end;
 } ast_argument;
 
 /* ###################### FUNCTIONS ###################### */

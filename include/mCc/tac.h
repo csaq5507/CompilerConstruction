@@ -18,6 +18,9 @@ void mCc_tac_delete(struct mCc_tac_list *head);
 void mCc_tac_print(FILE *out, struct mCc_tac_list *head);
 
 struct mCc_tac_list *head;
+struct mCc_tac_list *tail;
+int v_counter;
+int l_counter;
 
 
 enum mCc_tac_element_type {
@@ -54,6 +57,14 @@ enum mCc_tac_operation_type {
     MCC_TAC_OPERATION_TYPE_OR                   // 14
 };
 
+enum mCc_tac_literal_type {
+    MCC_TAC_LITERAL_TYPE_UNKNWON,
+    MCC_TAC_LITERAL_TYPE_STRING,
+    MCC_TAC_LITERAL_TYPE_INT,
+    MCC_TAC_LITERAL_TYPE_BOOL,
+    MCC_TAC_LITERAL_TYPE_FLOAT
+};
+
 typedef struct mCc_tac_list {
     struct mCc_tac_list *prev;
     struct mCc_tac_list *next;
@@ -64,8 +75,18 @@ typedef struct mCc_tac_list {
     struct mCc_tac_list *jump;
     bool is_label;
 
-    struct mCc_ast_identifier f_identifier;
-    struct mCc_ast_identifier s_identifier;
+    char *f_identifier;
+    char *s_identifier;
+    char *t_identifier;
+
+    int num_function_param;
+
+    enum mCc_tac_literal_type l_type;
+
+    char *s_literal;
+    long i_literal;
+    bool b_literal;
+    double f_literal;
 }tac_list;
 
 tac_list *tac_new_list();

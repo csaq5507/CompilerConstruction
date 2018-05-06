@@ -31,8 +31,6 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 				       void *data);
 static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 				       void *data);
-static void ast_symbol_table_parameter(struct mCc_ast_parameter *param,
-				       void *data);
 static void ast_symbol_table_close_func(struct mCc_ast_function_def *f,
 					void *data);
 
@@ -77,7 +75,6 @@ static struct mCc_ast_visitor symbol_table_visitor(ast_symbol_table *data)
 		.function_def_type = ast_symbol_table_func_type,
 		.function_def_void = ast_symbol_table_func_void,
 		.close_function_def = ast_symbol_table_close_func,
-		.parameter = ast_symbol_table_parameter,
 
 		.c_stmt = ast_symbol_table_compound_stmt,
 		.close_c_stmt = ast_symbol_table_close_compound_stmt,
@@ -844,13 +841,6 @@ static void ast_symbol_table_close_stmt(struct mCc_ast_stmt *stmt, void *data)
 			current_fun->next = NULL;
 		}
 	}
-}
-
-static void ast_symbol_table_parameter(struct mCc_ast_parameter *params,
-				       void *data)
-{
-	assert(params);
-	assert(data);
 }
 
 static void

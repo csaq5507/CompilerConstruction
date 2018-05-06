@@ -36,7 +36,10 @@ enum mCc_tac_element_type {
     MCC_TAC_ELEMENT_TYPE_LOAD,                  // x = y[i]             9
     MCC_TAC_ELEMENT_TYPE_STORE,                 // x[i] = y             10
     MCC_TAC_ELEMENT_TYPE_ADDRESS_ASSIGNMENT,    // x = &y               11
-    MCC_TAC_ELEMENT_TYPE_POINTER_ASSIGNMENT     // x = *y               12
+    MCC_TAC_ELEMENT_TYPE_POINTER_ASSIGNMENT,     // x = *y               12
+    MCC_TAC_ELEMENT_TYPE_FUNCTION_START,
+    MCC_TAC_ELEMENT_TYPE_FUNCTION_END,
+    MCC_TAC_ELEMENT_TYPE_RETURN
 };
 
 enum mCc_tac_operation_type {

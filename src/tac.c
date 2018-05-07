@@ -68,6 +68,9 @@ tac_list *tac_new_list() {
     elem->l_type = MCC_TAC_LITERAL_TYPE_UNKNWON;
     elem->is_label = false;
     elem->num_function_param = -1;
+    elem->f_identifier = NULL;
+    elem->s_identifier = NULL;
+    elem->t_identifier = NULL;
     return elem;
 }
 
@@ -141,6 +144,7 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression, 
             printf("CALL EXPRESSION FROM SINGLE EXPRESSION\n");
         expression->tac_start=expression->call_expr->tac_start;
         expression->tac_end=expression->call_expr->tac_end;
+        free(elem->f_identifier);
         free(elem);
         // TODO there should be nothing to do .
     } else if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP) {
@@ -165,6 +169,7 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression, 
             printf("{ EXPRESSION }\n");
         expression->tac_start=expression->expression->tac_start;
         expression->tac_end=expression->expression->tac_end;
+        free(elem->f_identifier);
         free(elem);
         // TODO there should be nothing to do ...
     }
@@ -174,13 +179,6 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data){
     assert(expression);
     assert(data);
 
-    tac_list *elem = tac_new_list();
-
-    char help[ARRAY_SIZE] = {0};
-    sprintf(help, "t%d", v_counter++);
-
-    elem->f_identifier  = malloc(sizeof(char *) * ARRAY_SIZE);
-    strcpy(elem->f_identifier, help);
 
     if (expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
         if (DEBUG)
@@ -189,6 +187,13 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data){
         expression->tac_end=expression->single_expr->tac_end;
         // TODO there should be nothing to do ...
     } else if  (expression->type == MCC_AST_EXPRESSION_TYPE_BINARY) {
+        tac_list *elem = tac_new_list();
+
+        char help[ARRAY_SIZE] = {0};
+        sprintf(help, "t%d", v_counter++);
+
+        elem->f_identifier  = malloc(sizeof(char *) * ARRAY_SIZE);
+        strcpy(elem->f_identifier, help);
         if (DEBUG)
             printf("BINARY OPERATION\n");
         elem->type = MCC_TAC_ELEMENT_TYPE_BINARY;
@@ -270,7 +275,10 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression, void *data
         strcpy(ret_elem->f_identifier, ret_name);
         ret_elem->next = elem;
         elem->prev = ret_elem;
-        elem->num_function_param = expression->arguments->counter + 1;
+        if (expression->arguments == NULL)
+            elem->num_function_param = 0;
+        else
+            elem->num_function_param = expression->arguments->counter + 1;
         expression->tac_start=ret_elem;
         expression->tac_end=elem;
     } else {
@@ -281,14 +289,17 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression, void *data
         elem->num_function_param = expression->arguments->counter;
     }
 
-    // TODO go through params and add expression before call
-    for (int i = expression->arguments->counter - 1; i >= 0; i--) {
-        tac_list *temp_end = expression->arguments->expression[i].tac_end;
-        tac_list *temp_start = expression->tac_start;
-        temp_end->next = expression->tac_start;
-        temp_start->prev = temp_end;
-        expression->tac_start = expression->arguments->expression[i].tac_start;
+    // TODO maybe move this to mcc_tac_arguments
+    if (expression->arguments != NULL) {
+        for (int i = expression->arguments->counter - 1; i >= 0; i--) {
+            tac_list *temp_end = expression->arguments->expression[i].tac_end;
+            tac_list *temp_start = expression->tac_start;
+            temp_end->next = expression->tac_start;
+            temp_start->prev = temp_end;
+            expression->tac_start = expression->arguments->expression[i].tac_start;
+        }
     }
+
 }
 
 static void tac_function_def(struct mCc_ast_function_def *f, void *data){
@@ -304,22 +315,22 @@ static void tac_function_def(struct mCc_ast_function_def *f, void *data){
     start->type = MCC_TAC_ELEMENT_TYPE_FUNCTION_START;
     end->type = MCC_TAC_ELEMENT_TYPE_FUNCTION_END;
 
-    tac_list *temp_start = f->c_stmt->tac_start;
-    tac_list *temp_end = f->c_stmt->tac_end;
+    tac_list *temp_c_stmt_start = f->c_stmt->tac_start;
+    tac_list *temp_c_stmt_end = f->c_stmt->tac_end;
     tac_list *temp_param_end = f->params->tac_end;
     tac_list *temp_param_start = f->params->tac_start;
 
     start->next = temp_param_start;
     temp_param_start->prev = start;
 
-    temp_param_end->next = temp_start;
-    temp_start->prev = temp_param_end;
+    temp_param_end->next = temp_c_stmt_start;
+    temp_c_stmt_start->prev = temp_param_end;
 
-    end->prev = temp_end;
-    temp_end->next = end;
+    temp_c_stmt_end->next = end;
+    end->prev = temp_c_stmt_end;
 
-    head->prev = end;
     end->next = head;
+    head->prev = end;
 
     head = start;
 }
@@ -373,9 +384,9 @@ static void tac_compound_stmt(struct mCc_ast_compound_stmt *c_stmt, void *data){
         printf("COMPOUND STATEMENT\n");
 
     if (c_stmt->counter == 0) {
-        /*tac_list *elem = tac_new_list();
+        tac_list *elem = tac_new_list();
         c_stmt->tac_start = elem;
-        c_stmt->tac_end = elem;*/
+        c_stmt->tac_end = elem;
     } else {
         ast_stmt *prev = &c_stmt->statements[0];
         for (int i = 1; i < c_stmt->counter; i++) {
@@ -511,9 +522,9 @@ static void tac_argument(struct mCc_ast_argument *argument, void *data){
     if (DEBUG)
         printf("ARGUMENT\n");
 
-    tac_list *elem = tac_new_list();
+   /* tac_list *elem = tac_new_list();
     argument->tac_start = elem;
-    argument->tac_end = elem;
+    argument->tac_end = elem;*/
     // TODO maybe can be ignored
 }
 

@@ -220,7 +220,8 @@ int main(int argc, char *argv[])
 		mCc_ast_delete_function_def_array(result.func_def);
 		mCc_delete_result(&result);
 
-		mCc_tac_print(file_tac, tac);
+		 mCc_tac_print(file_tac, tac);
+        //mCc_tac_print(stdout, tac);
 		mCc_tac_delete(tac);
 
 		fclose(file_tac);
@@ -228,7 +229,6 @@ int main(int argc, char *argv[])
 	}
 
 	/*    TODO
-	 * - create three-address code
 	 * - do some optimisations
 	 * - output assembly code
 	 * - invoke backend compiler

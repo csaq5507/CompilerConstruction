@@ -4,6 +4,8 @@
 #include "mCc/ast.h"
 #include "mCc/parser.h"
 #include "mCc/ast_symbol_table.h"
+#include "mCc/ast_semantic_checks.h"
+#include "mCc/tac.h"
 
 TEST(Assignemt_1, Task1_2)
 {
@@ -118,6 +120,9 @@ TEST(Assignemt_2, Task2)
 	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
 
 	ASSERT_STREQ("Allready defined: a", result.errors->errors[0].error_msg);
+
+    mCc_ast_delete_function_def_array(func_def_arr);
+    mCc_delete_result(&result);
 }
 
 TEST(Assignemt_2, Task3)

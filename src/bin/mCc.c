@@ -206,6 +206,7 @@ int main(int argc, char *argv[])
                 fclose(file_graph);
                 fclose(file_tac);
                 fclose(file_std_err);
+                //gshf
 				return EXIT_SUCCESS;
 			}
 		}

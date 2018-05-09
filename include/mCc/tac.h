@@ -76,11 +76,10 @@ typedef struct mCc_tac_list {
 
     enum mCc_tac_operation_type operation_type;
     struct mCc_tac_list *jump;
-    bool is_label;
 
-    char *f_identifier;
-    char *s_identifier;
-    char *t_identifier;
+    char * f_identifier;
+    char * s_identifier;
+    char * t_identifier;
 
     int num_function_param;
 
@@ -90,6 +89,7 @@ typedef struct mCc_tac_list {
     long i_literal;
     bool b_literal;
     double f_literal;
+
 }tac_list;
 
 tac_list *tac_new_list();

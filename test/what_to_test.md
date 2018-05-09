@@ -1,0 +1,12 @@
+- Symbol table generation
+    - variablename & function name
+    - main void function?
+    - returntype generation
+    - check every error message in symbol_table.c
+- semantic checks
+    - type checking
+    - no typecast
+    - returntype check
+    - check every error message in semantic_checks.c
+- tac generation
+    -

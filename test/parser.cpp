@@ -101,7 +101,7 @@ TEST(Assignemt_2, Task1)
 TEST(Assignemt_2, Task2)
 {
 	const char input[] =
-		"void func() {\n"
+		"void main() {\n"
 		"int a;\n"
 		"float a;"
 		"a = 10;\n"

@@ -794,17 +794,7 @@ static void ast_symbol_table_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
 
 	current_fun->has_ret = true;
 	stmt->d_type = current_fun->type;
-	/*if (stmt->expression->d_type != current_fun->type) {
-	    char error_msg[1024] = {0};
-	    snprintf(error_msg, sizeof(error_msg), "Return %s has wrong type",
-	current_fun->identifier->name);
-	    struct mCc_parser_error *error =  malloc(sizeof(struct
-	mCc_parser_error));
-	    strcpy(error->error_msg, error_msg);
-	    error->error_line = current_fun->identifier->node.sloc.start_line;
-	    h_result->errors = add_parse_error(h_result->errors, error);
-	    h_result->status = MCC_PARSER_STATUS_ERROR;
-	}*/
+
 }
 
 static void ast_symbol_table_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)

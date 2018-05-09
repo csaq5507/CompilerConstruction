@@ -228,6 +228,8 @@ int main(int argc, char *argv[])
 		fclose(file_std_err);
 	}
 
+ //   printf("%d", sizeof(struct mCc_tac_list));
+
 	/*    TODO
 	 * - do some optimisations
 	 * - output assembly code

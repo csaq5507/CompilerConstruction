@@ -66,7 +66,6 @@ tac_list *tac_new_list() {
     elem->operation_type = MCC_TAC_OPERATION_TYPE_UNKNOWN;
     elem->type = MCC_TAC_ELEMENT_TYPE_UNKNOWN;
     elem->l_type = MCC_TAC_LITERAL_TYPE_UNKNWON;
-    elem->is_label = false;
     elem->num_function_param = -1;
     elem->f_identifier = NULL;
     elem->s_identifier = NULL;
@@ -434,9 +433,7 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data){
         stmt->tac_start = stmt->expression->tac_start;
         stmt->tac_end = elem;
     } else {
-        char *empty = "";
-        elem->f_identifier = malloc(sizeof(char *) * strlen(empty));
-        strcpy(elem->f_identifier, empty);
+    //    elem->f_identifier = malloc(sizeof(char *));
         stmt->tac_start = elem;
         stmt->tac_end = elem;
     }

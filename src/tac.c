@@ -776,7 +776,6 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 		switch (current->type) {
 		case (MCC_TAC_ELEMENT_TYPE_UNKNOWN):
 			if (DEBUG)
-				;
 			fprintf(out, "UNKNOWN\n");
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_COPY):

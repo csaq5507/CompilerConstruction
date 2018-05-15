@@ -19,7 +19,7 @@ enum mCc_parser_status {
 
 struct mCc_parser_result {
 	enum mCc_parser_status status;
-	struct mCc_parser_error_array * errors;
+	struct mCc_parser_error_array *errors;
 	struct mCc_ast_function_def_array *func_def;
 };
 

@@ -14,13 +14,14 @@ static ast_symbol_table *add_element_symbols(ast_symbol_table *head, char *old,
 					     char *new,
 					     enum mCc_ast_type d_type,
 					     int num_params,
-                         enum mCc_ast_type *l_types);
+					     enum mCc_ast_type *l_types);
 static char *find_element_symbols(ast_symbol_table *head, char *elem);
 static enum mCc_ast_type find_identifier_type(ast_symbol_table *head,
 					      char *elem);
 static int find_element_param_num(ast_symbol_table *head, char *elem);
 static void delete_symbol_table_node(ast_symbol_table *head);
-static enum mCc_ast_type *find_element_param_types(ast_symbol_table *head, char *elem);
+static enum mCc_ast_type *find_element_param_types(ast_symbol_table *head,
+						   char *elem);
 
 static ast_current_fun *create_new_current_fun_node();
 static void delete_current_fun(ast_current_fun *head);
@@ -113,7 +114,8 @@ static void mCc_ast_symbol_table_add_default_function_names()
 	char *read_float = "read_float";
 
 
-	table = add_element_symbols(table, print, print, MCC_AST_TYPE_VOID, 1, NULL);
+	table = add_element_symbols(table, print, print, MCC_AST_TYPE_VOID, 1,
+				    NULL);
 	table = add_element_symbols(table, print_nl, print_nl,
 				    MCC_AST_TYPE_VOID, 0, NULL);
 	table = add_element_symbols(table, print_int, print_int,
@@ -131,19 +133,19 @@ static ast_symbol_table *add_element_symbols(ast_symbol_table *head, char *old,
 					     char *new,
 					     enum mCc_ast_type d_type,
 					     int num_params,
-                         enum mCc_ast_type *l_types)
+					     enum mCc_ast_type *l_types)
 {
 	assert(head);
 	assert(old);
 	assert(new);
 
-    //printf("%s: %p\n", old, l_types);
+	// printf("%s: %p\n", old, l_types);
 	ast_symbol *symbol = malloc(sizeof(*symbol));
 	symbol->mCc_symbol_old = old;
 	symbol->mCc_symbol_new = new;
 	symbol->d_type = d_type;
 	symbol->func_param_counter = num_params;
-    symbol->l_types = l_types;
+	symbol->l_types = l_types;
 
 
 	ast_symbol *temp = realloc(
@@ -166,7 +168,7 @@ static char *find_element_symbols(ast_symbol_table *head, char *elem)
 	assert(head);
 	assert(elem);
 	for (int i = 0; i < head->symbols_counter; i++) {
-		char * curr= head->symbols[i].mCc_symbol_old;
+		char *curr = head->symbols[i].mCc_symbol_old;
 		if (strcmp(curr, elem) == 0) {
 			return head->symbols[i].mCc_symbol_new;
 		}
@@ -207,20 +209,21 @@ static int find_element_param_num(ast_symbol_table *head, char *elem)
 	return 0;
 }
 
-static enum mCc_ast_type *find_element_param_types(ast_symbol_table *head, char *elem)
+static enum mCc_ast_type *find_element_param_types(ast_symbol_table *head,
+						   char *elem)
 {
-    assert(head);
-    assert(elem);
-    while (head != NULL) {
-        for (int i = 0; i < head->symbols_counter; i++) {
-            if (strcmp(head->symbols[i].mCc_symbol_old, elem)
-                == 0) {
-                return head->symbols[i].l_types;
-            }
-        }
-        head = head->prev;
-    }
-    return NULL;
+	assert(head);
+	assert(elem);
+	while (head != NULL) {
+		for (int i = 0; i < head->symbols_counter; i++) {
+			if (strcmp(head->symbols[i].mCc_symbol_old, elem)
+			    == 0) {
+				return head->symbols[i].l_types;
+			}
+		}
+		head = head->prev;
+	}
+	return NULL;
 }
 
 static void delete_symbol_table_node(ast_symbol_table *head)
@@ -286,61 +289,62 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 
 	if (strcmp(f->identifier->name, "main") == 0) {
 		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg),
-				 ERROR_MAIN_NOT_VOID,
-					print_literal_type(f->identifier->d_type));
-        mCc_add_error(error_msg,f->identifier->node.sloc.start_line,h_result);
+		snprintf(error_msg, sizeof(error_msg), ERROR_MAIN_NOT_VOID,
+			 print_literal_type(f->identifier->d_type));
+		mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
+			      h_result);
 
 		if (has_main == true) {
-            char error_msg[1024] = {0};
-            snprintf(error_msg, sizeof(error_msg),
-                     ERROR_DUBLICATE_FUNCTION,
-                     f->identifier->name);
-            mCc_add_error(error_msg,f->identifier->node.sloc.start_line,h_result);
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg),
+				 ERROR_DUBLICATE_FUNCTION, f->identifier->name);
+			mCc_add_error(error_msg,
+				      f->identifier->node.sloc.start_line,
+				      h_result);
 		}
 	}
 
 	if (f->params != NULL) {
 		f->identifier->param_types =
-				malloc(sizeof(enum mCc_ast_type)
-					   * f->params->counter);
-		enum mCc_ast_type
-				h_param[f->params->counter];
-		for (int i = 0; i < f->params->counter;
-			 i++) {
-			if (f->params->declaration[i].type == MCC_AST_DECLARATION_TYPE_SINGLE) {
+			malloc(sizeof(enum mCc_ast_type) * f->params->counter);
+		enum mCc_ast_type h_param[f->params->counter];
+		for (int i = 0; i < f->params->counter; i++) {
+			if (f->params->declaration[i].type
+			    == MCC_AST_DECLARATION_TYPE_SINGLE) {
 				switch (f->params->declaration[i].literal) {
-					case (MCC_AST_LITERAL_TYPE_INT):
-						h_param[i] = MCC_AST_TYPE_INT;
-						break;
-					case (MCC_AST_LITERAL_TYPE_FLOAT):
-						h_param[i] = MCC_AST_TYPE_FLOAT;
-						break;
-					case (MCC_AST_LITERAL_TYPE_BOOL):
-						h_param[i] = MCC_AST_TYPE_BOOL;
-						break;
-					case (MCC_AST_LITERAL_TYPE_STRING):
-						h_param[i] = MCC_AST_TYPE_STRING;
-						break;
+				case (MCC_AST_LITERAL_TYPE_INT):
+					h_param[i] = MCC_AST_TYPE_INT;
+					break;
+				case (MCC_AST_LITERAL_TYPE_FLOAT):
+					h_param[i] = MCC_AST_TYPE_FLOAT;
+					break;
+				case (MCC_AST_LITERAL_TYPE_BOOL):
+					h_param[i] = MCC_AST_TYPE_BOOL;
+					break;
+				case (MCC_AST_LITERAL_TYPE_STRING):
+					h_param[i] = MCC_AST_TYPE_STRING;
+					break;
 				}
-			} else if (f->params->declaration[i].type == MCC_AST_DECLARATION_TYPE_ARRAY) {
+			} else if (f->params->declaration[i].type
+				   == MCC_AST_DECLARATION_TYPE_ARRAY) {
 				switch (f->params->declaration[i].literal) {
-					case (MCC_AST_LITERAL_TYPE_INT):
-						h_param[i] = MCC_AST_TYPE_INT_ARRAY;
-						break;
-					case (MCC_AST_LITERAL_TYPE_FLOAT):
-						h_param[i] = MCC_AST_TYPE_FLOAT_ARRAY;
-						break;
-					case (MCC_AST_LITERAL_TYPE_BOOL):
-						h_param[i] = MCC_AST_TYPE_BOOL_ARRAY;
-						break;
-					case (MCC_AST_LITERAL_TYPE_STRING):
-						h_param[i] = MCC_AST_TYPE_STRING_ARRAY;
-						break;
+				case (MCC_AST_LITERAL_TYPE_INT):
+					h_param[i] = MCC_AST_TYPE_INT_ARRAY;
+					break;
+				case (MCC_AST_LITERAL_TYPE_FLOAT):
+					h_param[i] = MCC_AST_TYPE_FLOAT_ARRAY;
+					break;
+				case (MCC_AST_LITERAL_TYPE_BOOL):
+					h_param[i] = MCC_AST_TYPE_BOOL_ARRAY;
+					break;
+				case (MCC_AST_LITERAL_TYPE_STRING):
+					h_param[i] = MCC_AST_TYPE_STRING_ARRAY;
+					break;
 				}
 			}
 		}
-        memcpy(f->identifier->param_types, h_param, sizeof(*h_param) * f->params->counter);
+		memcpy(f->identifier->param_types, h_param,
+		       sizeof(*h_param) * f->params->counter);
 	}
 
 	char help[ARRAY_SIZE] = {0};
@@ -350,40 +354,44 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 		char error_msg[1024] = {0};
 		snprintf(error_msg, sizeof(error_msg), ERROR_DUBLICATE_FUNCTION,
 			 f->identifier->name);
-        mCc_add_error(error_msg,f->identifier->node.sloc.start_line,h_result);
+		mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
+			      h_result);
 	} else {
 		char *temp = realloc(f->identifier->renamed,
 				     sizeof(char *) * ARRAY_SIZE);
 		if (temp == NULL) {
-            mCc_add_error("Realloc failed at ast_symbol_table.c:ast_symbol_table_func_type",f->identifier->node.sloc.start_line,h_result);
+			mCc_add_error(
+				"Realloc failed at "
+				"ast_symbol_table.c:ast_symbol_table_func_type",
+				f->identifier->node.sloc.start_line, h_result);
 			assert(NULL);
 		}
 		f->identifier->renamed = temp;
 		strcpy(f->identifier->renamed, help);
 		switch (f->l_type) {
 		case (MCC_AST_LITERAL_TYPE_INT):
-			table = add_element_symbols(table, f->identifier->name,
-						    f->identifier->renamed,
-						    MCC_AST_TYPE_INT,
-						    f->params->counter, f->identifier->param_types);
+			table = add_element_symbols(
+				table, f->identifier->name,
+				f->identifier->renamed, MCC_AST_TYPE_INT,
+				f->params->counter, f->identifier->param_types);
 			break;
 		case (MCC_AST_LITERAL_TYPE_FLOAT):
-			table = add_element_symbols(table, f->identifier->name,
-						    f->identifier->renamed,
-						    MCC_AST_TYPE_FLOAT,
-						    f->params->counter, f->identifier->param_types);
+			table = add_element_symbols(
+				table, f->identifier->name,
+				f->identifier->renamed, MCC_AST_TYPE_FLOAT,
+				f->params->counter, f->identifier->param_types);
 			break;
 		case (MCC_AST_LITERAL_TYPE_BOOL):
-			table = add_element_symbols(table, f->identifier->name,
-						    f->identifier->renamed,
-						    MCC_AST_TYPE_BOOL,
-						    f->params->counter, f->identifier->param_types);
+			table = add_element_symbols(
+				table, f->identifier->name,
+				f->identifier->renamed, MCC_AST_TYPE_BOOL,
+				f->params->counter, f->identifier->param_types);
 			break;
 		case (MCC_AST_LITERAL_TYPE_STRING):
-			table = add_element_symbols(table, f->identifier->name,
-						    f->identifier->renamed,
-						    MCC_AST_TYPE_STRING,
-						    f->params->counter, f->identifier->param_types);
+			table = add_element_symbols(
+				table, f->identifier->name,
+				f->identifier->renamed, MCC_AST_TYPE_STRING,
+				f->params->counter, f->identifier->param_types);
 			break;
 		}
 	}
@@ -422,65 +430,69 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 
 	if (f->params != NULL) {
 		f->identifier->param_types =
-				malloc(sizeof(enum mCc_ast_type)
-					   * f->params->counter);
-		enum mCc_ast_type
-				h_param[f->params->counter];
-		for (int i = 0; i < f->params->counter;
-			 i++) {
-			if (f->params->declaration[i].type == MCC_AST_DECLARATION_TYPE_SINGLE) {
+			malloc(sizeof(enum mCc_ast_type) * f->params->counter);
+		enum mCc_ast_type h_param[f->params->counter];
+		for (int i = 0; i < f->params->counter; i++) {
+			if (f->params->declaration[i].type
+			    == MCC_AST_DECLARATION_TYPE_SINGLE) {
 				switch (f->params->declaration[i].literal) {
-					case (MCC_AST_LITERAL_TYPE_INT):
-						h_param[i] = MCC_AST_TYPE_INT;
-						break;
-					case (MCC_AST_LITERAL_TYPE_FLOAT):
-						h_param[i] = MCC_AST_TYPE_FLOAT;
-						break;
-					case (MCC_AST_LITERAL_TYPE_BOOL):
-						h_param[i] = MCC_AST_TYPE_BOOL;
-						break;
-					case (MCC_AST_LITERAL_TYPE_STRING):
-						h_param[i] = MCC_AST_TYPE_STRING;
-						break;
+				case (MCC_AST_LITERAL_TYPE_INT):
+					h_param[i] = MCC_AST_TYPE_INT;
+					break;
+				case (MCC_AST_LITERAL_TYPE_FLOAT):
+					h_param[i] = MCC_AST_TYPE_FLOAT;
+					break;
+				case (MCC_AST_LITERAL_TYPE_BOOL):
+					h_param[i] = MCC_AST_TYPE_BOOL;
+					break;
+				case (MCC_AST_LITERAL_TYPE_STRING):
+					h_param[i] = MCC_AST_TYPE_STRING;
+					break;
 				}
-			} else if (f->params->declaration[i].type == MCC_AST_DECLARATION_TYPE_ARRAY) {
+			} else if (f->params->declaration[i].type
+				   == MCC_AST_DECLARATION_TYPE_ARRAY) {
 				switch (f->params->declaration[i].literal) {
-					case (MCC_AST_LITERAL_TYPE_INT):
-						h_param[i] = MCC_AST_TYPE_INT_ARRAY;
-						break;
-					case (MCC_AST_LITERAL_TYPE_FLOAT):
-						h_param[i] = MCC_AST_TYPE_FLOAT_ARRAY;
-						break;
-					case (MCC_AST_LITERAL_TYPE_BOOL):
-						h_param[i] = MCC_AST_TYPE_BOOL_ARRAY;
-						break;
-					case (MCC_AST_LITERAL_TYPE_STRING):
-						h_param[i] = MCC_AST_TYPE_STRING_ARRAY;
-						break;
+				case (MCC_AST_LITERAL_TYPE_INT):
+					h_param[i] = MCC_AST_TYPE_INT_ARRAY;
+					break;
+				case (MCC_AST_LITERAL_TYPE_FLOAT):
+					h_param[i] = MCC_AST_TYPE_FLOAT_ARRAY;
+					break;
+				case (MCC_AST_LITERAL_TYPE_BOOL):
+					h_param[i] = MCC_AST_TYPE_BOOL_ARRAY;
+					break;
+				case (MCC_AST_LITERAL_TYPE_STRING):
+					h_param[i] = MCC_AST_TYPE_STRING_ARRAY;
+					break;
 				}
 			}
 		}
-        memcpy(f->identifier->param_types, h_param, sizeof(*h_param) * f->params->counter);
+		memcpy(f->identifier->param_types, h_param,
+		       sizeof(*h_param) * f->params->counter);
 	}
 
 
 	if (strcmp(f->identifier->name, "main") == 0) {
 		if (has_main == true) {
 
-            char error_msg[1024] = {0};
-            snprintf(error_msg, sizeof(error_msg),
-                     ERROR_DUBLICATE_FUNCTION, f->identifier->name);
-            mCc_add_error(error_msg,f->identifier->node.sloc.start_line,h_result);
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg),
+				 ERROR_DUBLICATE_FUNCTION, f->identifier->name);
+			mCc_add_error(error_msg,
+				      f->identifier->node.sloc.start_line,
+				      h_result);
 		}
 		has_main = true;
 	} else {
 		char help[ARRAY_SIZE] = {0};
 		sprintf(help, "%s%d", f->identifier->name, g_counter++);
 		if (find_element_symbols(table, f->identifier->name) != NULL) {
-            char error_msg[1024] = {0};
-            snprintf(error_msg, sizeof(error_msg),
-                     ERROR_DUBLICATE_FUNCTION, f->identifier->name);
-            mCc_add_error(error_msg,f->identifier->node.sloc.start_line,h_result);
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg),
+				 ERROR_DUBLICATE_FUNCTION, f->identifier->name);
+			mCc_add_error(error_msg,
+				      f->identifier->node.sloc.start_line,
+				      h_result);
 		} else {
 			char *temp = realloc(f->identifier->renamed,
 					     sizeof(char *) * ARRAY_SIZE);
@@ -490,10 +502,10 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 			}
 			f->identifier->renamed = temp;
 			strcpy(f->identifier->renamed, help);
-			table = add_element_symbols(table, f->identifier->name,
-						    f->identifier->renamed,
-						    MCC_AST_TYPE_VOID,
-						    f->params->counter, f->identifier->param_types);
+			table = add_element_symbols(
+				table, f->identifier->name,
+				f->identifier->renamed, MCC_AST_TYPE_VOID,
+				f->params->counter, f->identifier->param_types);
 		}
 	}
 
@@ -528,10 +540,11 @@ static void ast_symbol_table_close_func(struct mCc_ast_function_def *f,
 
 	if (f->type != MCC_AST_FUNCTION_DEF_TYPE_VOID
 	    && !current_fun->has_ret) {
-        char error_msg[1024] = {0};
-        snprintf(error_msg, sizeof(error_msg),
-                 ERROR_NO_RETURN, f->identifier->name);
-        mCc_add_error(error_msg,f->identifier->node.sloc.start_line,h_result);
+		char error_msg[1024] = {0};
+		snprintf(error_msg, sizeof(error_msg), ERROR_NO_RETURN,
+			 f->identifier->name);
+		mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
+			      h_result);
 	}
 
 	if (current_fun->prev != NULL) {
@@ -622,10 +635,11 @@ static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt,
 		new_name = find_element_symbols(temp, stmt->identifier->name);
 	}
 	if (new_name == NULL) {
-        char error_msg[1024] = {0};
-        snprintf(error_msg, sizeof(error_msg),
-                 ERROR_MISSING_VARIABLE_DEF, stmt->identifier->name);
-        mCc_add_error(error_msg,stmt->identifier->node.sloc.start_line,h_result);
+		char error_msg[1024] = {0};
+		snprintf(error_msg, sizeof(error_msg),
+			 ERROR_MISSING_VARIABLE_DEF, stmt->identifier->name);
+		mCc_add_error(error_msg, stmt->identifier->node.sloc.start_line,
+			      h_result);
 	} else {
 		char *temp = realloc(stmt->identifier->renamed,
 				     sizeof(char *) * strlen(new_name));
@@ -649,10 +663,13 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 		sprintf(help, "%s%d", stmt->identifier->name, g_counter++);
 		if (find_element_symbols(table, stmt->identifier->name)
 		    != NULL) {
-            char error_msg[1024] = {0};
-            snprintf(error_msg, sizeof(error_msg),
-                     ERROR_DUBLICATE_VARIABLE, stmt->identifier->name);
-            mCc_add_error(error_msg,stmt->identifier->node.sloc.start_line,h_result);
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg),
+				 ERROR_DUBLICATE_VARIABLE,
+				 stmt->identifier->name);
+			mCc_add_error(error_msg,
+				      stmt->identifier->node.sloc.start_line,
+				      h_result);
 		} else {
 			char *temp = realloc(stmt->identifier->renamed,
 					     sizeof(char *) * ARRAY_SIZE);
@@ -695,10 +712,13 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 			g_counter++);
 		if (find_element_symbols(table, stmt->array_identifier->name)
 		    != NULL) {
-            char error_msg[1024] = {0};
-            snprintf(error_msg, sizeof(error_msg),
-                     ERROR_DUBLICATE_VARIABLE, stmt->identifier->name);
-            mCc_add_error(error_msg,stmt->identifier->node.sloc.start_line,h_result);
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg),
+				 ERROR_DUBLICATE_VARIABLE,
+				 stmt->identifier->name);
+			mCc_add_error(error_msg,
+				      stmt->identifier->node.sloc.start_line,
+				      h_result);
 		} else {
 			char *temp = realloc(stmt->array_identifier->renamed,
 					     sizeof(char *) * strlen(help));
@@ -746,7 +766,6 @@ static void ast_symbol_table_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
 
 	current_fun->has_ret = true;
 	stmt->d_type = current_fun->type;
-
 }
 
 static void ast_symbol_table_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
@@ -803,13 +822,18 @@ ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
 				temp, expression->identifier->name);
 		}
 		if (new_name == NULL) {
-            char error_msg[1024] = {0};
-            snprintf(error_msg, sizeof(error_msg),
-                     ERROR_MISSING_VARIABLE_DEF, expression->identifier->name);
-            mCc_add_error(error_msg,expression->identifier->node.sloc.start_line,h_result);
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg),
+				 ERROR_MISSING_VARIABLE_DEF,
+				 expression->identifier->name);
+			mCc_add_error(
+				error_msg,
+				expression->identifier->node.sloc.start_line,
+				h_result);
 		} else {
-			char *temp1 = realloc(expression->identifier->renamed,
-					     sizeof(char *) * strlen(new_name));
+			char *temp1 =
+				realloc(expression->identifier->renamed,
+					sizeof(char *) * strlen(new_name));
 			if (temp1 == NULL) {
 				// TODO throw error
 				assert(NULL);
@@ -829,31 +853,38 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 
 	/* Num Parameter check*/
 
-    int num_args=find_element_param_num(table,
-                                        expression->identifier->name);
+	int num_args =
+		find_element_param_num(table, expression->identifier->name);
 	if (expression->arguments != NULL) {
-		if (expression->arguments->counter
-		    != num_args ) {
-            char error_msg[1024] = {0};
-            snprintf(error_msg, sizeof(error_msg),
-                     ERROR_NUM_ARGUMENTS, expression->identifier->name,num_args, expression->arguments->counter);
-            mCc_add_error(error_msg,expression->identifier->node.sloc.start_line,h_result);
+		if (expression->arguments->counter != num_args) {
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg),
+				 ERROR_NUM_ARGUMENTS,
+				 expression->identifier->name, num_args,
+				 expression->arguments->counter);
+			mCc_add_error(
+				error_msg,
+				expression->identifier->node.sloc.start_line,
+				h_result);
 		}
-        enum mCc_ast_type *t_type = find_element_param_types(table,
-                                                             expression->identifier->name);
-        int t_type_length = find_element_param_num(table,
-                                                 expression->identifier->name);
-        if (t_type != NULL) {
-            expression->identifier->param_types = malloc(sizeof(*t_type) * t_type_length);
-            memcpy(expression->identifier->param_types, t_type, sizeof(*t_type) * t_type_length);
-        }
+		enum mCc_ast_type *t_type = find_element_param_types(
+			table, expression->identifier->name);
+		int t_type_length = find_element_param_num(
+			table, expression->identifier->name);
+		if (t_type != NULL) {
+			expression->identifier->param_types =
+				malloc(sizeof(*t_type) * t_type_length);
+			memcpy(expression->identifier->param_types, t_type,
+			       sizeof(*t_type) * t_type_length);
+		}
 
-	} else if (num_args
-		   != 0) {
-        char error_msg[1024] = {0};
-        snprintf(error_msg, sizeof(error_msg),
-                 ERROR_NUM_ARGUMENTS, expression->identifier->name, num_args,0);
-        mCc_add_error(error_msg,expression->identifier->node.sloc.start_line,h_result);
+	} else if (num_args != 0) {
+		char error_msg[1024] = {0};
+		snprintf(error_msg, sizeof(error_msg), ERROR_NUM_ARGUMENTS,
+			 expression->identifier->name, num_args, 0);
+		mCc_add_error(error_msg,
+			      expression->identifier->node.sloc.start_line,
+			      h_result);
 	}
 
 	char *new_name =
@@ -866,13 +897,16 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 						expression->identifier->name);
 	}
 	if (new_name == NULL) {
-        char error_msg[1024] = {0};
-        snprintf(error_msg, sizeof(error_msg),
-                 ERROR_MISSING_FUNCTION_DEF, expression->identifier->name);
-        mCc_add_error(error_msg,expression->identifier->node.sloc.start_line,h_result);
+		char error_msg[1024] = {0};
+		snprintf(error_msg, sizeof(error_msg),
+			 ERROR_MISSING_FUNCTION_DEF,
+			 expression->identifier->name);
+		mCc_add_error(error_msg,
+			      expression->identifier->node.sloc.start_line,
+			      h_result);
 	} else {
 		char *temp1 = realloc(expression->identifier->renamed,
-				     sizeof(char *) * strlen(new_name));
+				      sizeof(char *) * strlen(new_name));
 		if (temp1 == NULL) {
 			// TODO throw error
 			assert(NULL);
@@ -902,7 +936,7 @@ struct mCc_parser_result *mCc_ast_symbol_table(struct mCc_parser_result *result)
 	delete_symbol_table_node(table);
 
 	if (!has_main) {
-        mCc_add_error(ERROR_NO_MAIN,0,h_result);
+		mCc_add_error(ERROR_NO_MAIN, 0, h_result);
 	}
 
 	delete_current_fun(current_fun);

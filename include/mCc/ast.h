@@ -30,15 +30,15 @@ typedef struct mCc_ast_argument ast_argument;
 
 
 enum mCc_ast_type {
-	MCC_AST_TYPE_INT,           // 0
-	MCC_AST_TYPE_FLOAT,         // 1
-	MCC_AST_TYPE_STRING,           // 2
-	MCC_AST_TYPE_BOOL,           // 3
-	MCC_AST_TYPE_INT_ARRAY,           // 4
-	MCC_AST_TYPE_FLOAT_ARRAY,           // 5
-	MCC_AST_TYPE_STRING_ARRAY,           // 6
-	MCC_AST_TYPE_BOOL_ARRAY,           // 7
-	MCC_AST_TYPE_VOID           // 8
+	MCC_AST_TYPE_INT,	  // 0
+	MCC_AST_TYPE_FLOAT,	// 1
+	MCC_AST_TYPE_STRING,       // 2
+	MCC_AST_TYPE_BOOL,	 // 3
+	MCC_AST_TYPE_INT_ARRAY,    // 4
+	MCC_AST_TYPE_FLOAT_ARRAY,  // 5
+	MCC_AST_TYPE_STRING_ARRAY, // 6
+	MCC_AST_TYPE_BOOL_ARRAY,   // 7
+	MCC_AST_TYPE_VOID	  // 8
 };
 
 /* ---------------------------------------------------------------- AST Node */
@@ -55,18 +55,18 @@ typedef struct mCc_ast_node {
 
 /* --------------------------------------------------------------- Operators */
 enum mCc_ast_binary_op {
-	MCC_AST_BINARY_OP_ADD,		// 0
-	MCC_AST_BINARY_OP_SUB,		// 1
-	MCC_AST_BINARY_OP_MUL,		// 2
-	MCC_AST_BINARY_OP_DIV,		// 3
-	MCC_AST_BINARY_OP_LT,		// 4
-	MCC_AST_BINARY_OP_GT,		// 5
-	MCC_AST_BINARY_OP_LE,		// 6
-	MCC_AST_BINARY_OP_GE,		// 7
-	MCC_AST_BINARY_OP_AND,		// 8
-	MCC_AST_BINARY_OP_OR,		// 9
-	MCC_AST_BINARY_OP_EQ,		// 10
-	MCC_AST_BINARY_OP_NEQ		// 11
+	MCC_AST_BINARY_OP_ADD, // 0
+	MCC_AST_BINARY_OP_SUB, // 1
+	MCC_AST_BINARY_OP_MUL, // 2
+	MCC_AST_BINARY_OP_DIV, // 3
+	MCC_AST_BINARY_OP_LT,  // 4
+	MCC_AST_BINARY_OP_GT,  // 5
+	MCC_AST_BINARY_OP_LE,  // 6
+	MCC_AST_BINARY_OP_GE,  // 7
+	MCC_AST_BINARY_OP_AND, // 8
+	MCC_AST_BINARY_OP_OR,  // 9
+	MCC_AST_BINARY_OP_EQ,  // 10
+	MCC_AST_BINARY_OP_NEQ  // 11
 };
 
 enum mCc_ast_unary_op { MCC_AST_UNARY_OP_NEGATION, MCC_AST_UNARY_OP_FAC };
@@ -164,8 +164,8 @@ typedef struct mCc_ast_expression {
 		};
 	};
 
-    void *tac_start;
-    void *tac_end;
+	void *tac_start;
+	void *tac_end;
 
 } ast_expr;
 
@@ -206,8 +206,8 @@ typedef struct mCc_ast_single_expression {
 		ast_expr *expression;
 	};
 
-    void *tac_start;
-    void *tac_end;
+	void *tac_start;
+	void *tac_end;
 } ast_single_expr;
 
 /* Call Expression */

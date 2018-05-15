@@ -3,6 +3,8 @@
 #include <stdlib.h>
 #include <memory.h>
 #include "mCc/ast_semantic_checks.h"
+#include "mCc/error.h"
+
 
 static void ast_semantic_check_single_expression(
 	struct mCc_ast_single_expression *expression, void *data);
@@ -43,6 +45,54 @@ static struct mCc_ast_visitor symbol_table_visitor(void *data)
 	};
 };
 
+const char *print_literal_type(enum mCc_ast_literal_type type)
+{
+	switch (type) {
+		case MCC_AST_LITERAL_TYPE_STRING:
+			return "string";
+		case MCC_AST_LITERAL_TYPE_INT:
+			return "int";
+		case MCC_AST_LITERAL_TYPE_FLOAT:
+			return "float";
+		case MCC_AST_LITERAL_TYPE_BOOL:
+			return "bool";
+		default:
+			return "unknown";
+	}
+}
+
+const char *print_binary_op(enum mCc_ast_binary_op op)
+{
+	switch (op) {
+		case MCC_AST_BINARY_OP_ADD:
+			return "+";
+		case MCC_AST_BINARY_OP_SUB:
+			return "-";
+		case MCC_AST_BINARY_OP_MUL:
+			return "*";
+		case MCC_AST_BINARY_OP_DIV:
+			return "/";
+		case MCC_AST_BINARY_OP_AND:
+			return "&&";
+		case MCC_AST_BINARY_OP_OR:
+			return "||";
+		case MCC_AST_BINARY_OP_EQ:
+			return "==";
+		case MCC_AST_BINARY_OP_NEQ:
+			return "!=";
+		case MCC_AST_BINARY_OP_GE:
+			return ">=";
+		case MCC_AST_BINARY_OP_GT:
+			return ">";
+		case MCC_AST_BINARY_OP_LE:
+			return "<=";
+		case MCC_AST_BINARY_OP_LT:
+			return "<";
+		default:
+			return "unknown";
+	}
+}
+
 static void ast_semantic_check_single_expression(
 	struct mCc_ast_single_expression *expression, void *data)
 {
@@ -71,17 +121,7 @@ static void ast_semantic_check_single_expression(
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX):
 		//expression->d_type = expression->identifier->d_type;
-        if (expression->identifier_expression->d_type != MCC_AST_TYPE_INT) {
-            char error_msg[1024] = {0};
-            snprintf(error_msg, sizeof(error_msg),
-                     "Array numerator not of type int");
-            struct mCc_parser_error *error =
-                    malloc(sizeof(struct mCc_parser_error));
-            strcpy(error->error_msg, error_msg);
-            error->error_line = 0;
-            g_result->errors = add_parse_error(g_result->errors, error);
-            g_result->status = MCC_PARSER_STATUS_ERROR;
-        } else {
+
             switch (expression->identifier->d_type) {
                 case (MCC_AST_TYPE_VOID):
                 case (MCC_AST_TYPE_INT):
@@ -102,7 +142,7 @@ static void ast_semantic_check_single_expression(
                     expression->d_type = MCC_AST_TYPE_STRING;
                     break;
             }
-        }
+
 
 
 		break;
@@ -134,14 +174,8 @@ static void ast_semantic_check_expression(struct mCc_ast_expression *expression,
 		if (expression->lhs->d_type != expression->rhs->d_type) {
 			char error_msg[1024] = {0};
 			snprintf(error_msg, sizeof(error_msg),
-				 "Expression types not compatible");
-			struct mCc_parser_error *error =
-				malloc(sizeof(struct mCc_parser_error));
-			strcpy(error->error_msg, error_msg);
-			error->error_line = 0;
-			g_result->errors =
-				add_parse_error(g_result->errors, error);
-			g_result->status = MCC_PARSER_STATUS_ERROR;
+					 ERROR_BINARY_EX_TYPE_MISSMATCH,print_literal_type(expression->lhs->d_type),print_binary_op(expression->op),print_literal_type(expression->rhs->d_type));
+			mCc_add_error(error_msg,0,g_result);
 		}
 		switch (expression->op) {
 			case (MCC_AST_BINARY_OP_ADD):
@@ -179,15 +213,11 @@ ast_semantic_check_call_expression(struct mCc_ast_call_expr *expression,
 		for (int i = 0; i < expression->arguments->counter; i++) {
             if (expression->identifier->param_types != NULL) {
                 if (expression->arguments->expression[i].d_type != expression->identifier->param_types[i]) {
-                    printf("%d -- %d", expression->arguments->expression[i].d_type, expression->identifier->param_types[i]);
-                    char error_msg[1024] = {0};
-                    snprintf(error_msg, sizeof(error_msg), "Wrong type of parameter for function %s", expression->identifier->name);
-                    struct mCc_parser_error *error =
-                            malloc(sizeof(struct mCc_parser_error));
-                    strcpy(error->error_msg, error_msg);
-                    error->error_line = expression->identifier->node.sloc.start_line;
-                    g_result->errors = add_parse_error(g_result->errors, error);
-                    g_result->status = MCC_PARSER_STATUS_ERROR;
+					char error_msg[1024] = {0};
+					snprintf(error_msg, sizeof(error_msg),
+							 ERROR_WRONG_PARAMETER_TYPE,expression->identifier->name,i+1,
+							 print_literal_type(expression->identifier->param_types[i]),print_literal_type(expression->arguments->expression[i].d_type));
+					mCc_add_error(error_msg,expression->identifier->node.sloc.start_line,g_result);
                 }
             }
 		}
@@ -203,23 +233,15 @@ static void ast_semantic_check_ret_stmt(struct mCc_ast_ret_stmt *stmt,
 	if(stmt->expression == NULL) {
 		if (stmt->d_type != MCC_AST_TYPE_VOID){
 			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg), "Void function with return type");
-			struct mCc_parser_error *error =
-					malloc(sizeof(struct mCc_parser_error));
-			strcpy(error->error_msg, error_msg);
-			error->error_line = 0;
-			g_result->errors = add_parse_error(g_result->errors, error);
-			g_result->status = MCC_PARSER_STATUS_ERROR;
+			snprintf(error_msg, sizeof(error_msg),
+					 ERROR_WRONG_RETURN_TYPE,print_literal_type(stmt->d_type),"void");
+			mCc_add_error(error_msg,0,g_result);
 		}
 	} else if (stmt->d_type != stmt->expression->d_type) {
 		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg), "Wrong return type");
-		struct mCc_parser_error *error =
-			malloc(sizeof(struct mCc_parser_error));
-		strcpy(error->error_msg, error_msg);
-		error->error_line = 0;
-		g_result->errors = add_parse_error(g_result->errors, error);
-		g_result->status = MCC_PARSER_STATUS_ERROR;
+		snprintf(error_msg, sizeof(error_msg),
+				 ERROR_WRONG_RETURN_TYPE,print_literal_type(stmt->d_type),print_literal_type(stmt->expression->d_type));
+		mCc_add_error(error_msg,0,g_result);
 	}
 }
 
@@ -230,49 +252,35 @@ static void ast_semantic_check_ass_stmt(struct mCc_ast_assignment *stmt,
 	assert(data);
 
     if(stmt->numerator != NULL) {
-        if (stmt->numerator->d_type != MCC_AST_TYPE_INT) {
-            char error_msg[1024] = {0};
-            snprintf(error_msg, sizeof(error_msg),
-                     "Array numerator not of type int");
-            struct mCc_parser_error *error =
-                    malloc(sizeof(struct mCc_parser_error));
-            strcpy(error->error_msg, error_msg);
-            error->error_line = 0;
-            g_result->errors = add_parse_error(g_result->errors, error);
-            g_result->status = MCC_PARSER_STATUS_ERROR;
-        } else {
-            switch (stmt->identifier->d_type) {
-                case (MCC_AST_TYPE_VOID):
-                case (MCC_AST_TYPE_INT):
-                case (MCC_AST_TYPE_FLOAT):
-                case (MCC_AST_TYPE_BOOL):
-                case (MCC_AST_TYPE_STRING):
-                    break;
-                case (MCC_AST_TYPE_INT_ARRAY):
-                    stmt->identifier->d_type = MCC_AST_TYPE_INT;
-                    break;
-                case (MCC_AST_TYPE_FLOAT_ARRAY):
-                    stmt->identifier->d_type = MCC_AST_TYPE_FLOAT;
-                    break;
-                case (MCC_AST_TYPE_BOOL_ARRAY):
-                    stmt->identifier->d_type = MCC_AST_TYPE_BOOL;
-                    break;
-                case (MCC_AST_TYPE_STRING_ARRAY):
-                    stmt->identifier->d_type = MCC_AST_TYPE_STRING;
-                    break;
-            }
-        }
+
+		switch (stmt->identifier->d_type) {
+			case (MCC_AST_TYPE_VOID):
+			case (MCC_AST_TYPE_INT):
+			case (MCC_AST_TYPE_FLOAT):
+			case (MCC_AST_TYPE_BOOL):
+			case (MCC_AST_TYPE_STRING):
+				break;
+			case (MCC_AST_TYPE_INT_ARRAY):
+				stmt->identifier->d_type = MCC_AST_TYPE_INT;
+				break;
+			case (MCC_AST_TYPE_FLOAT_ARRAY):
+				stmt->identifier->d_type = MCC_AST_TYPE_FLOAT;
+				break;
+			case (MCC_AST_TYPE_BOOL_ARRAY):
+				stmt->identifier->d_type = MCC_AST_TYPE_BOOL;
+				break;
+			case (MCC_AST_TYPE_STRING_ARRAY):
+				stmt->identifier->d_type = MCC_AST_TYPE_STRING;
+				break;
+		}
+
     }
         if (stmt->identifier->d_type != stmt->expression->d_type) {
-            char error_msg[1024] = {0};
-            snprintf(error_msg, sizeof(error_msg),
-                     "Wrong type for assignment");
-            struct mCc_parser_error *error =
-                    malloc(sizeof(struct mCc_parser_error));
-            strcpy(error->error_msg, error_msg);
-            error->error_line = 0;
-            g_result->errors = add_parse_error(g_result->errors, error);
-            g_result->status = MCC_PARSER_STATUS_ERROR;
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg),
+                     ERROR_WRONG_ASSIGNMENT_TYPE,print_literal_type(stmt->identifier->d_type),print_literal_type(stmt->expression->d_type));
+			mCc_add_error(error_msg,stmt->identifier->node.sloc.start_line,g_result);
+
         }
 
 }
@@ -285,13 +293,8 @@ static void ast_semantic_check_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 	if (stmt->expression->d_type != MCC_AST_TYPE_BOOL) {
 		char error_msg[1024] = {0};
 		snprintf(error_msg, sizeof(error_msg),
-			 "Not boolean expression");
-		struct mCc_parser_error *error =
-			malloc(sizeof(struct mCc_parser_error));
-		strcpy(error->error_msg, error_msg);
-		error->error_line = 0;
-		g_result->errors = add_parse_error(g_result->errors, error);
-		g_result->status = MCC_PARSER_STATUS_ERROR;
+				 ERROR_CONDITION_NOT_BOOLEAN,print_literal_type(stmt->expression->d_type));
+		mCc_add_error(error_msg,0,g_result);
 	}
 }
 
@@ -304,13 +307,8 @@ static void ast_semantic_check_while_stmt(struct mCc_ast_while_stmt *stmt,
 	if (stmt->expression->d_type != MCC_AST_TYPE_BOOL) {
 		char error_msg[1024] = {0};
 		snprintf(error_msg, sizeof(error_msg),
-			 "Not boolean expression");
-		struct mCc_parser_error *error =
-			malloc(sizeof(struct mCc_parser_error));
-		strcpy(error->error_msg, error_msg);
-		error->error_line = 0;
-		g_result->errors = add_parse_error(g_result->errors, error);
-		g_result->status = MCC_PARSER_STATUS_ERROR;
+				 ERROR_CONDITION_NOT_BOOLEAN,print_literal_type(stmt->expression->d_type));
+		mCc_add_error(error_msg,0,g_result);
 	}
 }
 

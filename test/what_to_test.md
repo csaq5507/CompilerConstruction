@@ -1,5 +1,4 @@
 - Symbol table generation
-    - variablename & function name
     - main void function?
     - returntype generation
     - check every error message in symbol_table.c

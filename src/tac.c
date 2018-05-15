@@ -10,16 +10,13 @@
 static void tac_single_expression(struct mCc_ast_single_expression *expression, void *data);
 static void tac_expression(struct mCc_ast_expression *expression, void *data);
 static void tac_call_expression(struct mCc_ast_call_expr *expression, void *data);
-
 static void tac_function_def(struct mCc_ast_function_def *f, void *data);
-
 static void tac_stmt (struct mCc_ast_stmt *stmt, void *data);
 static void tac_compound_stmt(struct mCc_ast_compound_stmt *c_stmt, void *data);
 static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data);
 static void tac_ass_stmt(struct mCc_ast_assignment *stmt, void *data);
 static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data);
 static void tac_while_stmt(struct mCc_ast_while_stmt *stmt, void *data);
-
 static void tac_declaration(struct mCc_ast_declaration *declaration, void *data);
 static void tac_parameter(struct mCc_ast_parameter *parameter, void *data);
 static void tac_argument(struct mCc_ast_argument *argument, void *data);
@@ -722,8 +719,8 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head){
         struct mCc_tac_list *next = current->next;
         switch (current->type) {
             case (MCC_TAC_ELEMENT_TYPE_UNKNOWN):
-                if (DEBUG)
-                    printf("UNKNOWN\n");
+                if (DEBUG);
+                    fprintf(out,"UNKNOWN\n");
                 break;
             case (MCC_TAC_ELEMENT_TYPE_COPY):
                 switch (current->l_type) {

@@ -23,7 +23,7 @@ set(CMAKE_BUILD_TYPE Debug)
 set(HEADER_FILES ${INCLUDE}/ast.h ${INCLUDE}/ast_print.h
         ${INCLUDE}/ast_visit.h ${INCLUDE}/parser.h
         ${INCLUDE}/ast_symbol_table.h ${INCLUDE}/ast_semantic_checks.h
-        ${INCLUDE}/tac.h)
+        ${INCLUDE}/tac.h ${INCLUDE}/error.h)
 
 set(PARSER_FILES ${BUILD}/parser.tab.c ${BUILD}/parser.tab.h ${BUILD}/scanner.c ${BUILD}/scanner.h)
 aux_source_directory(src/ SRC_FILES)
@@ -46,7 +46,7 @@ if (test)
     ##############
     # Unit Tests
     ##############
-    add_executable(runUnitTests  ${SRC_FILES} test/parser.cpp ${HEADER_FILES} ${PARSER_FILES})
+    add_executable(runUnitTests  ${SRC_FILES} test/tac.cpp  ${HEADER_FILES} ${PARSER_FILES})
 
     # Standard linking to gtest stuff.
     target_link_libraries(runUnitTests gtest gtest_main )

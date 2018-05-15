@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include "mCc/ast_symbol_table.h"
+#include "mCc/error.h"
 
 #define DEBUG 0
 #define ARRAY_SIZE 2048
@@ -91,6 +92,7 @@ static struct mCc_ast_visitor symbol_table_visitor(ast_symbol_table *data)
 	};
 };
 
+
 static ast_symbol_table *create_new_symbol_table_node()
 {
 	ast_symbol_table *table = malloc(sizeof(*table));
@@ -164,7 +166,8 @@ static char *find_element_symbols(ast_symbol_table *head, char *elem)
 	assert(head);
 	assert(elem);
 	for (int i = 0; i < head->symbols_counter; i++) {
-		if (strcmp(head->symbols[i].mCc_symbol_old, elem) == 0) {
+		char * curr= head->symbols[i].mCc_symbol_old;
+		if (strcmp(curr, elem) == 0) {
 			return head->symbols[i].mCc_symbol_new;
 		}
 	}
@@ -284,25 +287,16 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 	if (strcmp(f->identifier->name, "main") == 0) {
 		char error_msg[1024] = {0};
 		snprintf(error_msg, sizeof(error_msg),
-			 "main function has return type");
-		struct mCc_parser_error *error =
-			malloc(sizeof(struct mCc_parser_error));
-		strcpy(error->error_msg, error_msg);
-		error->error_line = f->identifier->node.sloc.start_line;
-		h_result->errors = add_parse_error(h_result->errors, error);
-		h_result->status = MCC_PARSER_STATUS_ERROR;
+				 ERROR_MAIN_NOT_VOID,
+					print_literal_type(f->identifier->d_type));
+        mCc_add_error(error_msg,f->identifier->node.sloc.start_line,h_result);
 
 		if (has_main == true) {
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 "main function allready defined");
-			struct mCc_parser_error *error =
-				malloc(sizeof(struct mCc_parser_error));
-			strcpy(error->error_msg, error_msg);
-			error->error_line = f->identifier->node.sloc.start_line;
-			h_result->errors =
-				add_parse_error(h_result->errors, error);
-			h_result->status = MCC_PARSER_STATUS_ERROR;
+            char error_msg[1024] = {0};
+            snprintf(error_msg, sizeof(error_msg),
+                     ERROR_DUBLICATE_FUNCTION,
+                     f->identifier->name);
+            mCc_add_error(error_msg,f->identifier->node.sloc.start_line,h_result);
 		}
 	}
 
@@ -351,21 +345,17 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 
 	char help[ARRAY_SIZE] = {0};
 	sprintf(help, "%s%d", f->identifier->name, g_counter++);
+
 	if (find_element_symbols(table, f->identifier->name) != NULL) {
 		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg), "Allready defined: %s",
+		snprintf(error_msg, sizeof(error_msg), ERROR_DUBLICATE_FUNCTION,
 			 f->identifier->name);
-		struct mCc_parser_error *error =
-			malloc(sizeof(struct mCc_parser_error));
-		strcpy(error->error_msg, error_msg);
-		error->error_line = f->identifier->node.sloc.start_line;
-		h_result->errors = add_parse_error(h_result->errors, error);
-		h_result->status = MCC_PARSER_STATUS_ERROR;
+        mCc_add_error(error_msg,f->identifier->node.sloc.start_line,h_result);
 	} else {
 		char *temp = realloc(f->identifier->renamed,
 				     sizeof(char *) * ARRAY_SIZE);
 		if (temp == NULL) {
-			// TODO throw error
+            mCc_add_error("Realloc failed at ast_symbol_table.c:ast_symbol_table_func_type",f->identifier->node.sloc.start_line,h_result);
 			assert(NULL);
 		}
 		f->identifier->renamed = temp;
@@ -476,32 +466,21 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 
 	if (strcmp(f->identifier->name, "main") == 0) {
 		if (has_main == true) {
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 "main function allready defined");
-			struct mCc_parser_error *error =
-				malloc(sizeof(struct mCc_parser_error));
-			strcpy(error->error_msg, error_msg);
-			error->error_line = f->identifier->node.sloc.start_line;
-			h_result->errors =
-				add_parse_error(h_result->errors, error);
-			h_result->status = MCC_PARSER_STATUS_ERROR;
+
+            char error_msg[1024] = {0};
+            snprintf(error_msg, sizeof(error_msg),
+                     ERROR_DUBLICATE_FUNCTION, f->identifier->name);
+            mCc_add_error(error_msg,f->identifier->node.sloc.start_line,h_result);
 		}
 		has_main = true;
 	} else {
 		char help[ARRAY_SIZE] = {0};
 		sprintf(help, "%s%d", f->identifier->name, g_counter++);
 		if (find_element_symbols(table, f->identifier->name) != NULL) {
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 "Allready defined: %s", f->identifier->name);
-			struct mCc_parser_error *error =
-				malloc(sizeof(struct mCc_parser_error));
-			strcpy(error->error_msg, error_msg);
-			error->error_line = f->identifier->node.sloc.start_line;
-			h_result->errors =
-				add_parse_error(h_result->errors, error);
-			h_result->status = MCC_PARSER_STATUS_ERROR;
+            char error_msg[1024] = {0};
+            snprintf(error_msg, sizeof(error_msg),
+                     ERROR_DUBLICATE_FUNCTION, f->identifier->name);
+            mCc_add_error(error_msg,f->identifier->node.sloc.start_line,h_result);
 		} else {
 			char *temp = realloc(f->identifier->renamed,
 					     sizeof(char *) * ARRAY_SIZE);
@@ -549,16 +528,10 @@ static void ast_symbol_table_close_func(struct mCc_ast_function_def *f,
 
 	if (f->type != MCC_AST_FUNCTION_DEF_TYPE_VOID
 	    && !current_fun->has_ret) {
-		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg),
-			 "Missing return for function: %s",
-			 f->identifier->name);
-		struct mCc_parser_error *error =
-			malloc(sizeof(struct mCc_parser_error));
-		strcpy(error->error_msg, error_msg);
-		error->error_line = f->identifier->node.sloc.start_line;
-		h_result->errors = add_parse_error(h_result->errors, error);
-		h_result->status = MCC_PARSER_STATUS_ERROR;
+        char error_msg[1024] = {0};
+        snprintf(error_msg, sizeof(error_msg),
+                 ERROR_NO_RETURN, f->identifier->name);
+        mCc_add_error(error_msg,f->identifier->node.sloc.start_line,h_result);
 	}
 
 	if (current_fun->prev != NULL) {
@@ -649,15 +622,10 @@ static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt,
 		new_name = find_element_symbols(temp, stmt->identifier->name);
 	}
 	if (new_name == NULL) {
-		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg),
-			 "Missing definition of: %s", stmt->identifier->name);
-		struct mCc_parser_error *error =
-			malloc(sizeof(struct mCc_parser_error));
-		strcpy(error->error_msg, error_msg);
-		error->error_line = stmt->identifier->node.sloc.start_line;
-		h_result->errors = add_parse_error(h_result->errors, error);
-		h_result->status = MCC_PARSER_STATUS_ERROR;
+        char error_msg[1024] = {0};
+        snprintf(error_msg, sizeof(error_msg),
+                 ERROR_MISSING_VARIABLE_DEF, stmt->identifier->name);
+        mCc_add_error(error_msg,stmt->identifier->node.sloc.start_line,h_result);
 	} else {
 		char *temp = realloc(stmt->identifier->renamed,
 				     sizeof(char *) * strlen(new_name));
@@ -681,18 +649,10 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 		sprintf(help, "%s%d", stmt->identifier->name, g_counter++);
 		if (find_element_symbols(table, stmt->identifier->name)
 		    != NULL) {
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 "Allready defined: %s",
-				 stmt->identifier->name);
-			struct mCc_parser_error *error =
-				malloc(sizeof(struct mCc_parser_error));
-			strcpy(error->error_msg, error_msg);
-			error->error_line =
-				stmt->identifier->node.sloc.start_line;
-			h_result->errors =
-				add_parse_error(h_result->errors, error);
-			h_result->status = MCC_PARSER_STATUS_ERROR;
+            char error_msg[1024] = {0};
+            snprintf(error_msg, sizeof(error_msg),
+                     ERROR_DUBLICATE_VARIABLE, stmt->identifier->name);
+            mCc_add_error(error_msg,stmt->identifier->node.sloc.start_line,h_result);
 		} else {
 			char *temp = realloc(stmt->identifier->renamed,
 					     sizeof(char *) * ARRAY_SIZE);
@@ -735,18 +695,10 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 			g_counter++);
 		if (find_element_symbols(table, stmt->array_identifier->name)
 		    != NULL) {
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 "Allready defined: %s",
-				 stmt->array_identifier->name);
-			struct mCc_parser_error *error =
-				malloc(sizeof(struct mCc_parser_error));
-			strcpy(error->error_msg, error_msg);
-			error->error_line =
-				stmt->array_identifier->node.sloc.start_line;
-			h_result->errors =
-				add_parse_error(h_result->errors, error);
-			h_result->status = MCC_PARSER_STATUS_ERROR;
+            char error_msg[1024] = {0};
+            snprintf(error_msg, sizeof(error_msg),
+                     ERROR_DUBLICATE_VARIABLE, stmt->identifier->name);
+            mCc_add_error(error_msg,stmt->identifier->node.sloc.start_line,h_result);
 		} else {
 			char *temp = realloc(stmt->array_identifier->renamed,
 					     sizeof(char *) * strlen(help));
@@ -851,26 +803,18 @@ ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
 				temp, expression->identifier->name);
 		}
 		if (new_name == NULL) {
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 "Missing definition of: %s",
-				 expression->identifier->name);
-			struct mCc_parser_error *error =
-				malloc(sizeof(struct mCc_parser_error));
-			strcpy(error->error_msg, error_msg);
-			error->error_line =
-				expression->identifier->node.sloc.start_line;
-			h_result->errors =
-				add_parse_error(h_result->errors, error);
-			h_result->status = MCC_PARSER_STATUS_ERROR;
+            char error_msg[1024] = {0};
+            snprintf(error_msg, sizeof(error_msg),
+                     ERROR_MISSING_VARIABLE_DEF, expression->identifier->name);
+            mCc_add_error(error_msg,expression->identifier->node.sloc.start_line,h_result);
 		} else {
-			char *temp = realloc(expression->identifier->renamed,
+			char *temp1 = realloc(expression->identifier->renamed,
 					     sizeof(char *) * strlen(new_name));
-			if (temp == NULL) {
+			if (temp1 == NULL) {
 				// TODO throw error
 				assert(NULL);
 			}
-			expression->identifier->renamed = temp;
+			expression->identifier->renamed = temp1;
 			strcpy(expression->identifier->renamed, new_name);
 		}
 	}
@@ -884,23 +828,16 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 	assert(data);
 
 	/* Num Parameter check*/
+
+    int num_args=find_element_param_num(table,
+                                        expression->identifier->name);
 	if (expression->arguments != NULL) {
 		if (expression->arguments->counter
-		    != find_element_param_num(table,
-					      expression->identifier->name)) {
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 "Wrong number of arguments for functin call: "
-				 "%s",
-				 expression->identifier->name);
-			struct mCc_parser_error *error =
-				malloc(sizeof(struct mCc_parser_error));
-			strcpy(error->error_msg, error_msg);
-			error->error_line =
-				expression->identifier->node.sloc.start_line;
-			h_result->errors =
-				add_parse_error(h_result->errors, error);
-			h_result->status = MCC_PARSER_STATUS_ERROR;
+		    != num_args ) {
+            char error_msg[1024] = {0};
+            snprintf(error_msg, sizeof(error_msg),
+                     ERROR_NUM_ARGUMENTS, expression->identifier->name,num_args, expression->arguments->counter);
+            mCc_add_error(error_msg,expression->identifier->node.sloc.start_line,h_result);
 		}
         enum mCc_ast_type *t_type = find_element_param_types(table,
                                                              expression->identifier->name);
@@ -911,19 +848,12 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
             memcpy(expression->identifier->param_types, t_type, sizeof(*t_type) * t_type_length);
         }
 
-	} else if (find_element_param_num(table, expression->identifier->name)
+	} else if (num_args
 		   != 0) {
-		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg),
-			 "Wrong number of arguments for functin call: %s",
-			 expression->identifier->name);
-		struct mCc_parser_error *error =
-			malloc(sizeof(struct mCc_parser_error));
-		strcpy(error->error_msg, error_msg);
-		error->error_line =
-			expression->identifier->node.sloc.start_line;
-		h_result->errors = add_parse_error(h_result->errors, error);
-		h_result->status = MCC_PARSER_STATUS_ERROR;
+        char error_msg[1024] = {0};
+        snprintf(error_msg, sizeof(error_msg),
+                 ERROR_NUM_ARGUMENTS, expression->identifier->name, num_args,0);
+        mCc_add_error(error_msg,expression->identifier->node.sloc.start_line,h_result);
 	}
 
 	char *new_name =
@@ -936,25 +866,18 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 						expression->identifier->name);
 	}
 	if (new_name == NULL) {
-		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg),
-			 "Missing definition of: %s",
-			 expression->identifier->name);
-		struct mCc_parser_error *error =
-			malloc(sizeof(struct mCc_parser_error));
-		strcpy(error->error_msg, error_msg);
-		error->error_line =
-			expression->identifier->node.sloc.start_line;
-		h_result->errors = add_parse_error(h_result->errors, error);
-		h_result->status = MCC_PARSER_STATUS_ERROR;
+        char error_msg[1024] = {0};
+        snprintf(error_msg, sizeof(error_msg),
+                 ERROR_MISSING_FUNCTION_DEF, expression->identifier->name);
+        mCc_add_error(error_msg,expression->identifier->node.sloc.start_line,h_result);
 	} else {
-		char *temp = realloc(expression->identifier->renamed,
+		char *temp1 = realloc(expression->identifier->renamed,
 				     sizeof(char *) * strlen(new_name));
-		if (temp == NULL) {
+		if (temp1 == NULL) {
 			// TODO throw error
 			assert(NULL);
 		}
-		expression->identifier->renamed = temp;
+		expression->identifier->renamed = temp1;
 		strcpy(expression->identifier->renamed, new_name);
 	}
 }
@@ -979,14 +902,7 @@ struct mCc_parser_result *mCc_ast_symbol_table(struct mCc_parser_result *result)
 	delete_symbol_table_node(table);
 
 	if (!has_main) {
-		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg), "Missing main function");
-		struct mCc_parser_error *error =
-			malloc(sizeof(struct mCc_parser_error));
-		strcpy(error->error_msg, error_msg);
-		error->error_line = 0;
-		h_result->errors = add_parse_error(h_result->errors, error);
-		h_result->status = MCC_PARSER_STATUS_ERROR;
+        mCc_add_error(ERROR_NO_MAIN,0,h_result);
 	}
 
 	delete_current_fun(current_fun);

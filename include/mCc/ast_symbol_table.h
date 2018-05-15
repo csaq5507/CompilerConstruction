@@ -29,7 +29,9 @@ bool has_main;
 
 /* ###################### STRUCTS ###################### */
 
-typedef struct mCc_ast_symbol_table {
+extern const char *print_literal_type(enum mCc_ast_literal_type type);
+
+		typedef struct mCc_ast_symbol_table {
 
 	ast_symbol_table *prev;
 	ast_symbol_table *next;

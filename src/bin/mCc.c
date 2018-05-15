@@ -13,7 +13,7 @@
 
 void print_usage(const char *prg)
 {
-	printf("usage: %s <FILE>\n\n", prg);
+	printf("usage: %s <FILE> \n\n", prg);
 	printf("  <FILE>        Input filepath or - for stdin\n");
 }
 

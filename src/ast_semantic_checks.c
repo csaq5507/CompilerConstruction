@@ -45,17 +45,19 @@ static struct mCc_ast_visitor symbol_table_visitor(void *data)
 	};
 };
 
-const char *print_literal_type(enum mCc_ast_literal_type type)
+const char *print_literal_type(enum mCc_ast_type type)
 {
 	switch (type) {
-	case MCC_AST_LITERAL_TYPE_STRING:
+	case MCC_AST_TYPE_STRING:
 		return "string";
-	case MCC_AST_LITERAL_TYPE_INT:
+	case MCC_AST_TYPE_INT:
 		return "int";
-	case MCC_AST_LITERAL_TYPE_FLOAT:
+	case MCC_AST_TYPE_FLOAT:
 		return "float";
-	case MCC_AST_LITERAL_TYPE_BOOL:
+	case MCC_AST_TYPE_BOOL:
 		return "bool";
+	case MCC_AST_TYPE_VOID:
+		return "void";
 	default:
 		return "unknown";
 	}

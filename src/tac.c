@@ -317,7 +317,7 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 			elem->num_function_param = 0;
 		else
 			elem->num_function_param =
-				expression->arguments->counter + 1;
+				expression->arguments->counter;
 	}
 
 	// TODO maybe move this to mcc_tac_arguments

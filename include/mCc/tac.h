@@ -16,6 +16,7 @@ extern "C" {
 struct mCc_tac_list *mCc_tac_generate(struct mCc_ast_function_def_array *f);
 void mCc_tac_delete(struct mCc_tac_list *head);
 void mCc_tac_print(FILE *out, struct mCc_tac_list *head);
+struct mCc_tac_list * get_at(struct mCc_tac_list* head, int index);
 
 struct mCc_tac_list *head;
 struct mCc_tac_list *tail;
@@ -77,9 +78,9 @@ typedef struct mCc_tac_list {
 	enum mCc_tac_operation_type operation_type;
 	struct mCc_tac_list *jump;
 
-	char *f_identifier;
-	char *s_identifier;
-	char *t_identifier;
+	char *identifier1;
+	char *identifier2;
+	char *ifentifier3;
 
 	int num_function_param;
 
@@ -93,6 +94,7 @@ typedef struct mCc_tac_list {
 } tac_list;
 
 tac_list *tac_new_list();
+
 
 #ifdef __cplusplus
 }

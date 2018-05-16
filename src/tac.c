@@ -68,9 +68,9 @@ tac_list *tac_new_list()
 	elem->type = MCC_TAC_ELEMENT_TYPE_UNKNOWN;
 	elem->l_type = MCC_TAC_LITERAL_TYPE_UNKNWON;
 	elem->num_function_param = -1;
-	elem->f_identifier = NULL;
-	elem->s_identifier = NULL;
-	elem->t_identifier = NULL;
+	elem->identifier1 = NULL;
+	elem->identifier2 = NULL;
+	elem->ifentifier3 = NULL;
 	elem->s_literal = NULL;
 	return elem;
 }
@@ -87,8 +87,8 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 	char help[ARRAY_SIZE] = {0};
 	sprintf(help, "t%d", v_counter++);
 
-	elem->f_identifier = malloc(sizeof(char *) * ARRAY_SIZE);
-	strcpy(elem->f_identifier, help);
+	elem->identifier1 = malloc(sizeof(char *) * ARRAY_SIZE);
+	strcpy(elem->identifier1, help);
 
 	if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL) {
 		if (DEBUG) {
@@ -123,10 +123,10 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 		if (DEBUG)
 			printf("IDENTIFIER\n");
 		elem->type = MCC_TAC_ELEMENT_TYPE_COPY;
-		elem->s_identifier =
+		elem->identifier2 =
 			malloc(sizeof(char *)
 			       * strlen(expression->identifier->renamed));
-		strcpy(elem->s_identifier, expression->identifier->renamed);
+		strcpy(elem->identifier2, expression->identifier->renamed);
 		expression->tac_start = elem;
 		expression->tac_end = elem;
 	} else if (expression->type
@@ -135,15 +135,15 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 			printf("IDENTIFIER []\n");
 		elem->type = MCC_TAC_ELEMENT_TYPE_LOAD;
 
-		elem->s_identifier =
+		elem->identifier2 =
 			malloc(sizeof(char *)
 			       * strlen(expression->identifier->renamed));
-		strcpy(elem->s_identifier, expression->identifier->renamed);
+		strcpy(elem->identifier2, expression->identifier->renamed);
 
 		tac_list *temp = expression->identifier_expression->tac_end;
-		elem->t_identifier =
-			malloc(sizeof(char *) * strlen(temp->f_identifier));
-		strcpy(elem->t_identifier, temp->f_identifier);
+		elem->ifentifier3 =
+			malloc(sizeof(char *) * strlen(temp->identifier1));
+		strcpy(elem->ifentifier3, temp->identifier1);
 		temp->next = elem;
 		elem->prev = temp;
 		expression->tac_start =
@@ -155,7 +155,7 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 			printf("CALL EXPRESSION FROM SINGLE EXPRESSION\n");
 		expression->tac_start = expression->call_expr->tac_start;
 		expression->tac_end = expression->call_expr->tac_end;
-		free(elem->f_identifier);
+		free(elem->identifier1);
 		free(elem);
 	} else if (expression->type
 		   == MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP) {
@@ -171,9 +171,9 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 			break;
 		}
 		tac_list *temp = expression->unary_expression->tac_end;
-		elem->s_identifier =
-			malloc(sizeof(char *) * strlen(temp->f_identifier));
-		strcpy(elem->s_identifier, temp->f_identifier);
+		elem->identifier2 =
+			malloc(sizeof(char *) * strlen(temp->identifier1));
+		strcpy(elem->identifier2, temp->identifier1);
 		expression->tac_start = elem;
 		expression->tac_end = elem;
 	} else if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH) {
@@ -181,7 +181,7 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 			printf("{ EXPRESSION }\n");
 		expression->tac_start = expression->expression->tac_start;
 		expression->tac_end = expression->expression->tac_end;
-		free(elem->f_identifier);
+		free(elem->identifier1);
 		free(elem);
 	}
 }
@@ -203,23 +203,23 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data)
 		char help[ARRAY_SIZE] = {0};
 		sprintf(help, "t%d", v_counter++);
 
-		elem->f_identifier = malloc(sizeof(char *) * ARRAY_SIZE);
-		strcpy(elem->f_identifier, help);
+		elem->identifier1 = malloc(sizeof(char *) * ARRAY_SIZE);
+		strcpy(elem->identifier1, help);
 		if (DEBUG)
 			printf("BINARY OPERATION\n");
 		elem->type = MCC_TAC_ELEMENT_TYPE_BINARY;
 
 		tac_list *temp_lhs_end = expression->lhs->tac_end;
 		tac_list *temp_lhs_star = expression->lhs->tac_start;
-		elem->s_identifier = malloc(
-			sizeof(char *) * strlen(temp_lhs_end->f_identifier));
-		strcpy(elem->s_identifier, temp_lhs_end->f_identifier);
+		elem->identifier2 = malloc(
+			sizeof(char *) * strlen(temp_lhs_end->identifier1));
+		strcpy(elem->identifier2, temp_lhs_end->identifier1);
 
 		tac_list *temp_rhs_end = expression->rhs->tac_end;
 		tac_list *temp_rhs_start = expression->rhs->tac_start;
-		elem->t_identifier = malloc(
-			sizeof(char *) * strlen(temp_rhs_end->f_identifier));
-		strcpy(elem->t_identifier, temp_rhs_end->f_identifier);
+		elem->ifentifier3 = malloc(
+			sizeof(char *) * strlen(temp_rhs_end->identifier1));
+		strcpy(elem->ifentifier3, temp_rhs_end->identifier1);
 
 		switch (expression->op) {
 		case (MCC_AST_BINARY_OP_ADD):
@@ -286,9 +286,9 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 
 	elem->type = MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL;
 
-	elem->f_identifier = malloc(sizeof(char *)
+	elem->identifier1 = malloc(sizeof(char *)
 				    * strlen(expression->identifier->renamed));
-	strcpy(elem->f_identifier, expression->identifier->renamed);
+	strcpy(elem->identifier1, expression->identifier->renamed);
 
 	if (expression->d_type != MCC_AST_TYPE_VOID) {
 		if (DEBUG)
@@ -296,9 +296,9 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 		tac_list *ret_elem = tac_new_list();
 		ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
 		char *ret_name = "result";
-		ret_elem->f_identifier =
+		ret_elem->identifier1 =
 			malloc(sizeof(char *) * strlen(ret_name));
-		strcpy(ret_elem->f_identifier, ret_name);
+		strcpy(ret_elem->identifier1, ret_name);
 		ret_elem->next = elem;
 		elem->prev = ret_elem;
 		if (expression->arguments == NULL)
@@ -317,7 +317,7 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 			elem->num_function_param = 0;
 		else
 			elem->num_function_param =
-				expression->arguments->counter + 1;
+				expression->arguments->counter;
 	}
 
 	// TODO maybe move this to mcc_tac_arguments
@@ -346,13 +346,13 @@ static void tac_function_def(struct mCc_ast_function_def *f, void *data)
 	tac_list *end = tac_new_list();
 
 	start->type = MCC_TAC_ELEMENT_TYPE_FUNCTION_START;
-	start->f_identifier =
+	start->identifier1 =
 		malloc(sizeof(char *) * strlen(f->identifier->renamed));
-	strcpy(start->f_identifier, f->identifier->renamed);
+	strcpy(start->identifier1, f->identifier->renamed);
 	end->type = MCC_TAC_ELEMENT_TYPE_FUNCTION_END;
-	end->f_identifier =
+	end->identifier1 =
 		malloc(sizeof(char *) * strlen(f->identifier->renamed));
-	strcpy(end->f_identifier, f->identifier->renamed);
+	strcpy(end->identifier1, f->identifier->renamed);
 
 	tac_list *temp_c_stmt_start = f->c_stmt->tac_start;
 	tac_list *temp_c_stmt_end = f->c_stmt->tac_end;
@@ -456,9 +456,9 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
 
 	if (stmt->expression != NULL) {
 		tac_list *temp = stmt->expression->tac_end;
-		elem->f_identifier =
-			malloc(sizeof(char *) * strlen(temp->f_identifier));
-		strcpy(elem->f_identifier, temp->f_identifier);
+		elem->identifier1 =
+			malloc(sizeof(char *) * strlen(temp->identifier1));
+		strcpy(elem->identifier1, temp->identifier1);
 
 		elem->prev = temp;
 		temp->next = elem;
@@ -466,7 +466,7 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
 		stmt->tac_start = stmt->expression->tac_start;
 		stmt->tac_end = elem;
 	} else {
-		//    elem->f_identifier = malloc(sizeof(char *));
+		//    elem->identifier1 = malloc(sizeof(char *));
 		stmt->tac_start = elem;
 		stmt->tac_end = elem;
 	}
@@ -485,14 +485,14 @@ static void tac_ass_stmt(struct mCc_ast_assignment *stmt, void *data)
 
 		elem->type = MCC_TAC_ELEMENT_TYPE_COPY;
 
-		elem->f_identifier = malloc(
+		elem->identifier1 = malloc(
 			sizeof(char *) * strlen(stmt->identifier->renamed));
-		strcpy(elem->f_identifier, stmt->identifier->renamed);
+		strcpy(elem->identifier1, stmt->identifier->renamed);
 
 		tac_list *temp = stmt->expression->tac_end;
-		elem->s_identifier =
-			malloc(sizeof(char *) * strlen(temp->f_identifier));
-		strcpy(elem->s_identifier, temp->f_identifier);
+		elem->identifier2 =
+			malloc(sizeof(char *) * strlen(temp->identifier1));
+		strcpy(elem->identifier2, temp->identifier1);
 
 		temp->next = elem;
 		elem->prev = temp;
@@ -505,20 +505,20 @@ static void tac_ass_stmt(struct mCc_ast_assignment *stmt, void *data)
 		tac_list *elem = tac_new_list();
 
 		elem->type = MCC_TAC_ELEMENT_TYPE_STORE;
-		elem->f_identifier = malloc(
+		elem->identifier1 = malloc(
 			sizeof(char *) * strlen(stmt->identifier->renamed));
-		strcpy(elem->f_identifier, stmt->identifier->renamed);
+		strcpy(elem->identifier1, stmt->identifier->renamed);
 
 		tac_list *numerator_end = stmt->numerator->tac_end;
-		elem->s_identifier = malloc(
-			sizeof(char *) * strlen(numerator_end->f_identifier));
-		strcpy(elem->s_identifier, numerator_end->f_identifier);
+		elem->identifier2 = malloc(
+			sizeof(char *) * strlen(numerator_end->identifier1));
+		strcpy(elem->identifier2, numerator_end->identifier1);
 
 		tac_list *expression_end = stmt->expression->tac_end;
 		tac_list *expression_start = stmt->expression->tac_start;
-		elem->t_identifier = malloc(
-			sizeof(char *) * strlen(expression_end->f_identifier));
-		strcpy(elem->t_identifier, expression_end->f_identifier);
+		elem->ifentifier3 = malloc(
+			sizeof(char *) * strlen(expression_end->identifier1));
+		strcpy(elem->ifentifier3, expression_end->identifier1);
 
 		numerator_end->next = expression_start;
 		expression_start->prev = numerator_end;
@@ -544,9 +544,9 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 
 	tac_list *temp_expression_end = stmt->expression->tac_end;
 	jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
-	jump_false->f_identifier = malloc(
-		sizeof(char *) * strlen(temp_expression_end->f_identifier));
-	strcpy(jump_false->f_identifier, temp_expression_end->f_identifier);
+	jump_false->identifier1 = malloc(
+		sizeof(char *) * strlen(temp_expression_end->identifier1));
+	strcpy(jump_false->identifier1, temp_expression_end->identifier1);
 	temp_expression_end->next = jump_false;
 	jump_false->prev = temp_expression_end;
 
@@ -554,8 +554,8 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 	sprintf(help, "L%d", l_counter++);
 
 	label->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-	label->f_identifier = malloc(sizeof(char *) * ARRAY_SIZE);
-	strcpy(label->f_identifier, help);
+	label->identifier1 = malloc(sizeof(char *) * ARRAY_SIZE);
+	strcpy(label->identifier1, help);
 
 	if (stmt->else_statement != NULL) {
 		tac_list *temp_else_stmt_start =
@@ -608,15 +608,15 @@ static void tac_while_stmt(struct mCc_ast_while_stmt *stmt, void *data)
 	sprintf(s_help, "L%d", l_counter++);
 
 	label_jump->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-	label_jump->f_identifier = malloc(sizeof(char *) * ARRAY_SIZE);
-	strcpy(label_jump->f_identifier, s_help);
+	label_jump->identifier1 = malloc(sizeof(char *) * ARRAY_SIZE);
+	strcpy(label_jump->identifier1, s_help);
 
 	char f_help[ARRAY_SIZE] = {0};
 	sprintf(f_help, "L%d", l_counter++);
 
 	label_jump_false->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-	label_jump_false->f_identifier = malloc(sizeof(char *) * ARRAY_SIZE);
-	strcpy(label_jump_false->f_identifier, f_help);
+	label_jump_false->identifier1 = malloc(sizeof(char *) * ARRAY_SIZE);
+	strcpy(label_jump_false->identifier1, f_help);
 
 
 	tac_list *temp_stmt_start = stmt->statement->tac_start;
@@ -629,9 +629,9 @@ static void tac_while_stmt(struct mCc_ast_while_stmt *stmt, void *data)
 	temp_expression_start->prev = label_jump;
 
 	jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
-	jump_false->f_identifier = malloc(
-		sizeof(char *) * strlen(temp_expression_end->f_identifier));
-	strcpy(jump_false->f_identifier, temp_expression_end->f_identifier);
+	jump_false->identifier1 = malloc(
+		sizeof(char *) * strlen(temp_expression_end->identifier1));
+	strcpy(jump_false->identifier1, temp_expression_end->identifier1);
 
 	jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
 	jump->jump = label_jump;
@@ -667,19 +667,19 @@ static void tac_declaration(struct mCc_ast_declaration *declaration, void *data)
 	if (declaration->type == MCC_AST_DECLARATION_TYPE_SINGLE) {
 		tac_list *elem = tac_new_list();
 		elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
-		elem->f_identifier =
+		elem->identifier1 =
 			malloc(sizeof(char *)
 			       * strlen(declaration->identifier->renamed));
-		strcpy(elem->f_identifier, declaration->identifier->renamed);
+		strcpy(elem->identifier1, declaration->identifier->renamed);
 		declaration->tac_start = elem;
 		declaration->tac_end = elem;
 	} else if (declaration->type == MCC_AST_DECLARATION_TYPE_ARRAY) {
 		tac_list *elem = tac_new_list();
 		elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
-		elem->f_identifier = malloc(
+		elem->identifier1 = malloc(
 			sizeof(char *)
 			* strlen(declaration->array_identifier->renamed));
-		strcpy(elem->f_identifier,
+		strcpy(elem->identifier1,
 		       declaration->array_identifier->renamed);
 		declaration->tac_start = elem;
 		declaration->tac_end = elem;
@@ -752,12 +752,12 @@ void mCc_tac_delete(struct mCc_tac_list *head)
 	struct mCc_tac_list *current = head;
 	while (current != NULL) {
 		struct mCc_tac_list *next = current->next;
-		if (current->f_identifier != NULL)
-			free(current->f_identifier);
-		if (current->s_identifier != NULL)
-			free(current->s_identifier);
-		if (current->t_identifier != NULL)
-			free(current->t_identifier);
+		if (current->identifier1 != NULL)
+			free(current->identifier1);
+		if (current->identifier2 != NULL)
+			free(current->identifier2);
+		if (current->ifentifier3 != NULL)
+			free(current->ifentifier3);
 		if (current->s_literal != NULL)
 			free(current->s_literal);
 		free(current);
@@ -775,34 +775,35 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 		struct mCc_tac_list *next = current->next;
 		switch (current->type) {
 		case (MCC_TAC_ELEMENT_TYPE_UNKNOWN):
-			if (DEBUG)
+			if (DEBUG);
+
 			fprintf(out, "UNKNOWN\n");
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_COPY):
 			switch (current->l_type) {
 			case (MCC_TAC_LITERAL_TYPE_UNKNWON):
 				fprintf(out, "COPY: %s = %s\n",
-					current->f_identifier,
-					current->s_identifier);
+					current->identifier1,
+					current->identifier2);
 				break;
 			case (MCC_TAC_LITERAL_TYPE_INT):
 				fprintf(out, "COPY: %s = %ld\n",
-					current->f_identifier,
+					current->identifier1,
 					current->i_literal);
 				break;
 			case (MCC_TAC_LITERAL_TYPE_FLOAT):
 				fprintf(out, "COPY: %s = %f\n",
-					current->f_identifier,
+					current->identifier1,
 					current->f_literal);
 				break;
 			case (MCC_TAC_LITERAL_TYPE_BOOL):
 				fprintf(out, "COPY: %s = %d\n",
-					current->f_identifier,
+					current->identifier1,
 					current->b_literal);
 				break;
 			case (MCC_TAC_LITERAL_TYPE_STRING):
 				fprintf(out, "COPY: %s = %s\n",
-					current->f_identifier,
+					current->identifier1,
 					current->s_literal);
 				break;
 			}
@@ -831,8 +832,8 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 			case (MCC_TAC_OPERATION_TYPE_OR):
 				break;
 			}
-			fprintf(out, "%s %s\n", current->f_identifier,
-				current->s_identifier);
+			fprintf(out, "%s %s\n", current->identifier1,
+				current->identifier2);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_BINARY):
 			fprintf(out, "BINARY: ");
@@ -878,35 +879,35 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 			case (MCC_TAC_OPERATION_TYPE_UNKNOWN):
 				break;
 			}
-			fprintf(out, "%s %s %s\n", current->f_identifier,
-				current->s_identifier, current->t_identifier);
+			fprintf(out, "%s %s %s\n", current->identifier1,
+				current->identifier2, current->ifentifier3);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP):
 			fprintf(out, "UNCONDITIONAL JUMP: %s\n",
-				current->jump->f_identifier);
+				current->jump->identifier1);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP):
 			fprintf(out, "CONDITIONAL JUMP: %s %s\n",
-				current->f_identifier,
-				current->jump->f_identifier);
+				current->identifier1,
+				current->jump->identifier1);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_LABEL):
-			fprintf(out, "LABEL: %s\n", current->f_identifier);
+			fprintf(out, "LABEL: %s\n", current->identifier1);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP):
-			fprintf(out, "PARAM: %s\n", current->f_identifier);
+			fprintf(out, "PARAM: %s\n", current->identifier1);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL):
-			fprintf(out, "CALL: %s, %d\n", current->f_identifier,
+			fprintf(out, "CALL: %s, %d\n", current->identifier1,
 				current->num_function_param);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_LOAD):
-			fprintf(out, "LOAD: %s %s %s\n", current->f_identifier,
-				current->s_identifier, current->t_identifier);
+			fprintf(out, "LOAD: %s %s %s\n", current->identifier1,
+				current->identifier2, current->ifentifier3);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_STORE):
-			fprintf(out, "STORE: %s %s %s\n", current->f_identifier,
-				current->s_identifier, current->t_identifier);
+			fprintf(out, "STORE: %s %s %s\n", current->identifier1,
+				current->identifier2, current->ifentifier3);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_ADDRESS_ASSIGNMENT):
 			fprintf(out, "ADDRESS ASSIGNMENT\n");
@@ -916,16 +917,25 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_FUNCTION_START):
 			fprintf(out, "<FUNCTION START> %s\n",
-				current->f_identifier);
+				current->identifier1);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_FUNCTION_END):
 			fprintf(out, "<FUNCTION END> %s\n",
-				current->f_identifier);
+				current->identifier1);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_RETURN):
-			fprintf(out, "RETURN %s\n", current->f_identifier);
+			fprintf(out, "RETURN %s\n", current->identifier1);
 			break;
 		}
 		current = next;
 	}
+}
+
+struct mCc_tac_list * get_at(struct mCc_tac_list* head, int index)
+{
+	assert(head);
+	while(index-- > 0 && head != NULL)
+		head = head->next;
+
+	return head;
 }

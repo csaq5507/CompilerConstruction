@@ -25,26 +25,26 @@ int l_counter;
 
 
 enum mCc_tac_element_type {
-	MCC_TAC_ELEMENT_TYPE_UNKNOWN,		 //                      0
-	MCC_TAC_ELEMENT_TYPE_COPY,		 // x = y                1
-	MCC_TAC_ELEMENT_TYPE_UNARY,		 // x = op y             2
-	MCC_TAC_ELEMENT_TYPE_BINARY,		 // x = y op z           3
-	MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP, // jump L                4
-	MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP,   // jumpfalse x L        5
-	MCC_TAC_ELEMENT_TYPE_LABEL,		 // label L              6
-	MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP,    // param x              7
-	MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL,     // call p,n             8
-	MCC_TAC_ELEMENT_TYPE_LOAD,		 // x = y[i]             9
-	MCC_TAC_ELEMENT_TYPE_STORE,		 // x[i] = y             10
-	MCC_TAC_ELEMENT_TYPE_ADDRESS_ASSIGNMENT, // x = &y               11
-	MCC_TAC_ELEMENT_TYPE_POINTER_ASSIGNMENT, // x = *y               12
+	MCC_TAC_ELEMENT_TYPE_UNKNOWN,		 		//                      0
+	MCC_TAC_ELEMENT_TYPE_COPY_LITERAL,		 	// x = y                1
+	MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER,		// x = y                2
+	MCC_TAC_ELEMENT_TYPE_UNARY,		 			// x = op y             3
+	MCC_TAC_ELEMENT_TYPE_BINARY,		 		// x = y op z           4
+	MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP, 	// jump L               5
+	MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP,   	// jumpfalse x L        6
+	MCC_TAC_ELEMENT_TYPE_LABEL,		 			// label L              7
+	MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP,    	// param x              8
+	MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL,     	// call p,n             9
+	MCC_TAC_ELEMENT_TYPE_LOAD,		 			// x = y[i]             10
+	MCC_TAC_ELEMENT_TYPE_STORE,		 			// x[i] = y             11
+	MCC_TAC_ELEMENT_TYPE_ADDRESS_ASSIGNMENT, 	// x = &y               12
+	MCC_TAC_ELEMENT_TYPE_POINTER_ASSIGNMENT, 	// x = *y               13
 	MCC_TAC_ELEMENT_TYPE_FUNCTION_START,
 	MCC_TAC_ELEMENT_TYPE_FUNCTION_END,
 	MCC_TAC_ELEMENT_TYPE_RETURN
 };
 
 enum mCc_tac_operation_type {
-	MCC_TAC_OPERATION_TYPE_UNKNOWN,    // 0
 	MCC_TAC_OPERATION_TYPE_ASSIGNMENT, // 1
 	MCC_TAC_OPERATION_TYPE_PLUS,       // 2
 	MCC_TAC_OPERATION_TYPE_MINUS,      // 3
@@ -62,7 +62,6 @@ enum mCc_tac_operation_type {
 };
 
 enum mCc_tac_literal_type {
-	MCC_TAC_LITERAL_TYPE_UNKNWON,
 	MCC_TAC_LITERAL_TYPE_STRING,
 	MCC_TAC_LITERAL_TYPE_INT,
 	MCC_TAC_LITERAL_TYPE_BOOL,
@@ -74,22 +73,50 @@ typedef struct mCc_tac_list {
 	struct mCc_tac_list *next;
 
 	enum mCc_tac_element_type type;
+    char *identifier1;
 
-	enum mCc_tac_operation_type operation_type;
-	struct mCc_tac_list *jump;
+    union {
+        //COPY_LITERAL
+        struct{
+            enum mCc_tac_literal_type literal_type;
+            union{
+                char *s_literal;
+                long i_literal;
+                bool b_literal;
+                double f_literal;
+            };
+        };
 
-	char *identifier1;
-	char *identifier2;
-	char *ifentifier3;
+        //COPY_IDENTIFIER
+        char *copy_identifier;
 
-	int num_function_param;
+        //LOAD / STORE
+        struct {
+            char *identifier2;
+            char *identifier3;
+        };
 
-	enum mCc_tac_literal_type l_type;
+        //UNARY_OP
+        struct {
+            enum mCc_tac_operation_type unary_op_type;
+            char *unary_identifier;
+        };
 
-	char *s_literal;
-	long i_literal;
-	bool b_literal;
-	double f_literal;
+        //BINARY
+        struct {
+            enum mCc_tac_operation_type binary_op_type;
+            char * lhs;
+            char * rhs;
+        };
+
+        //CALL
+        int num_function_param;
+
+
+        //JUMP
+        struct mCc_tac_list *jump;
+
+    };
 
 } tac_list;
 

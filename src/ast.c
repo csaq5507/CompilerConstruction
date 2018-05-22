@@ -6,6 +6,7 @@
 
 #include "mCc/ast.h"
 #include <mCc/ast_visit.h>
+#include <mCc/utils.h>
 
 #define DEBUG 0
 
@@ -69,8 +70,9 @@ ast_identifier *mCc_ast_new_identifier(char *name, int line)
 		return NULL;
 
 	identifier->name = name;
-	identifier->renamed = malloc(sizeof(char *) * strlen(name));
-	memcpy(identifier->renamed, name, sizeof(char *) * strlen(name));
+
+	identifier->renamed = copy_string(identifier->name);
+
 	identifier->node.sloc.start_line = line;
 	identifier->d_type = MCC_AST_TYPE_VOID;
 	identifier->param_types = NULL;
@@ -170,10 +172,8 @@ ast_literal *mCc_ast_new_literal_string(char *value)
 	if (!lit) {
 		return NULL;
 	}
-	lit->s_value = malloc(sizeof(char *) * strlen(temp));
 	lit->type = MCC_AST_LITERAL_TYPE_STRING;
-	strcpy(lit->s_value, temp);
-	free(temp);
+	lit->s_value = copy_string(temp);
 	return lit;
 }
 

@@ -45,12 +45,10 @@ void mCc_ast_delete_identifier(ast_identifier *identifier, void *data)
 {
 	assert(identifier);
 	assert(data);
-	if (identifier->name != identifier->renamed) {
-		free(identifier->name);
-		free(identifier->renamed);
-	} else {
-		free(identifier->name);
-	}
+
+    free(identifier->name);
+    free(identifier->renamed);
+
 	if (identifier->param_types != NULL) {
 		free(identifier->param_types);
 	}
@@ -167,6 +165,7 @@ ast_literal *mCc_ast_new_literal_string(char *value)
 {
 	char *t = replace(value, "\\n", "enter");
 	char *temp = replace(t, "\"", "");
+  //  printf("%s",temp);
 	free(t);
 	ast_literal *lit = malloc(sizeof(*lit));
 	if (!lit) {
@@ -174,6 +173,7 @@ ast_literal *mCc_ast_new_literal_string(char *value)
 	}
 	lit->type = MCC_AST_LITERAL_TYPE_STRING;
 	lit->s_value = copy_string(temp);
+    free(temp);
 	return lit;
 }
 
@@ -259,8 +259,8 @@ void mCc_ast_delete_expression(ast_expr *expression, void *data)
 ast_single_expr *mCc_ast_new_single_expression_literal(ast_literal *literal)
 {
 	assert(literal);
-
 	ast_single_expr *expr = malloc(sizeof(*expr));
+
 	if (!expr) {
 		return NULL;
 	}

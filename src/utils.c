@@ -17,35 +17,31 @@ char * new_string(const char * pattern, ...)
     va_start(args, pattern);
     sprintf(help, pattern, args);
     va_end(args);
-    char *dest = malloc(sizeof(char) * strlen(help));
+    char *dest = malloc(sizeof(char) * (strlen(help) + 1));
     strcpy(dest,help);
     return dest;
 }
 
 char * copy_string(const char * src)
 {
-    char *dest = malloc(sizeof(char) * strlen(src));
+    char *dest = malloc(sizeof(char) * (strlen(src) + 1));
     if(dest==NULL)
     {
         printf("Error malloc");
         assert(NULL);
     }
-    if(strlen(src)==0)
-        printf("lol");
     strcpy(dest,src);
     return dest;
 }
 
 char * copy_string_realloc(char * dest, const char * src)
 {
-    dest = realloc(dest,sizeof(char) * strlen(src));
+    dest = realloc(dest,sizeof(char) * (strlen(src) + 1));
     if(dest==NULL)
     {
         printf("Error malloc");
         assert(NULL);
     }
-    if(strlen(src)==0)
-        printf("lol");
     strcpy(dest,src);
     return dest;
 }

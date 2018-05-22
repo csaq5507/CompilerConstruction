@@ -6,6 +6,7 @@
 #include <mCc/ast_semantic_checks.h>
 #include <mCc/tac.h>
 #include <mCc/utils.h>
+#include <zconf.h>
 
 #include "mCc/ast.h"
 #include "mCc/parser.h"
@@ -27,22 +28,32 @@ void print_error(const char *prg, const char *arg)
 	print_usage(prg);
 }
 
-void compiler_error(const char *msg, FILE *error,
-		    struct mCc_parser_result *result)
+void compiler_error(const char * msg, FILE *error,
+		    struct mCc_parser_result *result, ...)
 {
-	fprintf(error, msg);
-	for (int i = 0; i < result->errors->counter; i++) {
+    va_list args;
+    va_start(args, msg);
+	vfprintf(error, msg, args);
+    va_end(args);
+    for (int i = 0; i < result->errors->counter; i++) {
 		fprintf(error, "Error at line %d: ",
 			result->errors->errors[i].error_line);
 		fprintf(error, "%s\n", result->errors->errors[i].error_msg);
 	}
 }
 
-void clean_up(FILE * error, FILE * graph, FILE * tac, FILE * file_std_err){
+void clean_up(FILE * error, FILE * graph, FILE * tac, FILE * file_std_err,FILE * output,
+            char * tacFileName,char * graphFileName,char * errorFileName,char * inputFileName,char * outputFileName){
     fclose(error);
     fclose(graph);
     fclose(tac);
     fclose(file_std_err);
+    fclose(output);
+    free(tacFileName);
+    free(graphFileName);
+    free(errorFileName);
+    free(inputFileName);
+    free(outputFileName);
 }
 
 int main(int argc, char *argv[])
@@ -52,7 +63,7 @@ int main(int argc, char *argv[])
 		print_usage(argv[0]);
 		return EXIT_FAILURE;
 	}
-	char *outputFileName = NULL;
+	char *outputFileName = "a.out";
 	char *inputFileName = NULL;
 	bool print_graph = false;
 	bool print_tac = false;
@@ -88,7 +99,7 @@ int main(int argc, char *argv[])
 			if(!strcmp(argv[i], "-"))
 				output = stdout;
 			else
-				outputFileName = argv[i];
+				outputFileName = copy_string(argv[i]);
 		} else if (!strcmp(temp, "-")) {
 			inputFile = stdin;
 		} else {
@@ -96,7 +107,7 @@ int main(int argc, char *argv[])
 				print_error(argv[0], temp);
 				return EXIT_FAILURE;
 			}
-			inputFileName = temp;
+			inputFileName = copy_string(temp);
 			inputFile = fopen(temp, "r");
 			if (!inputFile) {
 				print_error(argv[0], temp);
@@ -122,14 +133,12 @@ int main(int argc, char *argv[])
 				last = splits;
 		}
 
-		outputFileName = last;
-
 		/* Create Error file */
 		char delimiter_point[] = ".";
 		splits = strtok(last, delimiter_point);
 
 		if (splits != NULL) {
-			outputFileName = splits;
+			outputFileName = copy_string(splits);
 		}
         free(string);
 	}
@@ -152,20 +161,17 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-    free(tacFileName);
-    free(graphFileName);
-    free(errorFileName);
 
 	/* parsing phase */
 	struct mCc_parser_result result = mCc_parser_parse_file(inputFile);
 	fclose(inputFile);
 	if (result.status == MCC_PARSER_STATUS_ERROR) {
-		compiler_error("Parse Error:\n", error, &result);
-		compiler_error("Parse Error:\n", file_std_err, &result);
+		compiler_error("Parse Error in file %s:\n", error, &result,inputFileName);
+		compiler_error("Parse Error in file %s:\n", file_std_err, &result,inputFileName);
 
 		mCc_ast_delete_function_def_array(result.func_def);
 		mCc_delete_result(&result);
-		clean_up(error,graph,tac,file_std_err);
+        clean_up(error,graph,tac,file_std_err,output,tacFileName,graphFileName,errorFileName,inputFileName,outputFileName);
 		return EXIT_SUCCESS;
 	}
 
@@ -175,11 +181,11 @@ int main(int argc, char *argv[])
 		mCc_ast_print_dot_function_def(graph, result.func_def);
 
 	if (result.status == MCC_PARSER_STATUS_ERROR) {
-		compiler_error("Semantic_error:\n", error, &result);
-		compiler_error("Semantic_error:\n", file_std_err, &result);
+		compiler_error("Semantic_error in file %s:\n", error, &result,inputFileName);
+		compiler_error("Semantic_error in file %s:\n", file_std_err, &result,inputFileName);
 		mCc_ast_delete_function_def_array(result.func_def);
 		mCc_delete_result(&result);
-        clean_up(error,graph,tac,file_std_err);
+        clean_up(error,graph,tac,file_std_err,output,tacFileName,graphFileName,errorFileName,inputFileName,outputFileName);
 
 		return EXIT_SUCCESS;
 	}
@@ -188,10 +194,12 @@ int main(int argc, char *argv[])
 	result = *(mCc_ast_semantic_check(&result));
 
 	if (result.status == MCC_PARSER_STATUS_ERROR) {
-		compiler_error("Semantic_error:\n", error, &result);
-		compiler_error("Semantic_error:\n", file_std_err, &result);
+		compiler_error("Semantic_error in file %s:\n", error, &result,inputFileName);
+		compiler_error("Semantic_error in file %s:\n", file_std_err, &result,inputFileName);
 		mCc_ast_delete_function_def_array(result.func_def);
 		mCc_delete_result(&result);
+        clean_up(error,graph,tac,file_std_err,output,tacFileName,graphFileName,errorFileName,inputFileName,outputFileName);
+
 		return EXIT_SUCCESS;
 	}
 
@@ -208,7 +216,7 @@ int main(int argc, char *argv[])
 
 	mCc_tac_delete(_tac);
 
-    clean_up(error,graph,tac,file_std_err);
+    clean_up(error,graph,tac,file_std_err,output,tacFileName,graphFileName,errorFileName,inputFileName,outputFileName);
 
 	//   printf("%d", sizeof(struct mCc_tac_list));
 

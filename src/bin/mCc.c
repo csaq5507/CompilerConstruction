@@ -44,7 +44,8 @@ void clean_up(FILE *error, FILE *graph, FILE *tac, FILE *file_std_err,
     fclose(tac);
     fclose(file_std_err);
     fclose(output);
-    free(outputFileName);
+    if(strcmp(outputFileName,"a.out"))
+        free(outputFileName);
 }
 
 int main(int argc, char *argv[]) {

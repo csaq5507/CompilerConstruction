@@ -498,6 +498,31 @@ ast_function_def_array *mCc_ast_new_function_def_array(ast_function_def *f)
 	return function_array;
 }
 
+ast_function_def_array *mCc_ast_gen_func_def(ast_expr * expr)
+{
+    assert(expr);
+
+    ast_function_def *f = malloc(sizeof(*f));
+    if (!f) {
+        return NULL;
+    }
+    f->type = MCC_AST_FUNCTION_DEF_TYPE_VOID;
+
+    f->void_value = "void";
+    f->identifier = mCc_ast_new_identifier(new_string("%s","temp"),0);
+    f->identifier->d_type = MCC_AST_TYPE_VOID;
+    f->params = mCc_ast_new_empty_parameter_array();
+    f->c_stmt = mCc_ast_new_single_compound(mCc_ast_new_expression(expr));
+
+    ast_function_def_array *function_array =
+            (ast_function_def_array *)malloc(
+                    sizeof(ast_function_def_array));
+    function_array->counter = 1;
+    function_array->function_def = f;
+
+    return function_array;
+}
+
 void mCc_ast_delete_function_def(ast_function_def *f, void *data)
 {
 	assert(f);

@@ -156,7 +156,7 @@ int main(int argc, char *argv[]) {
         if (fileInput)
             free(inputFileName);
     }
-    if (!pipeInput) {
+    if (!pipeInput || customOutput) {
         char *tacFileName = new_string("%s%s", outputFileName, ".tac");
         char *graphFileName = new_string("%s%s", outputFileName, ".graph");
         char *errorFileName = new_string("%s%s", outputFileName, ".error");

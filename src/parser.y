@@ -142,6 +142,7 @@ identifier      : IDENTIFIER        {$$ = mCc_ast_new_identifier($1, line_counte
                 ;
 
 toplevel        : function_def_arr                  { result->func_def = $1; result->has_toplevel = true; }
+                | expression                        { result->func_def = mCc_ast_gen_func_def($1); result->has_toplevel = true; }
                 ;
 
 function_def_arr: function_def_arr function_def     { $$ = mCc_ast_add_function_def_to_array($1,$2); }

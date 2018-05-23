@@ -8,22 +8,24 @@
 #include <mCc/ast_visit.h>
 #include <mCc/utils.h>
 
-#define MALLOC(ptr,size) ptr = malloc(size);                \
-                    if((ptr) == NULL && (size) != 0)        \
-                        {                                   \
-                            printf("Malloc failed for %p of"\
-                                   "size %li",ptr,(size));  \
-                            return NULL;                    \
-                        }
+#define MALLOC(ptr,size) 				\
+ptr = malloc(size);                		\
+if((ptr) == NULL)        				\
+{                                   	\
+	printf("Malloc failed for %p of"	\
+		   "size %li",ptr,(size));  	\
+	return NULL;                    	\
+}
 
-#define REALLOC(ptr,size) void * temp = realloc(ptr,size);   \
-                    if(temp == NULL && (size) != 0)        \
-                    {                                       \
-                        printf("Realloc failed for %p of"    \
-                               "size %li",ptr,(size));      \
-                        return NULL;                        \
-                    }                                       \
-                    ptr = temp;
+#define REALLOC(ptr,size) 				\
+void * temp = realloc(ptr,size);   		\
+if(temp == NULL)     					\
+{                                       \
+	printf("Realloc failed for %p of"   \
+		   "size %li",ptr,(size));      \
+	return NULL;                        \
+}                                       \
+(ptr) = temp;
 
 /* --------------------------------------------------------------VISITOR */
 static struct mCc_ast_visitor ast_delete_visitor(void *data)

@@ -4,8 +4,6 @@
 #include "mCc/tac.h"
 #include "mCc/utils.h"
 
-#define DEBUG 0
-
 static void tac_single_expression(struct mCc_ast_single_expression *expression,
 				  void *data);
 static void tac_expression(struct mCc_ast_expression *expression, void *data);
@@ -80,9 +78,6 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 	elem->identifier1 = new_string("t%d", v_counter++);
 
 	if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL) {
-		if (DEBUG) {
-			printf("LITERAL\n");
-		}
 		elem->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
 		switch (expression->literal->type) {
 		case (MCC_AST_LITERAL_TYPE_INT):
@@ -106,8 +101,6 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 		expression->tac_end = elem;
 	} else if (expression->type
 		   == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER) {
-		if (DEBUG)
-			printf("IDENTIFIER\n");
 		elem->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
 
 		elem->copy_identifier = copy_string(expression->identifier->renamed);
@@ -116,8 +109,6 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 		expression->tac_end = elem;
 	} else if (expression->type
 		   == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX) {
-		if (DEBUG)
-			printf("IDENTIFIER []\n");
 		elem->type = MCC_TAC_ELEMENT_TYPE_LOAD;
 
 		elem->identifier2 = copy_string(expression->identifier->renamed);
@@ -133,16 +124,12 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 		expression->tac_end = elem;
 	} else if (expression->type
 		   == MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR) {
-		if (DEBUG)
-			printf("CALL EXPRESSION FROM SINGLE EXPRESSION\n");
 		expression->tac_start = expression->call_expr->tac_start;
 		expression->tac_end = expression->call_expr->tac_end;
 		free(elem->identifier1);
 		free(elem);
 	} else if (expression->type
 		   == MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP) {
-		if (DEBUG)
-			printf("UNARY OPERATOR\n");
 		elem->type = MCC_TAC_ELEMENT_TYPE_UNARY;
 		switch (expression->unary_operator) {
 		case (MCC_AST_UNARY_OP_FAC):
@@ -159,8 +146,6 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 		expression->tac_start = elem;
 		expression->tac_end = elem;
 	} else if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH) {
-		if (DEBUG)
-			printf("{ EXPRESSION }\n");
 		expression->tac_start = expression->expression->tac_start;
 		expression->tac_end = expression->expression->tac_end;
 		free(elem->identifier1);
@@ -175,8 +160,6 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data)
 
 
 	if (expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
-		if (DEBUG)
-			printf("SINGLE EXPRESSION\n");
 		expression->tac_start = expression->single_expr->tac_start;
 		expression->tac_end = expression->single_expr->tac_end;
 	} else if (expression->type == MCC_AST_EXPRESSION_TYPE_BINARY) {
@@ -184,8 +167,6 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data)
 
 		elem->identifier1 = new_string("t%d", v_counter++);
 
-		if (DEBUG)
-			printf("BINARY OPERATION\n");
 		elem->type = MCC_TAC_ELEMENT_TYPE_BINARY;
 
 		tac_list *temp_lhs_end = expression->lhs->tac_end;
@@ -251,9 +232,6 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 	assert(expression);
 	assert(data);
 
-	if (DEBUG)
-		printf("CALL EXPRESSION\n");
-
 	/* TODO for array and string
 	 MCC_TAC_ELEMENT_TYPE_ADDRESS_ASSIGNMENT,    x = &y
 	 since they are called by reference not by value
@@ -266,8 +244,6 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 	elem->identifier1 = copy_string(expression->identifier->renamed);
 
 	if (expression->d_type != MCC_AST_TYPE_VOID) {
-		if (DEBUG)
-			printf("CALL EXPRESSION RETURN\n");
 		tac_list *ret_elem = tac_new_list();
 		ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
 
@@ -283,8 +259,6 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 		expression->tac_start = ret_elem;
 		expression->tac_end = elem;
 	} else {
-		if (DEBUG)
-			printf("CALL EXPRESSION VOID\n");
 		expression->tac_start = elem;
 		expression->tac_end = elem;
 		if (expression->arguments == NULL)
@@ -313,8 +287,6 @@ static void tac_function_def(struct mCc_ast_function_def *f, void *data)
 	assert(f);
 	assert(data);
 
-	if (DEBUG)
-		printf("FUNCTION DEFINITION\n");
 
 	tac_list *start = tac_new_list();
 	tac_list *end = tac_new_list();
@@ -352,8 +324,6 @@ static void tac_stmt(struct mCc_ast_stmt *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
-	if (DEBUG)
-		printf("STATEMENT\n");
 
 	switch (stmt->type) {
 	case (MCC_AST_IF_STMT):
@@ -394,9 +364,6 @@ static void tac_compound_stmt(struct mCc_ast_compound_stmt *c_stmt, void *data)
 	assert(c_stmt);
 	assert(data);
 
-	if (DEBUG)
-		printf("COMPOUND STATEMENT\n");
-
 	if (c_stmt->counter == 0) {
 		tac_list *elem = tac_new_list();
 		c_stmt->tac_start = elem;
@@ -420,9 +387,6 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
 {
 	assert(stmt);
 	assert(data);
-
-	if (DEBUG)
-		printf("RETURN\n");
 
 	tac_list *elem = tac_new_list();
 	elem->type = MCC_TAC_ELEMENT_TYPE_RETURN;
@@ -449,8 +413,6 @@ static void tac_ass_stmt(struct mCc_ast_assignment *stmt, void *data)
 	assert(data);
 
 	if (stmt->numerator == NULL) {
-		if (DEBUG)
-			printf("ASSIGNMENT STMT\n");
 		tac_list *elem = tac_new_list();
 
 		elem->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
@@ -467,8 +429,6 @@ static void tac_ass_stmt(struct mCc_ast_assignment *stmt, void *data)
 		stmt->tac_start = stmt->expression->tac_start;
 		stmt->tac_end = elem;
 	} else {
-		if (DEBUG)
-			printf("ASSIGNMENT STMT []\n");
 		tac_list *elem = tac_new_list();
 
 		elem->type = MCC_TAC_ELEMENT_TYPE_STORE;
@@ -499,9 +459,6 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 {
 	assert(stmt);
 	assert(data);
-
-	if (DEBUG)
-		printf("IF STMT\n");
 
 	tac_list *jump_false = tac_new_list();
 	tac_list *label = tac_new_list();
@@ -556,9 +513,6 @@ static void tac_while_stmt(struct mCc_ast_while_stmt *stmt, void *data)
 {
 	assert(stmt);
 	assert(data);
-
-	if (DEBUG)
-		printf("WHILE STMT\n");
 
 	tac_list *jump = tac_new_list();
 	tac_list *jump_false = tac_new_list();
@@ -616,9 +570,6 @@ static void tac_declaration(struct mCc_ast_declaration *declaration, void *data)
 	assert(declaration);
 	assert(data);
 
-	if (DEBUG)
-		printf("DECLARATION\n");
-
 	if (declaration->type == MCC_AST_DECLARATION_TYPE_SINGLE) {
 		tac_list *elem = tac_new_list();
 		elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
@@ -644,9 +595,6 @@ static void tac_parameter(struct mCc_ast_parameter *parameter, void *data)
 	assert(parameter);
 	assert(data);
 
-	if (DEBUG)
-		printf("PARAMETER\n");
-
 	if (parameter->counter == 0) {
 		tac_list *elem = tac_new_list();
 		parameter->tac_start = elem;
@@ -671,9 +619,6 @@ static void tac_argument(struct mCc_ast_argument *argument, void *data)
 {
 	assert(argument);
 	assert(data);
-
-	if (DEBUG)
-		printf("ARGUMENT\n");
 }
 
 
@@ -761,8 +706,6 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 		struct mCc_tac_list *next = current->next;
 		switch (current->type) {
 		case (MCC_TAC_ELEMENT_TYPE_UNKNOWN):
-			if (DEBUG)
-				fprintf(out, "UNKNOWN\n");
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_COPY_LITERAL):
 			switch (current->literal_type) {

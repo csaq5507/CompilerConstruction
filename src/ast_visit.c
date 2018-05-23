@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include "mCc/ast_visit.h"
 
-#define DEBUG 1
-
 #define visit(node, callback, visitor)                                         \
 	do {                                                                   \
 		if (callback) {                                                \

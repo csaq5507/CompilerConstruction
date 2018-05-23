@@ -20,6 +20,7 @@ typedef struct mCc_ast_current_func ast_current_fun;
 struct mCc_parser_result *
 mCc_ast_symbol_table(struct mCc_parser_result *result);
 
+const char *print_type(enum mCc_ast_type type);
 
 ast_symbol_table *table;
 ast_current_fun *current_fun;
@@ -29,7 +30,6 @@ bool has_main;
 
 /* ###################### STRUCTS ###################### */
 
-extern const char *print_literal_type(enum mCc_ast_literal_type type);
 
 typedef struct mCc_ast_symbol_table {
 

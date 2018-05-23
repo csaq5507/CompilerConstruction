@@ -27,11 +27,9 @@ TEST(tac_generation, tac_generation_func_call)
 
 	struct mCc_tac_list *tac;
 	tac = mCc_tac_generate(result.func_def);
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 
 
@@ -62,11 +60,9 @@ TEST(tac_generation, tac_generation_conditional_jump)
 
     struct mCc_tac_list *tac;
     tac = mCc_tac_generate(result.func_def);
-    struct mCc_ast_function_def_array *func_def_arr = result.func_def;
 
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    mCc_ast_delete_function_def_array(func_def_arr);
     mCc_delete_result(&result);
 
     struct mCc_tac_list *tac2 = get_at(tac,5);
@@ -94,11 +90,9 @@ TEST(tac_generation, tac_generation_unconditional_jump)
 
     struct mCc_tac_list *tac;
     tac = mCc_tac_generate(result.func_def);
-    struct mCc_ast_function_def_array *func_def_arr = result.func_def;
 
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    mCc_ast_delete_function_def_array(func_def_arr);
     mCc_delete_result(&result);
 
     struct mCc_tac_list *tac2 = get_at(tac,14);

@@ -39,7 +39,6 @@ TEST(symbol_table, correct_symbol_table)
 				   .declaration->identifier->renamed);
 
 
-	mCc_ast_delete_function_def_array(result.func_def);
 	mCc_delete_result(&result);
 }
 
@@ -55,7 +54,7 @@ TEST(symbol_table, main_not_void)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
+
 
 
 	char error_msg[1024] = {0};
@@ -63,7 +62,6 @@ TEST(symbol_table, main_not_void)
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 
@@ -79,11 +77,10 @@ TEST(symbol_table, no_main)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
+
 
 	ASSERT_STREQ(ERROR_NO_MAIN, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 
@@ -97,7 +94,7 @@ TEST(symbol_table, dublicate_function)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
+
 
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_DUBLICATE_FUNCTION,
@@ -105,7 +102,6 @@ TEST(symbol_table, dublicate_function)
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 TEST(symbol_table, dublicate_variable)
@@ -127,14 +123,13 @@ TEST(symbol_table, dublicate_variable)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
+
 
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_DUBLICATE_VARIABLE, "a");
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 
@@ -150,14 +145,13 @@ TEST(symbol_table, no_return)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
+
 
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_NO_RETURN, "func1");
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 
@@ -172,14 +166,13 @@ TEST(symbol_table, missing_variable_def)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
+
 
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_MISSING_VARIABLE_DEF, "b");
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 
@@ -195,7 +188,7 @@ TEST(symbol_table, missing_function_def)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
+
 
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_MISSING_FUNCTION_DEF,
@@ -203,7 +196,6 @@ TEST(symbol_table, missing_function_def)
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 
@@ -219,7 +211,7 @@ TEST(symbol_table, error_num_arguments)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
+
 
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_NUM_ARGUMENTS, "func2", 0,
@@ -227,7 +219,6 @@ TEST(symbol_table, error_num_arguments)
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 TEST(symbol_table, error_num_arguments2)
@@ -242,7 +233,7 @@ TEST(symbol_table, error_num_arguments2)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
+
 
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_NUM_ARGUMENTS, "func2", 2,
@@ -250,6 +241,5 @@ TEST(symbol_table, error_num_arguments2)
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }

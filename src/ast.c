@@ -516,8 +516,10 @@ void mCc_ast_delete_function_def(ast_function_def *f, void *data)
 		printf("function_def_c_stmt\n");
 }
 
-void mCc_ast_delete_function_def_array(ast_function_def_array *f)
+void mCc_ast_delete_function_def_array(ast_function_def_array *f, bool has_func_def)
 {
+    if(!has_func_def)
+        return;
 	assert(f);
 
 	struct mCc_ast_visitor visitor = ast_delete_visitor(f);

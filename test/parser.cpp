@@ -37,7 +37,6 @@ TEST(parser_lexer, ast_generation)
 		MCC_AST_DECL_STMT,
 		func_def[func_def_arr->counter - 1].c_stmt->statements[1].type);
 
-	mCc_ast_delete_function_def_array(result.func_def);
 	mCc_delete_result(&result);
 }
 

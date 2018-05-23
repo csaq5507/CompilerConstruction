@@ -15,7 +15,7 @@ char * new_string(const char * pattern, ...)
     char help[ARRAY_SIZE] = {0};
     va_list args;
     va_start(args, pattern);
-    sprintf(help, pattern, args);
+    vsprintf(help, pattern, args);
     va_end(args);
     char *dest = malloc(sizeof(char) * (strlen(help) + 1));
     strcpy(dest,help);

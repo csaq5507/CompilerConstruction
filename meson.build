@@ -38,6 +38,7 @@ mCc_src = [ 'src/ast.c',
             'src/tac.c',
             'src/error.c',
             'src/utils.c',
+            'src/code_generation.c',
             lgen.process('src/scanner.l'),
             pgen.process('src/parser.y') ]
 

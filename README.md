@@ -50,3 +50,8 @@ This is automated by a Bash script.
 Furthermore, a few micro-benchmarks are provided.
 
     $ ninja benchmark
+
+## Known Issues
+
+- executing Parser-unit tests (./ut_parser) causes a valgrind error on the "check_syntax_error_msg" test. More information about it in the parser.cpp
+-

@@ -23,7 +23,7 @@ set(CMAKE_BUILD_TYPE Debug)
 set(HEADER_FILES ${INCLUDE}/ast.h ${INCLUDE}/ast_print.h
         ${INCLUDE}/ast_visit.h ${INCLUDE}/parser.h
         ${INCLUDE}/ast_symbol_table.h ${INCLUDE}/ast_semantic_checks.h
-        ${INCLUDE}/tac.h ${INCLUDE}/error.h ${INCLUDE}/utils.h)
+        ${INCLUDE}/tac.h ${INCLUDE}/error.h ${INCLUDE}/utils.h ${INCLUDE}/code_generation.h)
 
 set(PARSER_FILES ${BUILD}/parser.tab.c ${BUILD}/parser.tab.h ${BUILD}/scanner.c ${BUILD}/scanner.h)
 aux_source_directory(src/ SRC_FILES)

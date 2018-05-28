@@ -2,7 +2,7 @@
 *  n(n-1)/2 swaps in an int array are needed.
 */
 
-void bubblesort(int[512] array) {
+int bubblesort(int[512] array) {
     int size;
     size = 512;
     int i;
@@ -21,6 +21,7 @@ void bubblesort(int[512] array) {
         }
         i = i+1;
     }
+    return size;
 }
 
 void main() {

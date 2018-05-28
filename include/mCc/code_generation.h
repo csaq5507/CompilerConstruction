@@ -45,7 +45,12 @@ struct mCc_assembly{
     struct mCc_assembly_line * head;
 };
 
-struct mCc_assembly_line * mCc_binary_assembly(struct mCc_tac_list * tac);
+
+struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac);
+
+struct mCc_assembly_line * mCc_assembly_operation(struct mCc_tac_list *tac);
+
+struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac);
 
 
 

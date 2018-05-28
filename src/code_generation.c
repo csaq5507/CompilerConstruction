@@ -29,6 +29,12 @@ if(temp == NULL)     					\
 (ptr) = temp;
 
 
+struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac);
+
+struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac);
+
+struct mCc_assembly_line *mCc_assembly_function_end(struct mCc_tac_list *tac);
+
 struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac, const char * output)
 {
     struct mCc_assembly * assembly;
@@ -45,17 +51,23 @@ struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac, const char 
         switch (tac->type)
         {
             case MCC_TAC_ELEMENT_TYPE_COPY_LITERAL:
+                temp = mCc_assembly_copy_literal(tac);
                 break;
             case MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER:
+                MALLOC(temp, sizeof(struct mCc_assembly_line));
+                temp->instruction = new_string("movl\t%s %s",tac->identifier1,tac->copy_identifier);
                 break;
             case MCC_TAC_ELEMENT_TYPE_UNARY:
-                break;
             case MCC_TAC_ELEMENT_TYPE_BINARY:
-                temp = mCc_binary_assembly(tac);
+                temp = mCc_assembly_operation(tac);
                 break;
             case MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP:
+                MALLOC(temp, sizeof(struct mCc_assembly_line))
+                temp->instruction = new_string("call\t%s",tac->jump->identifier1);
                 break;
             case MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP:
+                MALLOC(temp, sizeof(struct mCc_assembly_line))
+                temp->instruction = new_string("call\t%s",tac->jump->identifier1);
                 break;
             case MCC_TAC_ELEMENT_TYPE_LABEL:
                 break;
@@ -72,12 +84,17 @@ struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac, const char 
             case MCC_TAC_ELEMENT_TYPE_POINTER_ASSIGNMENT:
                 break;
             case MCC_TAC_ELEMENT_TYPE_FUNCTION_START:
+                temp = mCc_assembly_function_start(tac);
                 break;
             case MCC_TAC_ELEMENT_TYPE_FUNCTION_END:
+
+            MALLOC(temp, sizeof(struct mCc_assembly_line))
+                temp->instruction = new_string(".size\t%s, .-%s",tac->identifier1,tac->identifier1);
                 break;
             case MCC_TAC_ELEMENT_TYPE_RETURN:
                 break;
         }
+        temp->prev=current;
         current->next = temp;
         while(current->next != NULL)
             current=current->next;
@@ -85,13 +102,51 @@ struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac, const char 
     } while(tac!=NULL);
 }
 
-struct mCc_assembly_line * mCc_binary_assembly(struct mCc_tac_list * tac)
+
+struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac) {
+    struct mCc_assembly_line * temp;
+    MALLOC(temp, sizeof(struct mCc_assembly_line))
+    temp->instruction = new_string(".globl\t%s",tac->identifier1);
+    struct mCc_assembly_line * temp1;
+    struct mCc_assembly_line * temp2;
+    MALLOC(temp1, sizeof(struct mCc_assembly_line))
+    MALLOC(temp2, sizeof(struct mCc_assembly_line))
+    temp->next = temp1;
+    temp1->prev = temp;
+    temp1->next = temp2;
+    temp2->prev = temp1;
+    temp1->instruction = new_string(".type\t%s, @function",tac->identifier1);
+    temp2->instruction = new_string("%s:",tac->identifier1);
+    return temp;
+}
+
+
+struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac) {
+    struct mCc_assembly_line * retval;
+    MALLOC(retval, sizeof(struct mCc_assembly_line))
+    switch (tac->literal_type){
+        case (MCC_TAC_LITERAL_TYPE_INT):
+            retval->instruction = new_string("imovl\t%s %s",tac->identifier1,tac->i_literal);
+            break;
+        case (MCC_TAC_LITERAL_TYPE_FLOAT):
+            retval->instruction = new_string("fmovl\t%s %s",tac->identifier1,tac->f_literal);
+            break;
+        case (MCC_TAC_LITERAL_TYPE_BOOL):
+            retval->instruction = new_string("bmovl\t%s %s",tac->identifier1,tac->b_literal);
+            break;
+        case (MCC_TAC_LITERAL_TYPE_STRING):
+            retval->instruction = new_string("smovl\t%s %s",tac->identifier1,tac->s_literal);
+            break;
+    }
+    return retval;
+}
+
+struct mCc_assembly_line * mCc_assembly_operation(struct mCc_tac_list *tac)
 {
     struct mCc_assembly_line * retval;
     MALLOC(retval, sizeof(struct mCc_assembly_line))
-    switch(tac->binary_op_type){
-        case MCC_TAC_OPERATION_TYPE_ASSIGNMENT:
-            break;
+    int op = (tac->type == MCC_TAC_ELEMENT_TYPE_UNARY) ? tac->unary_op_type : tac->binary_op_type;
+    switch(op){
         case MCC_TAC_OPERATION_TYPE_PLUS:
             retval->instruction = new_string("addl\t%s %s %s",tac->identifier1,tac->lhs,tac->rhs);
             break;
@@ -104,23 +159,35 @@ struct mCc_assembly_line * mCc_binary_assembly(struct mCc_tac_list * tac)
         case MCC_TAC_OPERATION_TYPE_DIVISION:
             retval->instruction = new_string("idivl\t%s %s %s",tac->identifier1,tac->lhs,tac->rhs);
             break;
-        case MCC_TAC_OPERATION_TYPE_FAC:
-            break;
         case MCC_TAC_OPERATION_TYPE_EQ:
+            retval->instruction = new_string("");
             break;
         case MCC_TAC_OPERATION_TYPE_NE:
+            retval->instruction = new_string("");
             break;
         case MCC_TAC_OPERATION_TYPE_LT:
+            retval->instruction = new_string("");
             break;
         case MCC_TAC_OPERATION_TYPE_GT:
+            retval->instruction = new_string("");
             break;
         case MCC_TAC_OPERATION_TYPE_LE:
+            retval->instruction = new_string("");
             break;
         case MCC_TAC_OPERATION_TYPE_GE:
+            retval->instruction = new_string("");
             break;
         case MCC_TAC_OPERATION_TYPE_AND:
+            retval->instruction = new_string("");
             break;
         case MCC_TAC_OPERATION_TYPE_OR:
+            retval->instruction = new_string("");
+            break;
+        case MCC_TAC_OPERATION_TYPE_ASSIGNMENT:
+            break;
+        case MCC_TAC_OPERATION_TYPE_FAC:
             break;
     }
+    return retval;
 }
+

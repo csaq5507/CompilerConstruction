@@ -26,7 +26,7 @@ int l_counter;
 
 enum mCc_tac_element_type {
 	MCC_TAC_ELEMENT_TYPE_UNKNOWN,		 		//                      0
-	MCC_TAC_ELEMENT_TYPE_COPY_LITERAL,		 	// x = y                1
+	MCC_TAC_ELEMENT_TYPE_COPY_LITERAL,		 	// x = 4                1
 	MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER,		// x = y                2
 	MCC_TAC_ELEMENT_TYPE_UNARY,		 			// x = op y             3
 	MCC_TAC_ELEMENT_TYPE_BINARY,		 		// x = y op z           4
@@ -76,6 +76,8 @@ typedef struct mCc_tac_list {
     char *identifier1;
 
     union {
+		//DECL
+		enum mCc_ast_literal_type decl_lit_type;
         //COPY_LITERAL
         struct{
             enum mCc_tac_literal_type literal_type;

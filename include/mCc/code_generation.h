@@ -15,8 +15,33 @@
 extern "C" {
 #endif
 
-struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac, const char * output);
+int jump_cond;
 
+
+
+/**********************************************LABELS***/
+int string_label_idx;
+int label_idx;
+
+struct label_identification{
+    char * key;
+    char * value;
+};
+
+struct labels{
+    int counter;
+    struct label_identification * l;
+};
+
+struct labels * label;
+void create_label(char * key, char * value);
+char * get_label(char * key);
+
+/**********************************************ASSEMBLY*/
+
+struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac);
+void mCc_print_assembly(FILE * out, struct mCc_assembly *ass);
+int get_literal_size(enum mCc_ast_literal_type type);
 enum instruction{
     MCC_ASSEMBLY_LABEL,
     MCC_ASSEMBLY_DIRECTIVE,
@@ -52,7 +77,11 @@ struct mCc_assembly_line * mCc_assembly_operation(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac);
 
+struct mCc_assembly_line *mCc_assembly_function_end(struct mCc_tac_list *tac);
 
+struct mCc_assembly_line *mCc_assembly_jump(struct mCc_tac_list *tac);
+
+struct mCc_assembly_line *mCc_procedure_call(struct mCc_tac_list *tac);
 
 #ifdef __cplusplus
 }

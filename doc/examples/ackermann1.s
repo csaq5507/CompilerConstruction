@@ -8,6 +8,8 @@ ackermann:
 	subl	$8, %esp
 	cmpl	$0, 8(%ebp)
 	jne	.L2
+	cmpl	$1000, 12(%ebp)
+	je	.L2
 	movl	12(%ebp), %eax
 	addl	$1, %eax
 	jmp	.L3

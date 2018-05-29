@@ -575,7 +575,7 @@ static void tac_declaration(struct mCc_ast_declaration *declaration, void *data)
 		elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
 
 		elem->identifier1 = copy_string(declaration->identifier->renamed);
-
+		elem->decl_lit_type = declaration->literal;
         declaration->tac_start = elem;
 		declaration->tac_end = elem;
 	} else if (declaration->type == MCC_AST_DECLARATION_TYPE_ARRAY) {
@@ -584,6 +584,7 @@ static void tac_declaration(struct mCc_ast_declaration *declaration, void *data)
 
 		elem->identifier1 = copy_string(
 		       declaration->array_identifier->renamed);
+		elem->decl_lit_type = declaration->literal;
 
 		declaration->tac_start = elem;
 		declaration->tac_end = elem;

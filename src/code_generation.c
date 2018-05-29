@@ -28,13 +28,6 @@ if(temp == NULL)     					\
 }                                       \
 (ptr) = temp;
 
-
-struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac);
-
-struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac);
-
-struct mCc_assembly_line *mCc_assembly_function_end(struct mCc_tac_list *tac);
-
 struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac, const char * output)
 {
     struct mCc_assembly * assembly;
@@ -109,14 +102,25 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac) 
     temp->instruction = new_string(".globl\t%s",tac->identifier1);
     struct mCc_assembly_line * temp1;
     struct mCc_assembly_line * temp2;
+    struct mCc_assembly_line * temp3;
+    struct mCc_assembly_line * temp4;
     MALLOC(temp1, sizeof(struct mCc_assembly_line))
     MALLOC(temp2, sizeof(struct mCc_assembly_line))
+    MALLOC(temp3, sizeof(struct mCc_assembly_line))
+    MALLOC(temp4, sizeof(struct mCc_assembly_line))
     temp->next = temp1;
     temp1->prev = temp;
     temp1->next = temp2;
     temp2->prev = temp1;
+    temp2->next = temp3;
+    temp3->prev = temp2;
+    temp3->next = temp4;
+    temp4->prev = temp3;
+    temp4->next = NULL;
     temp1->instruction = new_string(".type\t%s, @function",tac->identifier1);
     temp2->instruction = new_string("%s:",tac->identifier1);
+    temp3->instruction = new_string("pushl\t%ebp");
+    temp4->instruction = new_string("movl\t %esp, %ebp");
     return temp;
 }
 

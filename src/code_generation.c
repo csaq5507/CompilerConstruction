@@ -35,6 +35,7 @@ struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac)
     struct mCc_assembly * assembly;
     string_label_idx = 0;
     label_idx = 0;
+    stack_pointer = 0;
     MALLOC(label, sizeof(struct labels))
     label->counter=0;
     label->l=NULL;
@@ -108,13 +109,13 @@ int get_literal_size(enum mCc_ast_literal_type type) {
     switch (type)
     {
         case MCC_TAC_LITERAL_TYPE_STRING:
-            return 8;
+            return 4;
         case MCC_TAC_LITERAL_TYPE_INT:
-            return 8;
+            return 4;
         case MCC_TAC_LITERAL_TYPE_FLOAT:
-            return 16;
+            return 4;
         case MCC_TAC_LITERAL_TYPE_BOOL:
-            return 8;
+            return 4;
     }
 }
 
@@ -220,6 +221,14 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac) 
 }
 
 
+struct mCc_assembly_line *mCc_assembly_copy_identifier(struct mCc_tac_list *tac) {
+    struct mCc_assembly_line * temp;
+    MALLOC(temp, sizeof(struct mCc_assembly_line))
+    stack_pointer+=4;
+    temp->instruction = new_string("\tmovl\t%s,-%d(%s)",get_label(tac->copy_identifier),stack_pointer,"%edp");
+
+}
+
 struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac) {
     struct mCc_assembly_line * retval;
     MALLOC(retval, sizeof(struct mCc_assembly_line))
@@ -237,7 +246,6 @@ struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac) {
             break;
     }
     if(tac->literal_type == MCC_TAC_LITERAL_TYPE_STRING){
-
         struct mCc_assembly_line * temp;
         struct mCc_assembly_line * temp1;
         MALLOC(temp1, sizeof(struct mCc_assembly_line))
@@ -250,6 +258,7 @@ struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac) {
         create_label(tac->identifier1,retval->instruction);
         temp->instruction = new_string("\t.string \"%s\"",tac->s_literal);
         temp1->instruction = new_string("\t.text");
+
     }
     return retval;
 }
@@ -333,11 +342,13 @@ void mCc_print_assembly(FILE * out, struct mCc_assembly *ass)
 }
 
 void create_label(char * key, char * value)
-{/*
-    if(label->counter==0)
-        MALLOC(label->l, sizeof(struct label_identification))
-    else
-        REALLOC(label->l,(label->counter+1) * sizeof(struct label_identification))*/
+{
+    if(label->counter==0) {
+        MALLOC((label->l), (sizeof(struct label_identification)))
+    }else
+    {
+        REALLOC((label->l),((label->counter+1) * sizeof(struct label_identification)))
+    }
     label->l[label->counter].key = key;
     label->l[label->counter].value = value;
     label->counter++;

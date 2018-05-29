@@ -22,6 +22,7 @@ int jump_cond;
 /**********************************************LABELS***/
 int string_label_idx;
 int label_idx;
+int stack_pointer;
 
 struct label_identification{
     char * key;

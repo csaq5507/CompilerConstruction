@@ -1,9 +1,6 @@
 
 void main()
 {
-    string a;
-     a= "jhkk";
-
-    print(a);
+    print("vbnkm");
 }
 

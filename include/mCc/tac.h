@@ -67,7 +67,6 @@ enum mCc_tac_literal_type {
 	MCC_TAC_LITERAL_TYPE_BOOL,
 	MCC_TAC_LITERAL_TYPE_FLOAT
 };
-
 typedef struct mCc_tac_list {
 	struct mCc_tac_list *prev;
 	struct mCc_tac_list *next;

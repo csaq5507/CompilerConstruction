@@ -31,7 +31,7 @@ aux_source_directory(src/ SRC_FILES)
 # Add an executable
 add_executable(${PROJECT_NAME} ${SRC_FILES} src/bin/mCc.c ${HEADER_FILES} ${PARSER_FILES})
 target_include_directories(${PROJECT_NAME} PUBLIC include)
-
+target_link_libraries(${PROJECT_NAME} m)
 if (test)
 
     # This adds another subdirectory, which has 'project(gtest)'.

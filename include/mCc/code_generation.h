@@ -35,7 +35,10 @@ struct labels{
 };
 
 struct labels * label;
-void create_label(char * key, char * value);
+
+struct mCc_assembly_line * create_string_label(struct mCc_tac_list *tac, struct mCc_assembly_line *current);
+
+void set_label(char *key, char *value);
 char * get_label(char * key);
 
 /**********************************************ASSEMBLY*/
@@ -46,6 +49,7 @@ int get_literal_size(enum mCc_ast_literal_type type);
 enum instruction{
     MCC_ASSEMBLY_LABEL,
     MCC_ASSEMBLY_DIRECTIVE,
+    MCC_ASSEMBLY_FILE,
     MCC_ASSEMBLY_MOV,
     MCC_ASSEMBLY_ADD,
     MCC_ASSEMBLY_SUB,
@@ -71,8 +75,10 @@ struct mCc_assembly{
     struct mCc_assembly_line * head;
 };
 
+bool check_pushl_copy(struct mCc_tac_list *tac);
 
-struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac);
+
+struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac, struct mCc_assembly_line *current);
 
 struct mCc_assembly_line * mCc_assembly_operation(struct mCc_tac_list *tac);
 

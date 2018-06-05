@@ -4,9 +4,13 @@ project('mCc', 'c',
         'c_std=c11',
         'cpp_std=c++14',
         'warning_level=2'
+
     ],
     meson_version: '>=0.44.0'
 )
+
+cc = meson.get_compiler('c')
+m_dep = cc.find_library('m', required : false)
 
 # ------------------------------------------------------------------ GENERATORS
 
@@ -38,22 +42,26 @@ mCc_src = [ 'src/ast.c',
             'src/tac.c',
             'src/error.c',
             'src/utils.c',
-            'src/code_generation.c',
+           'src/code_generation.c',
             lgen.process('src/scanner.l'),
-            pgen.process('src/parser.y') ]
+            pgen.process('src/parser.y')]
 
 mCc_lib = library('mCc', mCc_src,
                   c_args: '-D_POSIX_C_SOURCE=200809L',
-                  include_directories: mCc_inc)
+                  include_directories: mCc_inc,
+                  dependencies: m_dep)
+
 
 # ----------------------------------------------------------------- EXECUTABLES
 
 mCc_exes = [ 'mCc' ]
 
+
 foreach exe : mCc_exes
     executable(exe, 'src/bin/' + exe + '.c',
                include_directories: mCc_inc,
-               link_with: mCc_lib)
+               link_with: mCc_lib,
+             dependencies: m_dep)
 endforeach
 
 # ------------------------------------------------------------------ UNIT TESTS
@@ -68,7 +76,7 @@ foreach ut : mCc_uts
     t = executable('ut_' + ut.underscorify(), 'test/' + ut + '.cpp',
                    include_directories: mCc_inc,
                    link_with: mCc_lib,
-                   dependencies: gtest)
+                   dependencies: [gtest, m_dep])
 
     test(ut, t)
 endforeach

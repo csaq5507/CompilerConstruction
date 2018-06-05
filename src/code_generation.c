@@ -4,10 +4,11 @@
 
 #include <mCc/tac.h>
 #include <memory.h>
-#include <mCc/error.h>
 #include <stdlib.h>
 #include <mCc/code_generation.h>
 #include <mCc/utils.h>
+#include <math.h>
+#include <assert.h>
 
 #define MALLOC(ptr,size) 				\
 ptr = malloc(size);                		\
@@ -28,6 +29,25 @@ if(temp == NULL)     					\
 }                                       \
 (ptr) = temp;
 
+#define MALLOC_(ptr,size) 				\
+ptr = malloc(size);                		\
+if((ptr) == NULL)        				\
+{                                   	\
+	printf("Malloc failed for %p of"	\
+		   "size %li",ptr,(size));  	\
+	return ;                    	    \
+}
+
+#define REALLOC_(ptr,size) 				\
+void * temp = realloc(ptr,size);   		\
+if(temp == NULL)     					\
+{                                       \
+	printf("Realloc failed for %p of"   \
+		   "size %li",ptr,(size));      \
+	return ;                            \
+}                                       \
+(ptr) = temp;
+
 
 
 struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac)
@@ -42,17 +62,17 @@ struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac)
     MALLOC(assembly, sizeof(struct mCc_assembly));
     assembly->counter=0;
     assembly->head = malloc(sizeof(struct mCc_assembly_line));
-    assembly->head->type = MCC_ASSEMBLY_DIRECTIVE;
+    assembly->head->type = MCC_ASSEMBLY_FILE;
     assembly->head->prev=NULL;
     assembly->head->next=NULL;
     assembly->head->instruction = new_string("\t.file\t\"%s\"","test.mC");
     struct mCc_assembly_line * current = assembly->head;
     do{
-        struct mCc_assembly_line * temp;
+        struct mCc_assembly_line * temp = NULL;
         switch (tac->type)
         {
             case MCC_TAC_ELEMENT_TYPE_COPY_LITERAL:
-                temp = mCc_assembly_copy_literal(tac);
+                temp = mCc_assembly_copy_literal(tac, current);
                 break;
             case MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER:
                 MALLOC(temp, sizeof(struct mCc_assembly_line));
@@ -70,7 +90,8 @@ struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac)
             case MCC_TAC_ELEMENT_TYPE_LABEL:
                 break;
             case MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP:
-                temp = new_string("\tsubl\t$%d, %s",get_literal_size(tac->decl_lit_type),"%esp");
+                MALLOC(temp, sizeof(struct mCc_assembly_line));
+                temp->instruction = new_string("\tsubl\t$%d, %s",get_literal_size(tac->decl_lit_type),"%esp");
                 break;
             case MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL:
                 temp = mCc_procedure_call(tac);
@@ -94,27 +115,30 @@ struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac)
             case MCC_TAC_ELEMENT_TYPE_UNKNOWN:
                 tac=tac->next;
                 continue;
-                break;
         }
+        assert(temp);
         temp->prev=current;
         current->next = temp;
         while(current->next != NULL)
             current=current->next;
         tac=tac->next;
     } while(tac!=NULL);
+    while(current->prev!= NULL)
+        current= current->prev;
+    assembly->head = current;
     return assembly;
 }
 
 int get_literal_size(enum mCc_ast_literal_type type) {
     switch (type)
     {
-        case MCC_TAC_LITERAL_TYPE_STRING:
+        case MCC_AST_LITERAL_TYPE_STRING:
             return 4;
-        case MCC_TAC_LITERAL_TYPE_INT:
+        case MCC_AST_LITERAL_TYPE_INT:
             return 4;
-        case MCC_TAC_LITERAL_TYPE_FLOAT:
+        case MCC_AST_LITERAL_TYPE_FLOAT:
             return 4;
-        case MCC_TAC_LITERAL_TYPE_BOOL:
+        case MCC_AST_LITERAL_TYPE_BOOL:
             return 4;
     }
 }
@@ -124,6 +148,9 @@ struct mCc_assembly_line *mCc_procedure_call(struct mCc_tac_list *tac) {
     struct mCc_assembly_line * temp;
     MALLOC(temp, sizeof(struct mCc_assembly_line))
     temp->instruction = new_string("\tcall\t%s",tac->identifier1);
+    temp->next = NULL;
+    return temp;
+    /*
     if(tac->num_function_param == 0)
         return temp;
     else if(tac->num_function_param == 1) {
@@ -152,8 +179,9 @@ struct mCc_assembly_line *mCc_procedure_call(struct mCc_tac_list *tac) {
             params[j].instruction = new_string("\tpushl\t%s",get_label(current->identifier1));
             current=current->next;
         }
+        temp->next = NULL;
         return &(params[0]);
-    }
+    }*/
 }
 
 struct mCc_assembly_line *mCc_assembly_function_end(struct mCc_tac_list *tac) {
@@ -216,7 +244,7 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac) 
     temp1->instruction = new_string("\t.type\t%s, @function",tac->identifier1);
     temp2->instruction = new_string("%s:",tac->identifier1);
     temp3->instruction = new_string("\tpushl\t%s","%ebp");
-    temp4->instruction = new_string("\tmovl\t %s, %s","%esp", "%ebp");
+    temp4->instruction = new_string("\tmovl\t%s, %s","%esp", "%ebp");
     return temp;
 }
 
@@ -229,38 +257,85 @@ struct mCc_assembly_line *mCc_assembly_copy_identifier(struct mCc_tac_list *tac)
 
 }
 
-struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac) {
+struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac, struct mCc_assembly_line *current) {
     struct mCc_assembly_line * retval;
+    bool is_pushl_copy = check_pushl_copy(tac);
     MALLOC(retval, sizeof(struct mCc_assembly_line))
-    switch (tac->literal_type){
+    switch (tac->literal_type) {
         case (MCC_TAC_LITERAL_TYPE_INT):
-            retval->instruction = new_string("movl\t$%d %s",tac->i_literal,tac->identifier1);
+            if (is_pushl_copy)
+                retval->instruction = new_string("\tpushl $%d", tac->i_literal);
+            else {
+                retval->instruction = new_string("\tmovl\t$%d %s", tac->i_literal, tac->identifier1);
+                //TODO EAX
+            }
             break;
         case (MCC_TAC_LITERAL_TYPE_FLOAT):
-            retval->instruction = new_string("movl\t$%d %s",(int)tac->f_literal,tac->identifier1);
+            if (is_pushl_copy)
+                retval->instruction = new_string("\tpushl $%d", floor(tac->f_literal));
+            else {
+                retval->instruction = new_string("\tmovl\t$%d %s", floor(tac->f_literal), tac->identifier1);
+                //TODO EAX
+            }
             break;
         case (MCC_TAC_LITERAL_TYPE_BOOL):
-            retval->instruction = new_string("movl\t$%d %s",tac->b_literal == false ? 0: 1,tac->identifier1);
+            if (is_pushl_copy)
+                retval->instruction = new_string("\tpushl $%d", tac->b_literal ? 1 : 0);
+            else {
+                retval->instruction = new_string("\tmovl\t$%d %s", tac->b_literal ? 1 : 0, tac->identifier1);
+                //TODO EAX
+            }
             break;
         case (MCC_TAC_LITERAL_TYPE_STRING):
+            create_string_label(tac,current);
+            if (is_pushl_copy)
+                retval->instruction = new_string("\tpushl\t$%s", get_label(tac->identifier1));
+            else {
+                retval->instruction = new_string("\tmovl\t$%s %s", get_label(tac->identifier1), tac->identifier1);
+                //TODO EAX
+            }
             break;
     }
-    if(tac->literal_type == MCC_TAC_LITERAL_TYPE_STRING){
-        struct mCc_assembly_line * temp;
-        struct mCc_assembly_line * temp1;
-        MALLOC(temp1, sizeof(struct mCc_assembly_line))
-        retval->next = temp;
-        temp->next = temp1;
-        temp->prev = retval;
-        temp1->prev = temp;
-        temp1->next = NULL;
-        retval->instruction = new_string(".LC%d",string_label_idx++);
-        create_label(tac->identifier1,retval->instruction);
-        temp->instruction = new_string("\t.string \"%s\"",tac->s_literal);
-        temp1->instruction = new_string("\t.text");
-
-    }
+    retval->next = NULL;
     return retval;
+}
+
+struct mCc_assembly_line * create_string_label(struct mCc_tac_list *tac, struct mCc_assembly_line *current) {
+    while (current->prev->type != MCC_ASSEMBLY_FILE)
+        current=current->prev;
+    struct mCc_assembly_line * temp;
+    struct mCc_assembly_line * temp1;
+    struct mCc_assembly_line * temp2;
+    MALLOC(temp1, sizeof(struct mCc_assembly_line))
+    MALLOC(temp2, sizeof(struct mCc_assembly_line))
+    MALLOC(temp, sizeof(struct mCc_assembly_line))
+    current->prev->next = temp;
+    temp->prev = current->prev;
+    temp->next = temp1;
+    temp1->prev = temp;
+    temp1->next = temp2;
+    temp2->prev = temp1;
+    temp2->next = current;
+    current->prev = temp2;
+    temp->instruction = new_string(".LC%d", string_label_idx++);
+    set_label(tac->identifier1, temp->instruction);
+    temp1->instruction = new_string("\t.string \"%s\"", tac->s_literal);
+    temp2->instruction = new_string("\t.text");
+    return temp;
+}
+
+bool check_pushl_copy(struct mCc_tac_list *tac) {
+    struct mCc_tac_list * current = tac;
+    int counter = 0;
+    while (current != NULL && current->type != MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL) {
+        counter++;
+        current = current->next;
+    }
+    if(current == NULL)
+        return false;
+    if(current->num_function_param >= counter)
+        return true;
+    return false;
 }
 
 struct mCc_assembly_line * mCc_assembly_operation(struct mCc_tac_list *tac)
@@ -300,6 +375,9 @@ struct mCc_assembly_line * mCc_assembly_operation(struct mCc_tac_list *tac)
             break;
         case MCC_TAC_OPERATION_TYPE_FAC:
             break;
+        default:
+            printf("error");
+            break;
     }
     return retval;
 }
@@ -327,6 +405,9 @@ struct mCc_assembly_line *mCc_assembly_jump(struct mCc_tac_list *tac) {
         case MCC_TAC_OPERATION_TYPE_GE:
             retval->instruction = new_string("jl\t%s",tac->jump->identifier1);
             break;
+        default:
+            printf("error");
+            break;
     }
     jump_cond = -1;
 }
@@ -341,13 +422,19 @@ void mCc_print_assembly(FILE * out, struct mCc_assembly *ass)
     }
 }
 
-void create_label(char * key, char * value)
+void set_label(char *key, char *value)
 {
+    for (int i = 0; i < label->counter; ++i) {
+        if(strcmp(label->l[i].key,key)==0) {
+            label->l[i].value = value;
+            return;
+        }
+    }
     if(label->counter==0) {
-        MALLOC((label->l), (sizeof(struct label_identification)))
+        MALLOC_((label->l), (sizeof(struct label_identification)))
     }else
     {
-        REALLOC((label->l),((label->counter+1) * sizeof(struct label_identification)))
+        REALLOC_((label->l),((label->counter+1) * sizeof(struct label_identification)))
     }
     label->l[label->counter].key = key;
     label->l[label->counter].value = value;

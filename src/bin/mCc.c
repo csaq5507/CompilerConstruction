@@ -235,12 +235,12 @@ int main(int argc, char *argv[]) {
         mCc_tac_print(tac, _tac);
 
 
-    /*struct mCc_assembly * ass= mCc_generate_assembly(_tac);
+    struct mCc_assembly * ass= mCc_generate_assembly(_tac);
     FILE * assembly;
     assembly = fopen("test.as","w");
     mCc_print_assembly(assembly,ass);
     fclose(assembly);
-    */mCc_tac_delete(_tac);
+    mCc_tac_delete(_tac);
 
     clean_up(error, graph, tac, file_std_err, output, outputFileName);
 

@@ -642,16 +642,21 @@ struct mCc_tac_list *mCc_tac_generate(struct mCc_ast_function_def_array *f)
     while (head->prev != NULL)
         head = head->prev;
 	struct mCc_tac_list *temp = head;
-	while (temp->next != NULL) {
-		if (temp->next->type == MCC_TAC_ELEMENT_TYPE_UNKNOWN) {
-			struct mCc_tac_list *temp1 = temp->next;
-			temp->next = temp->next->next;
-			if (temp->next != NULL)
-				temp->next->prev = temp;
-			free(temp1);
-		}
-		if (temp->next != NULL)
+	while(true){
+		if(temp->type==MCC_TAC_ELEMENT_TYPE_UNKNOWN){
+			struct mCc_tac_list *temp2 = temp->next;
+			if(temp->prev != NULL)
+				temp->prev->next=temp->next;
+
+			if(temp->next!=NULL)
+				temp->next->prev=temp->prev;
+			if(temp==head)
+				head=temp2;
+			free(temp);
+			temp=temp2;
+		} else
 			temp = temp->next;
+		if(temp == NULL) break;
 	}
 	return head;
 }
@@ -707,6 +712,8 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 		struct mCc_tac_list *next = current->next;
 		switch (current->type) {
 		case (MCC_TAC_ELEMENT_TYPE_UNKNOWN):
+
+			fprintf(out, "UNKNOWN:");
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_COPY_LITERAL):
 			switch (current->literal_type) {

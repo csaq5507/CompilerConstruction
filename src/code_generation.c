@@ -77,6 +77,7 @@ struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac)
             case MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER:
                 MALLOC(temp, sizeof(struct mCc_assembly_line));
                 temp->instruction = new_string("movl\t%s %s",tac->identifier1,tac->copy_identifier);
+                temp->next = NULL;
                 break;
             case MCC_TAC_ELEMENT_TYPE_UNARY:
             case MCC_TAC_ELEMENT_TYPE_BINARY:
@@ -91,6 +92,7 @@ struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac)
                 break;
             case MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP:
                 MALLOC(temp, sizeof(struct mCc_assembly_line));
+                temp->next=NULL;
                 temp->instruction = new_string("\tsubl\t$%d, %s",get_literal_size(tac->decl_lit_type),"%esp");
                 break;
             case MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL:
@@ -379,6 +381,7 @@ struct mCc_assembly_line * mCc_assembly_operation(struct mCc_tac_list *tac)
             printf("error");
             break;
     }
+    retval->next=NULL;
     return retval;
 }
 

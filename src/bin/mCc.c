@@ -62,6 +62,7 @@ int main(int argc, char *argv[]) {
     bool pipeInput = false;
     bool customOutput = false;
     bool fileInput = false;
+    bool optimize = false;
     FILE *inputFile = stdin;
     FILE *output = stdout;
     FILE *tac = stdout;
@@ -86,7 +87,9 @@ int main(int argc, char *argv[]) {
             print_graph = true;
         else if (!strcmp(temp, "-t") || !strcmp(temp, "--tac"))
             print_tac = true;
-        else if (!strcmp(temp, "-o") || !strcmp(temp, "--output")) {
+        else if (!strcmp(temp, "-O") || !strcmp(temp, "--optimize")) {
+            optimize = true;
+        } else if (!strcmp(temp, "-o") || !strcmp(temp, "--output")) {
             i++;
             if (argc <= i) {
                 print_error(argv[0], temp);

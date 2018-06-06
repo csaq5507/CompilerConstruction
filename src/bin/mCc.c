@@ -238,17 +238,16 @@ int main(int argc, char *argv[]) {
         mCc_tac_print(tac, _tac);
 
 
-    struct mCc_assembly * ass= mCc_generate_assembly(_tac);
+/*    struct mCc_assembly * ass= mCc_generate_assembly(_tac);
     FILE * assembly;
-    assembly = fopen("test.as","w");
+    assembly = fopen("test.ass","w");
     mCc_print_assembly(assembly,ass);
     fclose(assembly);
-    mCc_tac_delete(_tac);
+  */  mCc_tac_delete(_tac);
 
+    /* cleanup */
     clean_up(error, graph, tac, file_std_err, output, outputFileName);
 
-
-    //   printf("%d", sizeof(struct mCc_tac_list));
 
     /*    TODO
      * - do some optimisations
@@ -257,7 +256,6 @@ int main(int argc, char *argv[]) {
      */
 
 
-    /* cleanup */
 
     return EXIT_SUCCESS;
 }

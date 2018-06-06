@@ -1,16 +1,20 @@
 #include <stdio.h>
 
-int div(int a , int b)
+void div(int a , int b)
 {
     printf("%d\n",b/a);
-    return a / b;
+    return ;
 }
 
 int main(int argc, char* argv)
 {
     int a = 5;
-    int b;
-    b = a * 6;
-    int c = div(a,b);
+    int b =3;
+    float c = 4.4;
+    b = a * b;
+    c = c / 6;
+    while(a>0)
+        a--;
+    div(a,b);
     return 0;
 }

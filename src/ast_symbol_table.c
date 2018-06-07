@@ -802,7 +802,7 @@ ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
 	assert(expression);
 	assert(data);
 
-	if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER) {
+	if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER || expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX) {
 		char *new_name = find_element_symbols(
 			table, expression->identifier->name);
 		ast_symbol_table *temp = table;

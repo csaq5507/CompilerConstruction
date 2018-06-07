@@ -84,6 +84,8 @@ enum instruction{
     MCC_ASSEMBLY_FILE,
     MCC_ASSEMBLY_MOV,
     MCC_ASSEMBLY_ADD,
+    MCC_ASSEMBLY_DIV,
+    MCC_ASSEMBLY_MUL,
     MCC_ASSEMBLY_SUB,
     MCC_ASSEMBLY_PUSH,
     MCC_ASSEMBLY_POP,
@@ -123,6 +125,8 @@ struct mCc_assembly_line *create_builtin_func(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac);
 
+struct mCc_assembly_line *mCc_assembly_copy_identifier(struct mCc_tac_list *tac);
+
 struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac);
@@ -135,6 +139,9 @@ struct mCc_assembly_line *mCc_procedure_call(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *mCc_assembly_param(struct mCc_tac_list *tac);
 
+struct mCc_assembly_line *mCc_assembly_conditional_jump(struct mCc_tac_list *tac);
+
+struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac);
 
 #ifdef __cplusplus
 }

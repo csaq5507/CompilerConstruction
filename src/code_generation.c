@@ -51,7 +51,6 @@ if(temp == NULL)     					\
 #define CHECK_BIT(var,pos) ((var) & (1<<(pos)))
 
 
-
 struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac) {
     //init vars
     struct mCc_assembly * assembly;
@@ -133,14 +132,20 @@ struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac) {
             case MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP:
                 tac=tac->next;
                 continue;
-                //temp = mCc_assembly_param(tac);
-                //break;
             case MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL:
                 temp = mCc_procedure_call(tac);
                 break;
             case MCC_TAC_ELEMENT_TYPE_LOAD:
+                MALLOC(temp, sizeof(struct mCc_assembly_line))
+                temp->type = MCC_ASSEMBLY_MOV;
+                temp->next=NULL;
+                temp->instruction = new_string("\tmovl\t-%d(%s,%s,4), %s",get_var(tac->identifier2),"%ebp",get_register(tac->identifier3),get_register(tac->identifier1));
                 break;
             case MCC_TAC_ELEMENT_TYPE_STORE:
+                MALLOC(temp, sizeof(struct mCc_assembly_line))
+                temp->type = MCC_ASSEMBLY_MOV;
+                temp->next=NULL;
+                temp->instruction = new_string("\tmovl\t%s, -%d(%s,%s,4)",get_register(tac->identifier3),get_var(tac->identifier1),"%ebp",get_register(tac->identifier2));
                 break;
             case MCC_TAC_ELEMENT_TYPE_ADDRESS_ASSIGNMENT:
                 break;
@@ -168,7 +173,7 @@ struct mCc_assembly *mCc_generate_assembly(struct mCc_tac_list *tac) {
         tac=tac->next;
     } while(tac!=NULL);
     while(current->prev!= NULL)
-        current= current->prev;
+        current = current->prev;
     assembly->head = current;
     return assembly;
 }

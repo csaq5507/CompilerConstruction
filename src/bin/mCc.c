@@ -237,12 +237,12 @@ int main(int argc, char *argv[]) {
     if (print_tac)
         mCc_tac_print(tac, _tac);
 
-
+/*
     struct mCc_assembly * ass= mCc_generate_assembly(_tac);
     FILE * assembly;
     assembly = fopen("test.ass","w");
     mCc_print_assembly(assembly,ass);
-    fclose(assembly);
+    fclose(assembly);*/
     mCc_tac_delete(_tac);
 
     /* cleanup */

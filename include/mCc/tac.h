@@ -97,6 +97,9 @@ typedef struct mCc_tac_list {
             char *identifier3;
         };
 
+		// ARRAY PARAM
+		int param_size;
+
         //UNARY_OP
         struct {
             enum mCc_tac_operation_type unary_op_type;

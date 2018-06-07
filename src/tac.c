@@ -248,6 +248,7 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 		ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
 
 		ret_elem->identifier1 = copy_string("result");
+        elem->param_size = 1;       // default only arrays have another size
 
 		ret_elem->next = elem;
 		elem->prev = ret_elem;
@@ -576,6 +577,7 @@ static void tac_declaration(struct mCc_ast_declaration *declaration, void *data)
 
 		elem->identifier1 = copy_string(declaration->identifier->renamed);
 		elem->decl_lit_type = declaration->literal;
+        elem->param_size = 1;
         declaration->tac_start = elem;
 		declaration->tac_end = elem;
 	} else if (declaration->type == MCC_AST_DECLARATION_TYPE_ARRAY) {
@@ -585,7 +587,7 @@ static void tac_declaration(struct mCc_ast_declaration *declaration, void *data)
 		elem->identifier1 = copy_string(
 		       declaration->array_identifier->renamed);
 		elem->decl_lit_type = declaration->literal;
-
+        elem->param_size = declaration->numerator;
 		declaration->tac_start = elem;
 		declaration->tac_end = elem;
 	}
@@ -829,7 +831,7 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 			fprintf(out, "LABEL: %s\n", current->identifier1);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP):
-			fprintf(out, "PARAM: %s\n", current->identifier1);
+			fprintf(out, "PARAM: %s %d\n", current->identifier1, current->param_size);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL):
 			fprintf(out, "CALL: %s, %d\n", current->identifier1,

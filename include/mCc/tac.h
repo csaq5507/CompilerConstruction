@@ -76,7 +76,11 @@ typedef struct mCc_tac_list {
 
     union {
 		//DECL
-		enum mCc_ast_literal_type decl_lit_type;
+        struct {
+            enum mCc_ast_literal_type decl_lit_type;
+            // ARRAY PARAM
+            int param_size;
+        };
         //COPY_LITERAL
         struct{
             enum mCc_tac_literal_type literal_type;
@@ -97,8 +101,6 @@ typedef struct mCc_tac_list {
             char *identifier3;
         };
 
-		// ARRAY PARAM
-		int param_size;
 
         //UNARY_OP
         struct {

@@ -17,6 +17,7 @@ struct mCc_tac_list *mCc_tac_generate(struct mCc_ast_function_def_array *f);
 void mCc_tac_delete(struct mCc_tac_list *head);
 void mCc_tac_print(FILE *out, struct mCc_tac_list *head);
 struct mCc_tac_list * get_at(struct mCc_tac_list* head, int index);
+void print_tac_elem(FILE *out, struct mCc_tac_list *current);
 
 struct mCc_tac_list *head;
 struct mCc_tac_list *tail;

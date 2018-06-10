@@ -712,120 +712,129 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 	struct mCc_tac_list *current = head;
 	while (current != NULL) {
 		struct mCc_tac_list *next = current->next;
-		switch (current->type) {
+		print_tac_elem(out, current);
+		current = next;
+	}
+}
+
+void print_tac_elem(FILE *out, tac_list *current) {
+	assert(current);
+	assert(out);
+
+	switch (current->type) {
 		case (MCC_TAC_ELEMENT_TYPE_UNKNOWN):
 
 			fprintf(out, "UNKNOWN:");
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_COPY_LITERAL):
 			switch (current->literal_type) {
-			case (MCC_TAC_LITERAL_TYPE_INT):
-				fprintf(out, "COPY: %s = %ld\n",
-					current->identifier1,
-					current->i_literal);
-				break;
-			case (MCC_TAC_LITERAL_TYPE_FLOAT):
-				fprintf(out, "COPY: %s = %f\n",
-					current->identifier1,
-					current->f_literal);
-				break;
-			case (MCC_TAC_LITERAL_TYPE_BOOL):
-				fprintf(out, "COPY: %s = %d\n",
-					current->identifier1,
-					current->b_literal);
-				break;
-			case (MCC_TAC_LITERAL_TYPE_STRING):
-				fprintf(out, "COPY: %s = %s\n",
-					current->identifier1,
-					current->s_literal);
-				break;
+				case (MCC_TAC_LITERAL_TYPE_INT):
+					fprintf(out, "COPY: %s = %ld\n",
+							current->identifier1,
+							current->i_literal);
+					break;
+				case (MCC_TAC_LITERAL_TYPE_FLOAT):
+					fprintf(out, "COPY: %s = %f\n",
+							current->identifier1,
+							current->f_literal);
+					break;
+				case (MCC_TAC_LITERAL_TYPE_BOOL):
+					fprintf(out, "COPY: %s = %d\n",
+							current->identifier1,
+							current->b_literal);
+					break;
+				case (MCC_TAC_LITERAL_TYPE_STRING):
+					fprintf(out, "COPY: %s = %s\n",
+							current->identifier1,
+							current->s_literal);
+					break;
 			}
 			break;
-        case (MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER):
-            fprintf(out, "COPY: %s = %s\n",
-                    current->identifier1,
-                    current->copy_identifier);
-                break;
+		case (MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER):
+			fprintf(out, "COPY: %s = %s\n",
+					current->identifier1,
+					current->copy_identifier);
+			break;
 		case (MCC_TAC_ELEMENT_TYPE_UNARY):
 			fprintf(out, "UNARY: ");
 			switch (current->unary_op_type) {
-			case (MCC_TAC_OPERATION_TYPE_MINUS):
-				fprintf(out, " - ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_FAC):
-				fprintf(out, " ! ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_ASSIGNMENT):
-			case (MCC_TAC_OPERATION_TYPE_PLUS):
-			case (MCC_TAC_OPERATION_TYPE_DIVISION):
-			case (MCC_TAC_OPERATION_TYPE_MULTIPLY):
-			case (MCC_TAC_OPERATION_TYPE_AND):
-			case (MCC_TAC_OPERATION_TYPE_EQ):
-			case (MCC_TAC_OPERATION_TYPE_GE):
-			case (MCC_TAC_OPERATION_TYPE_GT):
-			case (MCC_TAC_OPERATION_TYPE_LE):
-			case (MCC_TAC_OPERATION_TYPE_LT):
-			case (MCC_TAC_OPERATION_TYPE_NE):
-			case (MCC_TAC_OPERATION_TYPE_OR):
-				break;
+				case (MCC_TAC_OPERATION_TYPE_MINUS):
+					fprintf(out, " - ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_FAC):
+					fprintf(out, " ! ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_ASSIGNMENT):
+				case (MCC_TAC_OPERATION_TYPE_PLUS):
+				case (MCC_TAC_OPERATION_TYPE_DIVISION):
+				case (MCC_TAC_OPERATION_TYPE_MULTIPLY):
+				case (MCC_TAC_OPERATION_TYPE_AND):
+				case (MCC_TAC_OPERATION_TYPE_EQ):
+				case (MCC_TAC_OPERATION_TYPE_GE):
+				case (MCC_TAC_OPERATION_TYPE_GT):
+				case (MCC_TAC_OPERATION_TYPE_LE):
+				case (MCC_TAC_OPERATION_TYPE_LT):
+				case (MCC_TAC_OPERATION_TYPE_NE):
+				case (MCC_TAC_OPERATION_TYPE_OR):
+					break;
 			}
 			fprintf(out, "%s %s\n", current->identifier1,
-				current->unary_identifier);
+					current->unary_identifier);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_BINARY):
 			fprintf(out, "BINARY: ");
 			switch (current->binary_op_type) {
-			case (MCC_TAC_OPERATION_TYPE_PLUS):
-				fprintf(out, " + ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_DIVISION):
-				fprintf(out, " / ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_MULTIPLY):
-				fprintf(out, " * ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_MINUS):
-				fprintf(out, " - ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_AND):
-				fprintf(out, " && ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_EQ):
-				fprintf(out, " == ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_GE):
-				fprintf(out, " >= ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_GT):
-				fprintf(out, " > ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_LE):
-				fprintf(out, " <= ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_LT):
-				fprintf(out, " < ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_NE):
-				fprintf(out, " != ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_OR):
-				fprintf(out, " || ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_FAC):
-			case (MCC_TAC_OPERATION_TYPE_ASSIGNMENT):
-				break;
+				case (MCC_TAC_OPERATION_TYPE_PLUS):
+					fprintf(out, " + ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_DIVISION):
+					fprintf(out, " / ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_MULTIPLY):
+					fprintf(out, " * ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_MINUS):
+					fprintf(out, " - ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_AND):
+					fprintf(out, " && ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_EQ):
+					fprintf(out, " == ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_GE):
+					fprintf(out, " >= ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_GT):
+					fprintf(out, " > ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_LE):
+					fprintf(out, " <= ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_LT):
+					fprintf(out, " < ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_NE):
+					fprintf(out, " != ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_OR):
+					fprintf(out, " || ");
+					break;
+				case (MCC_TAC_OPERATION_TYPE_FAC):
+				case (MCC_TAC_OPERATION_TYPE_ASSIGNMENT):
+					break;
 			}
 			fprintf(out, "%s %s %s\n", current->identifier1,
-				current->lhs, current->rhs);
+					current->lhs, current->rhs);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP):
 			fprintf(out, "UNCONDITIONAL JUMP: %s\n",
-				current->jump->identifier1);
+					current->jump->identifier1);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP):
 			fprintf(out, "CONDITIONAL JUMP: %s %s\n",
-				current->identifier1,
-				current->jump->identifier1);
+					current->identifier1,
+					current->jump->identifier1);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_LABEL):
 			fprintf(out, "LABEL: %s\n", current->identifier1);
@@ -835,15 +844,15 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL):
 			fprintf(out, "CALL: %s, %d\n", current->identifier1,
-				current->num_function_param);
+					current->num_function_param);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_LOAD):
 			fprintf(out, "LOAD: %s %s %s\n", current->identifier1,
-				current->identifier2, current->identifier3);
+					current->identifier2, current->identifier3);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_STORE):
 			fprintf(out, "STORE: %s %s %s\n", current->identifier1,
-				current->identifier2, current->identifier3);
+					current->identifier2, current->identifier3);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_ADDRESS_ASSIGNMENT):
 			fprintf(out, "ADDRESS ASSIGNMENT\n");
@@ -853,19 +862,18 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_FUNCTION_START):
 			fprintf(out, "<FUNCTION START> %s\n",
-				current->identifier1);
+					current->identifier1);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_FUNCTION_END):
 			fprintf(out, "<FUNCTION END> %s\n",
-				current->identifier1);
+					current->identifier1);
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_RETURN):
 			fprintf(out, "RETURN %s\n", current->identifier1);
 			break;
-		}
-		current = next;
 	}
 }
+
 
 struct mCc_tac_list *get_at(struct mCc_tac_list *head, int index)
 {

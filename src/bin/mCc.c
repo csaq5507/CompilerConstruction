@@ -6,6 +6,8 @@
 #include <mCc/ast_semantic_checks.h>
 #include <mCc/tac.h>
 #include <mCc/utils.h>
+#include <mCc/cfg.h>
+
 #include <zconf.h>
 #include <mCc/code_generation.h>
 
@@ -232,6 +234,12 @@ int main(int argc, char *argv[]) {
     struct mCc_tac_list *_tac;
     _tac = mCc_tac_generate(result.func_def);
 
+    cfg_list *cfg = mCc_cfg_generate(_tac);
+
+    for (int i = 0; i < cfg->num_next_nodes; i++)
+        mCc_cfg_print(stdout, &cfg->next_nodes[i]);
+
+    mCc_cfg_delete(cfg);
     mCc_delete_result(&result);
 
     if (print_tac)

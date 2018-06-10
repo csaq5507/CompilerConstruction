@@ -58,9 +58,12 @@ typedef struct mCc_ast_current_func {
 
 	enum mCc_ast_type type;
 	bool has_ret;
+	bool has_else;
 
 	bool in_if;
 	bool in_else;
+
+	bool missing_if_ret;
 } ast_current_fun;
 
 

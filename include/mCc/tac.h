@@ -17,6 +17,7 @@ struct mCc_tac_list *mCc_tac_generate(struct mCc_ast_function_def_array *f);
 void mCc_tac_delete(struct mCc_tac_list *head);
 void mCc_tac_print(FILE *out, struct mCc_tac_list *head);
 struct mCc_tac_list * get_at(struct mCc_tac_list* head, int index);
+void print_tac_elem(FILE *out, struct mCc_tac_list *current);
 
 struct mCc_tac_list *head;
 struct mCc_tac_list *tail;
@@ -76,7 +77,11 @@ typedef struct mCc_tac_list {
 
     union {
 		//DECL
-		enum mCc_ast_literal_type decl_lit_type;
+        struct {
+            enum mCc_ast_literal_type decl_lit_type;
+            // ARRAY PARAM
+            int param_size;
+        };
         //COPY_LITERAL
         struct{
             enum mCc_tac_literal_type literal_type;
@@ -97,8 +102,6 @@ typedef struct mCc_tac_list {
             char *identifier3;
         };
 
-		// ARRAY PARAM
-		int param_size;
 
         //UNARY_OP
         struct {

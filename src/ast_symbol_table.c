@@ -293,6 +293,8 @@ static ast_current_fun *create_new_current_fun_node()
 	elem->identifier = NULL;
 	elem->in_if = false;
 	elem->in_else = false;
+	elem->missing_if_ret = false;
+	elem->has_else;
 	return elem;
 }
 
@@ -602,7 +604,12 @@ static void ast_symbol_close_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
+
+
 	if (current_fun->in_if) {
+		if (!current_fun->has_else) {
+			current_fun->has_ret = false;
+		}
 		if (current_fun->has_ret) {
 			if (current_fun->prev != NULL) {
 				ast_current_fun *temp = current_fun;
@@ -620,12 +627,24 @@ static void ast_symbol_close_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 			current_fun->next = n_fun;
 			current_fun = n_fun;
 		} else {
-			if (current_fun->prev != NULL) {
-				ast_current_fun *temp = current_fun;
-				current_fun = current_fun->prev;
-				temp->prev = NULL;
-				delete_current_fun(temp);
-				current_fun->next = NULL;
+			if (current_fun->has_else) {
+				ast_current_fun *n_fun = create_new_current_fun_node();
+				n_fun->type = current_fun->type;
+				n_fun->prev = current_fun;
+				n_fun->identifier = current_fun->identifier;
+				n_fun->in_if = false;
+				n_fun->in_else = true;
+				n_fun->missing_if_ret = true;
+				current_fun->next = n_fun;
+				current_fun = n_fun;
+			} else {
+				if (current_fun->prev != NULL) {
+					ast_current_fun *temp = current_fun;
+					current_fun = current_fun->prev;
+					temp->prev = NULL;
+					delete_current_fun(temp);
+					current_fun->next = NULL;
+				}
 			}
 		}
 	}
@@ -764,15 +783,18 @@ static void ast_symbol_table_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
+	ast_current_fun *n_fun = create_new_current_fun_node();
 	if (stmt->else_statement != NULL) {
-		ast_current_fun *n_fun = create_new_current_fun_node();
-		n_fun->type = current_fun->type;
-		n_fun->prev = current_fun;
-		n_fun->identifier = current_fun->identifier;
-		n_fun->in_if = true;
-		current_fun->next = n_fun;
-		current_fun = n_fun;
+		n_fun->has_else = true;
+	} else {
+		n_fun->has_else = false;
 	}
+	n_fun->type = current_fun->type;
+	n_fun->prev = current_fun;
+	n_fun->identifier = current_fun->identifier;
+	n_fun->in_if = true;
+	current_fun->next = n_fun;
+	current_fun = n_fun;
 }
 
 static void ast_symbol_table_close_stmt(struct mCc_ast_stmt *stmt, void *data)
@@ -786,6 +808,8 @@ static void ast_symbol_table_close_stmt(struct mCc_ast_stmt *stmt, void *data)
 		}
 		if (current_fun->prev != NULL) {
 			ast_current_fun *temp = current_fun;
+			if (current_fun->missing_if_ret)
+				current_fun->has_ret = false;
 			current_fun = current_fun->prev;
 			current_fun->has_ret = temp->has_ret;
 			temp->prev = NULL;

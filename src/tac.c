@@ -723,7 +723,6 @@ void print_tac_elem(FILE *out, tac_list *current) {
 
 	switch (current->type) {
 		case (MCC_TAC_ELEMENT_TYPE_UNKNOWN):
-
 			fprintf(out, "UNKNOWN:");
 			break;
 		case (MCC_TAC_ELEMENT_TYPE_COPY_LITERAL):

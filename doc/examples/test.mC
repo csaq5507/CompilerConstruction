@@ -11,8 +11,9 @@ int f() {
 void main()
 {
     int [10]a;
-    int [10]c;
+    int [9]c;
     int b;
+    a = c;
     b=0;
     if (b == 0) {
         a[b] = 0;

@@ -274,24 +274,24 @@ static void ast_semantic_check_ass_stmt(struct mCc_ast_assignment *stmt,
 	if (stmt->numerator != NULL) {
 
 		switch (stmt->identifier->d_type) {
-		case (MCC_AST_TYPE_VOID):
-		case (MCC_AST_TYPE_INT):
-		case (MCC_AST_TYPE_FLOAT):
-		case (MCC_AST_TYPE_BOOL):
-		case (MCC_AST_TYPE_STRING):
-			break;
-		case (MCC_AST_TYPE_INT_ARRAY):
-			stmt->identifier->d_type = MCC_AST_TYPE_INT;
-			break;
-		case (MCC_AST_TYPE_FLOAT_ARRAY):
-			stmt->identifier->d_type = MCC_AST_TYPE_FLOAT;
-			break;
-		case (MCC_AST_TYPE_BOOL_ARRAY):
-			stmt->identifier->d_type = MCC_AST_TYPE_BOOL;
-			break;
-		case (MCC_AST_TYPE_STRING_ARRAY):
-			stmt->identifier->d_type = MCC_AST_TYPE_STRING;
-			break;
+			case (MCC_AST_TYPE_VOID):
+			case (MCC_AST_TYPE_INT):
+			case (MCC_AST_TYPE_FLOAT):
+			case (MCC_AST_TYPE_BOOL):
+			case (MCC_AST_TYPE_STRING):
+				break;
+			case (MCC_AST_TYPE_INT_ARRAY):
+				stmt->identifier->d_type = MCC_AST_TYPE_INT;
+				break;
+			case (MCC_AST_TYPE_FLOAT_ARRAY):
+				stmt->identifier->d_type = MCC_AST_TYPE_FLOAT;
+				break;
+			case (MCC_AST_TYPE_BOOL_ARRAY):
+				stmt->identifier->d_type = MCC_AST_TYPE_BOOL;
+				break;
+			case (MCC_AST_TYPE_STRING_ARRAY):
+				stmt->identifier->d_type = MCC_AST_TYPE_STRING;
+				break;
 		}
 	}
 	if (stmt->identifier->d_type != stmt->expression->d_type) {

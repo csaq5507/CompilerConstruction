@@ -44,15 +44,12 @@ cfg_list *mCc_cfg_add_node(cfg_list *head, cfg_list *new_elem) {
 	assert(head);
 	assert(new_elem);
 
-	if (head->num_next_nodes == 0) {
-		MALLOC(head->next_nodes, sizeof(cfg_list));
-	}
-	else {
-		REALLOC(head->next_nodes, sizeof(cfg_list) * (head->num_next_nodes + 1));
-	}
-	memcpy(&head->next_nodes[head->num_next_nodes], new_elem, sizeof(*new_elem));
-	head->num_next_nodes++;
+	REALLOC(head->next_nodes, sizeof(cfg_list) * (head->num_next_nodes + 1));
+
 	new_elem->prev_nodes = head;
+	memcpy(&head->next_nodes[head->num_next_nodes], new_elem, sizeof(cfg_list));
+	head->num_next_nodes++;
+    free(new_elem);
 	return head;
 }
 
@@ -64,13 +61,10 @@ void mCc_cfg_delete(cfg_list *head) {
 			mCc_cfg_delete(&head->next_nodes[i]);
 	}
 
-	head->node_num = g_node_counter++;
-	head->num_next_nodes = 0;
-	head->num_prev_nodes = 0;
 	if (head->next_nodes != NULL)
 		free(head->next_nodes);
-	if (head->prev_nodes != NULL)
-		free(head->prev_nodes);
+	if (head->node_num == 0)
+		free(head);
 }
 
 cfg_list *generate_block(tac_list *head) {
@@ -100,8 +94,9 @@ cfg_list *generate_block(tac_list *head) {
 		help->tac_end = head->jump->prev;
 		if (help->tac_end->type == MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP) {
 			help->tac_end = head->jump->prev->prev;
-			help->num_next_nodes = 1;
-			help->next_nodes = ret;
+            help->num_next_nodes = 1;
+            MALLOC(help->next_nodes, sizeof(cfg_list));
+            help->next_nodes[0] = *ret;
 		} else {
 		}
 		mCc_cfg_add_node(ret, help);
@@ -126,7 +121,6 @@ void mCc_cfg_print(FILE *out, cfg_list *head) {
 		fprintf(out, "%d ", head->next_nodes[i].node_num);
 	}
 	fprintf(out, "\n");
-
 
 	for (int i = 0; i < head->num_next_nodes; i++) {
 		if (head->node_num < head->next_nodes[i].node_num)

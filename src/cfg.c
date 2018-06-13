@@ -24,6 +24,59 @@ if(temp == NULL)     					\
 }                                       \
 (ptr) = temp;
 
+static void print_dot_begin(FILE *out);
+static void print_dot_end(FILE *out);
+static void print_dot_node_start(FILE *out, int node,  const char *color);
+static void print_dot_node_end(FILE *out);
+static void print_dot_edge(FILE *out, int src_node, int dst_node, const char *label);
+
+
+/* ------------------------------------------------------------- DOT Printer */
+
+static void print_dot_begin(FILE *out)
+{
+    assert(out);
+
+    fprintf(out, "digraph \"AST\" {\n");
+    fprintf(out, "\tnodesep=0.6\n");
+}
+
+static void print_dot_end(FILE *out)
+{
+    assert(out);
+
+    fprintf(out, "}\n");
+}
+
+static void print_dot_node_start(FILE *out, int node,
+                           const char *color)
+{
+    assert(out);
+
+    fprintf(out,
+            "\t\"%d\" [shape=box, style=filled, fillcolor=\"%s\" , "
+                    "label=\"",
+            node, color);
+}
+
+static void print_dot_node_end(FILE *out)
+{
+    assert(out);
+
+    fprintf(out,"\"];\n");
+}
+
+static void print_dot_edge(FILE *out, int src_node,
+                           int dst_node, const char *label)
+{
+    assert(out);
+    assert(label);
+
+    fprintf(out, "\t\"%d\" -> \"%d\" [label=\"%s\"];\n", src_node, dst_node,
+            label);
+}
+
+/* ------------------------------------------------------------- */
 
 cfg_list *cfg_new_list() {
 	cfg_list *new = NULL;
@@ -109,23 +162,53 @@ cfg_list *generate_block(tac_list *head) {
 	return ret;
 }
 
+void generate_node_name(FILE *out, tac_list *start, tac_list *end) {
+    assert(out);
+    assert(start);
+    assert(end);
+
+    char label[2048] = {0};
+    while (start != end) {
+        print_tac_elem(out, start);
+        fprintf(out, "\\n");
+        start = start->next;
+    }
+    print_tac_elem(out, start);
+}
+
+static void print_cfg_function(FILE *out, cfg_list *head) {
+    assert(out);
+    assert(head);
+
+    print_dot_node_start(out, head->node_num, "#FFFFFF");
+    generate_node_name(out, head->tac_start, head->tac_end);
+    print_dot_node_end(out);
+
+    for (int i = 0; i < head->num_next_nodes; i++) {
+        print_dot_edge(out, head->node_num, head->next_nodes[i].node_num, "");
+    }
+
+    for (int i = 0; i < head->num_next_nodes; i++) {
+        if (head->node_num < head->next_nodes[i].node_num)
+            print_cfg_function(out, &head->next_nodes[i]);
+    }
+}
+
 void mCc_cfg_print(FILE *out, cfg_list *head) {
 	assert(out);
 	assert(head);
 
-	fprintf(out, "------------%d------------\n", head->node_num);
-	print_tac_elem(out, head->tac_start);
-	print_tac_elem(out, head->tac_end);
-	fprintf(out, "next nodes: ");
-	for (int i = 0; i < head->num_next_nodes; i++) {
-		fprintf(out, "%d ", head->next_nodes[i].node_num);
-	}
-	fprintf(out, "\n");
+    print_dot_begin(out);
+    print_dot_node_start(out, head->node_num, "#FFFFFF");
+    fprintf(out, "HEAD");
+    print_dot_node_end(out);
+    for (int i = 0; i < head->num_next_nodes; i++) {
+        print_dot_edge(out, head->node_num, head->next_nodes[i].node_num,
+                       head->next_nodes[i].tac_start->prev->identifier1);
+        print_cfg_function(stdout, &head->next_nodes[i]);
+    }
+    print_dot_end(out);
 
-	for (int i = 0; i < head->num_next_nodes; i++) {
-		if (head->node_num < head->next_nodes[i].node_num)
-			mCc_cfg_print(out, &head->next_nodes[i]);
-	}
 }
 
 cfg_list *mCc_cfg_generate(tac_list *tac) {

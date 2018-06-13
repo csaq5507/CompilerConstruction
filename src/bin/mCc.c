@@ -236,8 +236,7 @@ int main(int argc, char *argv[]) {
 
     cfg_list *cfg = mCc_cfg_generate(_tac);
 
-    for (int i = 0; i < cfg->num_next_nodes; i++)
-        mCc_cfg_print(stdout, &cfg->next_nodes[i]);
+    mCc_cfg_print(stdout, cfg);
 
     mCc_cfg_delete(cfg);
     mCc_delete_result(&result);

@@ -169,6 +169,7 @@ void generate_node_name(FILE *out, tac_list *start, tac_list *end) {
 
     while (start != end) {
         print_tac_elem(out, start);
+        fprintf(out, "\\n");
         start = start->next;
     }
     print_tac_elem(out, start);

@@ -153,7 +153,8 @@ cfg_list *generate_block(tac_list *head) {
 		} else {
 		}
 		mCc_cfg_add_node(ret, help);
-		mCc_cfg_add_node(ret, generate_block(head->jump->next));
+        if (head->jump->next->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END)
+		    mCc_cfg_add_node(ret, generate_block(head->jump->next));
 	} else if (head->type == MCC_TAC_ELEMENT_TYPE_LABEL) {
 		ret->tac_end = head->prev;
 		mCc_cfg_add_node(ret, generate_block(head->next));

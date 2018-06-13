@@ -294,7 +294,7 @@ static ast_current_fun *create_new_current_fun_node()
 	elem->in_if = false;
 	elem->in_else = false;
 	elem->missing_if_ret = false;
-	elem->has_else;
+	elem->has_else = false;
 	return elem;
 }
 

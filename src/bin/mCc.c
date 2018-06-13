@@ -262,6 +262,12 @@ int main(int argc, char *argv[]) {
     mCc_cfg_delete(_cfg);
     mCc_tac_delete(_tac);
 
+    /*--------------------------------------------------------------*/
+    // To execute shell commands from c
+    /*system("gcc -m32 -S -O0 -fno-stack-protector -fno-asynchronous-unwind-tables ../doc/examples/test.c");
+    system("gcc -m32 -c test.s");*/
+    /*--------------------------------------------------------------*/
+
     /* cleanup */
     clean_up(error, graph, tac, file_std_err, output, cfg, outputFileName);
 

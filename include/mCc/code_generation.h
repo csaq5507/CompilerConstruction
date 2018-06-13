@@ -67,7 +67,6 @@ enum instruction{
     MCC_ASSEMBLY_MUL,
     MCC_ASSEMBLY_SUB,
     MCC_ASSEMBLY_PUSH,
-    MCC_ASSEMBLY_POP,
     MCC_ASSEMBLY_CALL,
     MCC_ASSEMBLY_LEAVE,
     MCC_ASSEMBLY_RET,
@@ -90,6 +89,12 @@ struct mCc_assembly{
     struct mCc_assembly_line * head;
 };
 
+enum copy{
+    COPY_PUSHL,
+    COPY_MOVL,
+    COPY_PUSHL_ARRAY
+};
+
 /**********************************************GENERATE*/
 
 struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,char * filename) ;
@@ -109,6 +114,8 @@ struct mCc_assembly_line *mCc_assembly_create_builtin_func(struct mCc_tac_list *
 
 struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac);
 
+struct mCc_assembly_line *mCc_assembly_factorial(struct mCc_tac_list *tac);
+
 struct mCc_assembly_line *mCc_assembly_copy_identifier(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac);
@@ -127,6 +134,10 @@ struct mCc_assembly_line *mCc_assembly_conditional_jump(struct mCc_tac_list *tac
 
 struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac);
 
+
+/***************************************/
+/***************************************/
+bool is_register(char *identifier);
 
 int get_literal_size(enum mCc_ast_literal_type type);
 
@@ -153,7 +164,6 @@ void free_all_registers();
 void free_register(char* identifier);
 
 char* get_register(char * identifier);
-char* get_eax_register(char* identifier);
 
 void update_register(char *old_identifier, char *new_identifier);
 

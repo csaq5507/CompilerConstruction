@@ -719,7 +719,7 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 }
 
 void print_tac_elem(FILE *out, tac_list *current) {
-	assert(current);
+ 	assert(current);
 	assert(out);
 
 	switch (current->type) {

@@ -248,7 +248,7 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 		ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
 
 		ret_elem->identifier1 = copy_string("result");
-        elem->param_size = 1;       // default only arrays have another size
+        ret_elem->param_size = 1;       // default only arrays have another size
 
 		ret_elem->next = elem;
 		elem->prev = ret_elem;

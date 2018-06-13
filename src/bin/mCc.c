@@ -274,6 +274,13 @@ int main(int argc, char *argv[]) {
         mCc_assembly_print(assembly, ass);
 
     mCc_tac_delete(_tac);
+
+    /*--------------------------------------------------------------*/
+    // To execute shell commands from c
+    /*system("gcc -m32 -S -O0 -fno-stack-protector -fno-asynchronous-unwind-tables ../doc/examples/test.c");
+    system("gcc -m32 -c test.s");*/
+    /*--------------------------------------------------------------*/
+
     mCc_assembly_delete(ass);
     /* cleanup */
     clean_up(error, graph, tac,assembly, file_std_err, output, cfg, outputFileName);

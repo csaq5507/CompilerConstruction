@@ -262,7 +262,7 @@ int main(int argc, char *argv[]) {
 
     if (print_tac) {
         mCc_tac_print(tac, _tac);
-        mCc_cfg_print(stdout, _cfg);
+   //     mCc_cfg_print(stdout, _cfg);
     }
 
     struct mCc_assembly * ass= mCc_assembly_generate(_tac,outputFileName);

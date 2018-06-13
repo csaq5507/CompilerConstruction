@@ -265,13 +265,13 @@ int main(int argc, char *argv[]) {
         mCc_cfg_print(stdout, _cfg);
     }
 
-    struct mCc_assembly * ass= mCc_assembly_generate(_tac,outputFileName);
+   // struct mCc_assembly * ass= mCc_assembly_generate(_tac,outputFileName);
 
     mCc_delete_result(&result);
     mCc_cfg_delete(_cfg);
 
-    if(print_assemby)
-        mCc_assembly_print(assembly, ass);
+   // if(print_assemby)
+    //    mCc_assembly_print(assembly, ass);
 
     mCc_tac_delete(_tac);
 
@@ -281,7 +281,7 @@ int main(int argc, char *argv[]) {
     system("gcc -m32 -c test.s");*/
     /*--------------------------------------------------------------*/
 
-    mCc_assembly_delete(ass);
+  //  mCc_assembly_delete(ass);
     /* cleanup */
     clean_up(error, graph, tac,assembly, file_std_err, output, cfg, outputFileName);
 

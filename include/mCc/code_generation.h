@@ -37,6 +37,7 @@ struct labels * label;
 
 struct variable{
     int stack_diff;
+    int size;
     char * identifier;
 };
 
@@ -91,7 +92,7 @@ struct mCc_assembly{
 
 /**********************************************GENERATE*/
 
-struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac);
+struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,char * filename) ;
 
 void mCc_assembly_print(FILE *out, struct mCc_assembly *ass);
 
@@ -129,7 +130,7 @@ struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac);
 
 int get_literal_size(enum mCc_ast_literal_type type);
 
-bool check_pushl_copy(struct mCc_tac_list *tac);
+int check_pushl_copy(struct mCc_tac_list *tac);
 
 bool is_builtin(char *function);
 
@@ -139,7 +140,7 @@ char * get_label(char * key);
 
 void set_var(int size, char * identifier);
 
-int get_var(char * identifier);
+struct variable* get_var(char * identifier);
 
 void new_stack();
 
@@ -147,9 +148,12 @@ void delete_stack();
 
 int get_stack_size();
 
+void free_all_registers();
+
 void free_register(char* identifier);
 
 char* get_register(char * identifier);
+char* get_eax_register(char* identifier);
 
 void update_register(char *old_identifier, char *new_identifier);
 

@@ -75,7 +75,7 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 
 	tac_list *elem = tac_new_list();
 
-	elem->identifier1 = new_string("t%d", v_counter++);
+	elem->identifier1 = new_string("reg_%d", v_counter++);
 
 	if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL) {
 		elem->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
@@ -165,7 +165,7 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data)
 	} else if (expression->type == MCC_AST_EXPRESSION_TYPE_BINARY) {
 		tac_list *elem = tac_new_list();
 
-		elem->identifier1 = new_string("t%d", v_counter++);
+		elem->identifier1 = new_string("reg_%d", v_counter++);
 
 		elem->type = MCC_TAC_ELEMENT_TYPE_BINARY;
 

@@ -40,9 +40,7 @@ void compiler_error(const char *msg, FILE *error,
     }
 }
 
-void clean_up(FILE *error, FILE *graph, FILE *tac,FILE *assembly, FILE *file_std_err,
-              FILE *output, char *outputFileName) {
-void clean_up(FILE *error, FILE *graph, FILE *tac, FILE *file_std_err,
+void clean_up(FILE *error, FILE *graph, FILE *tac,FILE *assembly,  FILE *file_std_err,
               FILE *output, FILE *cfg, char *outputFileName) {
     fclose(error);
     fclose(graph);
@@ -176,7 +174,7 @@ int main(int argc, char *argv[]) {
         char *cfgFileName = new_string("%s%s", outputFileName, ".cfg");
         char *graphFileName = new_string("%s%s", outputFileName, ".graph");
         char *errorFileName = new_string("%s%s", outputFileName, ".error");
-        char *assemblerFileName = new_string("%s%s", outputFileName, ".as");
+        char *assemblyFileName = new_string("%s%s", outputFileName, ".s");
         if (print_tac) {
             tac = fopen(tacFileName, "w");
             cfg = fopen(cfgFileName, "w");
@@ -202,7 +200,7 @@ int main(int argc, char *argv[]) {
             return EXIT_FAILURE;
         }
         if (print_assemby){
-            assembly = fopen(assemblerFileName,"w");
+            assembly = fopen(assemblyFileName,"w");
             if (graph == NULL) {
                 perror("fopen assembly files");
                 return EXIT_FAILURE;
@@ -212,6 +210,7 @@ int main(int argc, char *argv[]) {
         free(cfgFileName);
         free(graphFileName);
         free(errorFileName);
+        free(assemblyFileName);
     }
 
 
@@ -223,8 +222,7 @@ int main(int argc, char *argv[]) {
         compiler_error("Parse Error:\n", file_std_err,
                        &result);
         mCc_delete_result(&result);
-        clean_up(error, graph, tac,assembly, file_std_err, output, outputFileName);
-        clean_up(error, graph, tac, file_std_err, output, cfg, outputFileName);
+        clean_up(error, graph, tac,assembly, file_std_err, output, cfg, outputFileName);
         return EXIT_SUCCESS;
     }
 
@@ -238,8 +236,7 @@ int main(int argc, char *argv[]) {
         compiler_error("Semantic_error:\n", file_std_err,
                        &result);
         mCc_delete_result(&result);
-        clean_up(error, graph, tac,assembly, file_std_err, output, outputFileName);
-        clean_up(error, graph, tac, file_std_err, output, cfg, outputFileName);
+        clean_up(error, graph, tac,assembly, file_std_err, output, cfg, outputFileName);
 
         return EXIT_SUCCESS;
     }
@@ -251,8 +248,7 @@ int main(int argc, char *argv[]) {
         compiler_error("Semantic_error:\n", error, &result);
         compiler_error("Semantic_error:\n", file_std_err, &result);
         mCc_delete_result(&result);
-        clean_up(error, graph, tac,assembly, file_std_err, output, outputFileName);
-        clean_up(error, graph, tac, file_std_err, output, cfg, outputFileName);
+        clean_up(error, graph, tac,assembly, file_std_err, output, cfg, outputFileName);
 
         return EXIT_SUCCESS;
     }
@@ -269,25 +265,18 @@ int main(int argc, char *argv[]) {
         mCc_cfg_print(stdout, _cfg);
     }
 
+    struct mCc_assembly * ass= mCc_assembly_generate(_tac,outputFileName);
 
-/*
-    struct mCc_assembly * ass= mCc_generate_assembly(_tac);
-    FILE * assembly;
-    assembly = fopen("test.ass","w");
-    mCc_print_assembly(assembly,ass);
-    fclose(assembly);*/
     mCc_delete_result(&result);
     mCc_cfg_delete(_cfg);
 
-    struct mCc_assembly * ass= mCc_assembly_generate(_tac);
     if(print_assemby)
         mCc_assembly_print(assembly, ass);
 
     mCc_tac_delete(_tac);
     mCc_assembly_delete(ass);
     /* cleanup */
-    clean_up(error, graph, tac,assembly, file_std_err, output, outputFileName);
-    clean_up(error, graph, tac, file_std_err, output, cfg, outputFileName);
+    clean_up(error, graph, tac,assembly, file_std_err, output, cfg, outputFileName);
 
 
     /*    TODO

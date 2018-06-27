@@ -54,4 +54,10 @@ Furthermore, a few micro-benchmarks are provided.
 ## Known Issues
 
 - executing Parser-unit tests (./ut_parser) causes a valgrind error on the "check_syntax_error_msg" test. More information about it in the parser.cpp
--
+- int[4] = int[5] error is not recognized as wrong assignment
+- executing empty program results in a segmentation fault
+- some invalid program input leads to memory leaks e.g. running 1 + 2; 
+- 
+
+## Group Work
+Please take into account that our third team member (which left our group) was not able to help us in any part of the project. She was not able to write a single line of code. For this reason for every assignment we got into time trouble since we had to write her tasks shortly before the deadlines and had then no time to refactor our code, to write tests and to make everything working like it should. 

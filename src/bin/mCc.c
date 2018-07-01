@@ -281,7 +281,7 @@ int main(int argc, char *argv[]) {
     system("gcc -m32 -c test.s");*/
     /*--------------------------------------------------------------*/
 
-  //  mCc_assembly_delete(ass);
+    // mCc_assembly_delete(ass);
     /* cleanup */
     clean_up(error, graph, tac,assembly, file_std_err, output, cfg, outputFileName);
 

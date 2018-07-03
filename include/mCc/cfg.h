@@ -14,6 +14,7 @@ extern "C" {
 #endif
 
 int g_node_counter;
+char *actual_label;
 
 typedef struct mCc_cfg_list{
     int node_num;
@@ -22,6 +23,7 @@ typedef struct mCc_cfg_list{
     int num_prev_nodes;
     struct mCc_cfg_list * next_nodes;
     struct mCc_cfg_list * prev_nodes;
+    struct mCc_cfg_list * branch;
 
     struct mCc_tac_list * tac_start;
     struct mCc_tac_list * tac_end;

@@ -506,7 +506,7 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 
 		stmt->tac_end = label_end;
 
-	} else if (stmt->else_statement->type !=  MCC_AST_COMPOUND_STMT) {
+	} else if (stmt->else_statement != NULL && stmt->else_statement->type !=  MCC_AST_COMPOUND_STMT) {
 		tac_list *temp_else_stmt_start =
 				stmt->else_statement->tac_start;
 		tac_list *temp_else_stmt_end = stmt->else_statement->tac_end;

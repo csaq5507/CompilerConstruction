@@ -118,10 +118,10 @@ void mCc_cfg_delete(cfg_list *head) {
 
 	if (head->next_nodes != NULL)
 		free(head->next_nodes);
+    if (head->branch != NULL)
+        free(head->branch);
 	if (head->node_num == 0)
 		free(head);
-	if (head->branch != NULL)
-		free(head->branch);
 }
 
 cfg_list *generate_block(tac_list *head) {

@@ -269,7 +269,6 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 				expression->arguments->counter;
 	}
 
-	// TODO maybe move this to mcc_tac_arguments
 	if (expression->arguments != NULL) {
 		for (int i = expression->arguments->counter - 1; i >= 0; i--) {
 			tac_list *temp_end =
@@ -462,10 +461,12 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 	assert(data);
 
 	tac_list *jump_false = tac_new_list();
+	tac_list *jump = tac_new_list();
 	tac_list *label = tac_new_list();
 
 	tac_list *temp_expression_end = stmt->expression->tac_end;
 	jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
+	jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
 
 	jump_false->identifier1 = copy_string(temp_expression_end->identifier1);
 
@@ -476,19 +477,52 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 
 	label->identifier1 = new_string("L%d", l_counter++);
 
-	if (stmt->else_statement != NULL) {
+	if (stmt->else_statement != NULL && stmt->else_statement->type ==  MCC_AST_COMPOUND_STMT) {
+		tac_list *label_end = tac_new_list();
+		label_end->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+		label_end->identifier1 = new_string("L%d", l_counter++);
 		tac_list *temp_else_stmt_start =
 			stmt->else_statement->tac_start;
 		tac_list *temp_else_stmt_end = stmt->else_statement->tac_end;
 		tac_list *temp_stmt_start = stmt->statement->tac_start;
 		tac_list *temp_stmt_end = stmt->statement->tac_end;
 		jump_false->jump = label;
+		jump->jump = label_end;
 
 		jump_false->next = temp_stmt_start;
 		temp_stmt_start->prev = jump_false;
 
-		temp_stmt_end->next = label;
-		label->prev = temp_stmt_end;
+		temp_stmt_end->next = jump;
+		jump->prev = temp_stmt_end;
+
+		jump->next = label;
+		label->prev = jump;
+
+		label->next = temp_else_stmt_start;
+		temp_else_stmt_start->prev = label;
+
+		temp_else_stmt_end->next = label_end;
+		label_end->prev = temp_else_stmt_end;
+
+		stmt->tac_end = label_end;
+
+	} else if (stmt->else_statement->type !=  MCC_AST_COMPOUND_STMT) {
+		tac_list *temp_else_stmt_start =
+				stmt->else_statement->tac_start;
+		tac_list *temp_else_stmt_end = stmt->else_statement->tac_end;
+		tac_list *temp_stmt_start = stmt->statement->tac_start;
+		tac_list *temp_stmt_end = stmt->statement->tac_end;
+		jump_false->jump = label;
+		jump->jump = temp_else_stmt_end;
+
+		jump_false->next = temp_stmt_start;
+		temp_stmt_start->prev = jump_false;
+
+		temp_stmt_end->next = jump;
+		jump->prev = temp_stmt_end;
+
+		jump->next = label;
+		label->prev = jump;
 
 		label->next = temp_else_stmt_start;
 		temp_else_stmt_start->prev = label;

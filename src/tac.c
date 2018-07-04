@@ -144,6 +144,7 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 		elem->unary_identifier = copy_string(temp->identifier1);
 
 		expression->tac_start = expression->unary_expression->tac_start;
+		elem->prev = temp;
 		temp->next = elem;
 		expression->tac_end = elem;
 	} else if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH) {

@@ -222,7 +222,6 @@ single_expr     : literal                           { $$ = mCc_ast_new_single_ex
                 | identifier                        { $$ = mCc_ast_new_single_expression_identifier($1); }
                 | call_expr                         { $$ = mCc_ast_new_single_expression_call_expr($1); }
                 | unary_op expression               { $$ = mCc_ast_new_single_expression_unary_op($1,$2); }
-                | expression unary_op               { $$ = mCc_ast_new_single_expression_unary_op($2,$1); }
                 | LPARENTH expression RPARENTH      { $$ = mCc_ast_new_single_expression_parenth($2); }
                 ;
 

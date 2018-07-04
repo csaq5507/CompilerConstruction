@@ -68,7 +68,7 @@ TEST(tac_generation, tac_generation_conditional_jump)
     struct mCc_tac_list *tac2 = get_at(tac,5);
     ASSERT_NE(tac2, nullptr);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP,tac2->type);
-    ASSERT_STREQ("L0",tac2->jump->identifier1);
+    ASSERT_STREQ("L1",tac2->jump->identifier1);
     tac2=get_at(tac,5);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP,tac2->type);
     mCc_tac_delete(tac);
@@ -94,12 +94,12 @@ TEST(tac_generation, tac_generation_unconditional_jump)
 
     mCc_delete_result(&result);
 
-    struct mCc_tac_list *tac2 = get_at(tac,13);
+    struct mCc_tac_list *tac2 = get_at(tac,14);
     ASSERT_NE(tac2, nullptr);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP,tac2->type);
-    ASSERT_STREQ("L0",tac2->jump->identifier1);
+    ASSERT_STREQ("L1",tac2->jump->identifier1);
     tac2=get_at(tac,4);
-    ASSERT_STREQ("L0",tac2->identifier1);
+    ASSERT_STREQ("L1",tac2->identifier1);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_LABEL,tac2->type);
     mCc_tac_delete(tac);
 

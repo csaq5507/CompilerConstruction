@@ -181,7 +181,6 @@ print_header
 
         # Execute the generated binary with the corresponding input and compare outputs
 		if [[ -e "$BUILD_DIR/./integration.out" ]]; then
-            #cat $(($("$BUILD_DIR/./integration.out" < "$EXAMPLES_DIR/$example.stdin") | diff "$EXAMPLES_DIR/$example.stdout" - ) 2>&1 | grep "differ")
             if [ "$("$BUILD_DIR/./integration.out" < "$EXAMPLES_DIR/$example.stdin")" != "$(cat $EXAMPLES_DIR/$example.stdout)" ]; then
                 flawless=false
                 stats="- - 1"

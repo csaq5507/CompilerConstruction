@@ -69,9 +69,8 @@ TEST(tac_generation, tac_generation_conditional_jump)
     ASSERT_NE(tac2, nullptr);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP,tac2->type);
     ASSERT_STREQ("L0",tac2->jump->identifier1);
-    tac2=get_at(tac,8);
-    ASSERT_STREQ("L0",tac2->identifier1);
-    ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_LABEL,tac2->type);
+    tac2=get_at(tac,5);
+    ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP,tac2->type);
     mCc_tac_delete(tac);
 
 }

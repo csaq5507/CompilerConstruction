@@ -463,6 +463,11 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 	tac_list *jump_false = tac_new_list();
 	tac_list *jump = tac_new_list();
 	tac_list *label = tac_new_list();
+	tac_list *labelHelp = tac_new_list();
+
+
+	labelHelp->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+	labelHelp->identifier1 = new_string("L%d", l_counter++);
 
 	tac_list *temp_expression_end = stmt->expression->tac_end;
 	jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
@@ -489,8 +494,10 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 		jump_false->jump = label;
 		jump->jump = label_end;
 
-		jump_false->next = temp_stmt_start;
-		temp_stmt_start->prev = jump_false;
+		jump_false->next = labelHelp;
+		labelHelp->prev = jump_false;
+		labelHelp->next = temp_stmt_start;
+		temp_stmt_start->prev = labelHelp;
 
 		temp_stmt_end->next = jump;
 		jump->prev = temp_stmt_end;
@@ -515,8 +522,10 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 		jump_false->jump = label;
 		jump->jump = temp_else_stmt_end;
 
-		jump_false->next = temp_stmt_start;
-		temp_stmt_start->prev = jump_false;
+		jump_false->next = labelHelp;
+		labelHelp->prev = jump_false;
+		labelHelp->next = temp_stmt_start;
+		temp_stmt_start->prev = labelHelp;
 
 		temp_stmt_end->next = jump;
 		jump->prev = temp_stmt_end;
@@ -533,8 +542,10 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 		tac_list *temp_stmt_end = stmt->statement->tac_end;
 		jump_false->jump = label;
 
-		jump_false->next = temp_stmt_start;
-		temp_stmt_start->prev = jump_false;
+		jump_false->next = labelHelp;
+		labelHelp->prev = jump_false;
+		labelHelp->next = temp_stmt_start;
+		temp_stmt_start->prev = labelHelp;
 
 		temp_stmt_end->next = label;
 		label->prev = temp_stmt_end;
@@ -553,6 +564,10 @@ static void tac_while_stmt(struct mCc_ast_while_stmt *stmt, void *data)
 	tac_list *jump_false = tac_new_list();
 	tac_list *label_jump_false = tac_new_list();
 	tac_list *label_jump = tac_new_list();
+	tac_list *labelHelp = tac_new_list();
+
+	labelHelp->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+	labelHelp->identifier1 = new_string("L%d", l_counter++);
 
 
 	label_jump->type = MCC_TAC_ELEMENT_TYPE_LABEL;
@@ -585,8 +600,10 @@ static void tac_while_stmt(struct mCc_ast_while_stmt *stmt, void *data)
 
 	jump_false->jump = label_jump_false;
 
-	jump_false->next = temp_stmt_start;
-	temp_stmt_start->prev = jump_false;
+	jump_false->next = labelHelp;
+	labelHelp->prev = jump_false;
+	labelHelp->next = temp_stmt_start;
+	temp_stmt_start->prev = labelHelp;
 
 
 	temp_stmt_end->next = jump;

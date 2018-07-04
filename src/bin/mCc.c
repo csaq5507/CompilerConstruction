@@ -61,13 +61,12 @@ int main(int argc, char *argv[]) {
     }
     char *outputFileName = "a.out";
     char *inputFileName = NULL;
+    char *assemblyFileName = NULL;
     bool print_graph = false;
     bool print_tac = false;
-    bool print_assemby = false;
     bool pipeInput = false;
     bool customOutput = false;
     bool fileInput = false;
-    bool optimize = false;
     FILE *inputFile = stdin;
     FILE *output = stdout;
     FILE *tac = stdout;
@@ -92,13 +91,9 @@ int main(int argc, char *argv[]) {
             return EXIT_SUCCESS;
         } else if (!strcmp(temp, "-g") || !strcmp(temp, "--graph"))
             print_graph = true;
-        else if (!strcmp(temp, "-a") || !strcmp(temp, "--assembly"))
-            print_assemby = true;
         else if (!strcmp(temp, "-t") || !strcmp(temp, "--tac"))
             print_tac = true;
-        else if (!strcmp(temp, "-O") || !strcmp(temp, "--optimize")) {
-            optimize = true;
-        } else if (!strcmp(temp, "-o") || !strcmp(temp, "--output")) {
+        else if (!strcmp(temp, "-o") || !strcmp(temp, "--output")) {
             i++;
             if (argc <= i) {
                 print_error(argv[0], temp);
@@ -173,8 +168,8 @@ int main(int argc, char *argv[]) {
         char *tacFileName = new_string("%s%s", outputFileName, ".tac");
         char *cfgFileName = new_string("%s%s", outputFileName, ".cfg");
         char *graphFileName = new_string("%s%s", outputFileName, ".graph");
+        assemblyFileName = new_string("%s%s", outputFileName, ".s");
         char *errorFileName = new_string("%s%s", outputFileName, ".error");
-        char *assemblyFileName = new_string("%s%s", outputFileName, ".s");
         if (print_tac) {
             tac = fopen(tacFileName, "w");
             cfg = fopen(cfgFileName, "w");
@@ -199,18 +194,17 @@ int main(int argc, char *argv[]) {
             perror("fopen error files");
             return EXIT_FAILURE;
         }
-        if (print_assemby){
-            assembly = fopen(assemblyFileName,"w");
-            if (graph == NULL) {
-                perror("fopen assembly files");
-                return EXIT_FAILURE;
-            }
+        assembly = fopen(assemblyFileName,"w");
+        if (graph == NULL) {
+            perror("fopen assembly files");
+            return EXIT_FAILURE;
         }
+
         free(tacFileName);
         free(cfgFileName);
         free(graphFileName);
         free(errorFileName);
-        free(assemblyFileName);
+
     }
 
 
@@ -265,21 +259,20 @@ int main(int argc, char *argv[]) {
         mCc_cfg_print(cfg, _cfg);
     }
 
-   // struct mCc_assembly * ass= mCc_assembly_generate(_tac,outputFileName);
+    struct mCc_assembly * ass= mCc_assembly_generate(_tac,outputFileName);
 
     mCc_delete_result(&result);
     mCc_cfg_delete(_cfg);
 
-   // if(print_assemby)
-    //    mCc_assembly_print(assembly, ass);
+    mCc_assembly_print(assembly, ass);
+    char * command = new_string("gcc -m32 -c %s",assemblyFileName);
+    system(command);
+    free(command);
+    free(assemblyFileName);
+
 
     mCc_tac_delete(_tac);
 
-    /*--------------------------------------------------------------*/
-    // To execute shell commands from c
-    /*system("gcc -m32 -S -O0 -fno-stack-protector -fno-asynchronous-unwind-tables ../doc/examples/test.c");
-    system("gcc -m32 -c test.s");*/
-    /*--------------------------------------------------------------*/
 
     // mCc_assembly_delete(ass);
     /* cleanup */

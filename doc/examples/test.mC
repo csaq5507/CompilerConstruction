@@ -3,6 +3,9 @@ void main()
     int a;
     int  b;
     int  c;
+    a = read_int();
+    b=read_int();
+    c=read_int();
     if((a < b) && ( c < b))
     {
         print_int(a);

@@ -125,7 +125,11 @@ struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac, char * file
                     current->next->prev=current;
             }
         } else if(temp_tac->type == MCC_TAC_ELEMENT_TYPE_UNARY && temp_tac->unary_op_type == MCC_TAC_OPERATION_TYPE_FAC){
-            mCc_assembly_create_builtin_func(temp_tac);
+            current->next = mCc_assembly_create_builtin_func(temp_tac);
+            if(current->next==NULL)
+                current=current->prev;
+            else
+                current->next->prev=current;
         } else if(temp_tac->type == MCC_TAC_ELEMENT_TYPE_LABEL)
             set_label(temp_tac->identifier1,new_string(".L%d",label_idx++));
         else if(temp_tac->type == MCC_TAC_ELEMENT_TYPE_FUNCTION_START)
@@ -564,12 +568,17 @@ struct mCc_assembly_line * mCc_assembly_operation(struct mCc_tac_list *tac) {
                 retval->instruction = new_string("\taddl\t%s, %s", get_register(tac->rhs), get_register(tac->lhs));
             break;
         case MCC_TAC_OPERATION_TYPE_MINUS:
-            retval->type= MCC_ASSEMBLY_SUB;
-            if(strncmp(get_register(tac->rhs),"st",2) == 0)
-                retval->instruction = new_string("\tfsubrp\t%s, %s",get_register(tac->lhs),get_register(tac->rhs));
-            else
-                retval->instruction = new_string("\tsubl\t%s, %s", get_register(tac->rhs),get_register(tac->lhs));
-            break;
+            if(tac->type == MCC_TAC_ELEMENT_TYPE_UNARY)
+            {
+                //TODO UNARY MINUS
+            } else {
+                retval->type= MCC_ASSEMBLY_SUB;
+                if(strncmp(get_register(tac->rhs),"st",2) == 0)
+                    retval->instruction = new_string("\tfsubrp\t%s, %s",get_register(tac->lhs),get_register(tac->rhs));
+                else
+                    retval->instruction = new_string("\tsubl\t%s, %s", get_register(tac->rhs),get_register(tac->lhs));
+                break;
+            }
         case MCC_TAC_OPERATION_TYPE_MULTIPLY:
             retval->type= MCC_ASSEMBLY_MUL;
             if(strncmp(get_register(tac->rhs),"st",2) == 0)
@@ -647,7 +656,7 @@ struct mCc_assembly_line *mCc_assembly_factorial(struct mCc_tac_list *tac) {
     NEW_TRIPLE_LINE
 
     retval->type = MCC_ASSEMBLY_PUSH;
-    retval->instruction = new_string("\tmovl\t%s %s",get_register(tac->identifier1),"%eax");
+    retval->instruction = new_string("\tpushl\t%s",get_register(tac->identifier3));
     temp->type = MCC_ASSEMBLY_CALL;
     temp->instruction = new_string("\tcall\t%s","factorial_builtin");
     temp1->type = MCC_ASSEMBLY_MOV;
@@ -661,7 +670,7 @@ struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac) {
     retval->type = MCC_ASSEMBLY_CMP;
     if (tac->next->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {
         jump_cond = tac->binary_op_type;
-        retval->instruction = new_string("\tcmpl\t%s, %s",get_register(tac->lhs),get_register(tac->rhs));
+        retval->instruction = new_string("\tcmpl\t%s, %s",get_register(tac->rhs),get_register(tac->lhs));
         free_register(tac->lhs);
         free_register(tac->rhs);
     } else {
@@ -676,7 +685,7 @@ struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac) {
 struct mCc_assembly_line *mCc_assembly_nested_condition(struct mCc_tac_list* tac) {
     NEW_DOUBLE_LINE
     retval->type == MCC_ASSEMBLY_CMP;
-    retval->instruction = new_string("\tcmpl\t%s, %s",get_register(tac->lhs),get_register(tac->rhs));
+    retval->instruction = new_string("\tcmpl\t%s, %s",get_register(tac->rhs),get_register(tac->lhs));
     struct mCc_tac_list * current = tac;
     int and_or = 0;
     while(current->type != MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP)
@@ -698,15 +707,15 @@ struct mCc_assembly_line *mCc_assembly_nested_condition(struct mCc_tac_list* tac
         temp->instruction=t->instruction;
         free(t);
     } else {
-        jump_cond=tac->binary_op_type;
+        jump_cond=negate_binary_op_type(tac->binary_op_type);
         if(current==tac->next->next)
         {
-            jump_cond=negate_binary_op_type(tac->binary_op_type);
+            jump_cond=tac->binary_op_type;
             retval->next=NULL;
             free(temp);
             return retval;
         }
-        struct mCc_assembly_line * t = mCc_assembly_conditional_jump(current);
+        struct mCc_assembly_line * t = mCc_assembly_conditional_jump(current->next);
         temp->type=t->type;
         temp->instruction=t->instruction;
         free(t);
@@ -716,26 +725,30 @@ struct mCc_assembly_line *mCc_assembly_nested_condition(struct mCc_tac_list* tac
 
 struct mCc_assembly_line *mCc_assembly_conditional_jump(struct mCc_tac_list *tac) {
     NEW_SINGLE_LINE
-
+    char * identifier;
+    if(tac->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP)
+        identifier = tac->jump->identifier1;
+    else
+        identifier = tac->identifier1;
     retval->type=MCC_ASSEMBLY_JMP;
     switch(jump_cond){
         case MCC_TAC_OPERATION_TYPE_EQ:
-            retval->instruction = new_string("\tjne\t%s",get_label(tac->jump->identifier1));
+            retval->instruction = new_string("\tjne\t%s",get_label(identifier));
             break;
         case MCC_TAC_OPERATION_TYPE_NE:
-            retval->instruction = new_string("\tje\t%s",get_label(tac->jump->identifier1));
+            retval->instruction = new_string("\tje\t%s",get_label(identifier));
             break;
         case MCC_TAC_OPERATION_TYPE_LT:
-            retval->instruction = new_string("\tjge\t%s",get_label(tac->jump->identifier1));
+            retval->instruction = new_string("\tjge\t%s",get_label(identifier));
             break;
         case MCC_TAC_OPERATION_TYPE_GT:
-            retval->instruction = new_string("\tjle\t%s",get_label(tac->jump->identifier1));
+            retval->instruction = new_string("\tjle\t%s",get_label(identifier));
             break;
         case MCC_TAC_OPERATION_TYPE_LE:
-            retval->instruction = new_string("\tjg\t%s",get_label(tac->jump->identifier1));
+            retval->instruction = new_string("\tjg\t%s",get_label(identifier));
             break;
         case MCC_TAC_OPERATION_TYPE_GE:
-            retval->instruction = new_string("\tjl\t%s",get_label(tac->jump->identifier1));
+            retval->instruction = new_string("\tjl\t%s",get_label(identifier));
             break;
         default:
             printf("error");

@@ -1,27 +1,23 @@
 void main()
 {
+    int c;
     int a;
-    int  b;
-    int  c;
+    print("a: ");
     a = read_int();
-    b=read_int();
-    c=read_int();
-    if((a < b) && ( c < b))
-    {
-        print_int(a);
-    } else if((a < b) && ( c < b))
-    {
-        print_int(a);
-    } else if((a < b) && ( c < b))
-    {
-        print_int(a);
-    }
-    else {
-        print_int(c);
-    }
-    int d;
+    int b;
+    print("b: ");
+    b = read_int();
 
-    while (a < 10) {
-        a = a + 1;
-    }
+    print("Min: ");
+    if(a<b)
+        print_int(a);
+    else if(b<a)
+        print_int(b);
+    else
+        print("none");
+    print_nl();
+    print("Factorial a: ");
+    c = -a;
+    print_int(c);
+    print_nl();
 }

@@ -1,4 +1,4 @@
-# mC Compiler
+#mC Compiler
 
 This repository holds a *getting started* code-base for the [compiler construction course](https://github.com/W4RH4WK/UIBK-703602-Compiler-Construction).
 
@@ -57,7 +57,10 @@ Furthermore, a few micro-benchmarks are provided.
 - int[4] = int[5] error is not recognized as wrong assignment
 - executing empty program results in a segmentation fault
 - some invalid program input leads to memory leaks e.g. running 1 + 2; 
-- undone business for refactoring
+- i think function calls like ackermann(n+1,m) (computations or array access inside funktion call) is the only thin that doesn't work in the code generation, temp = n+1; ackermann(temp,m) should work
+- task 4 is not done (no time left)
+- task 6 is not done (no time left)
+- no unit tests for this assignment (no time left)
 
 ## Group Work
-Please take into account that our third team member (which left our group) was not able to help us in any part of the project. She was not able to write a single line of code. For this reason for every assignment we got into time trouble since we had to write her tasks shortly before the deadlines and had then no time to refactor our code, to write tests and to make everything working like it should. 
+Please take into account that our third team member (which left our group) was not able to help us in any part of the project. She was not able to write a single line of code. For this reason for every assignment we got into time trouble since we had to write her tasks shortly before the deadlines and had then no time to refactor our code, to write tests and to make everything working like it should.

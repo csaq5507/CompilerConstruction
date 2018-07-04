@@ -8,24 +8,24 @@
 
 #define ARRAY_SIZE 2048
 
-#define MALLOC(ptr,size) 				\
-ptr = malloc(size);                		\
-if((ptr) == NULL)        				\
-{                                   	\
-	printf("Malloc failed for %p of"	\
-		   "size %li",ptr,(size));  	\
-	return NULL;                    	\
-}
+#define MALLOC(ptr, size)                                                      \
+	ptr = malloc(size);                                                    \
+	if ((ptr) == NULL) {                                                   \
+		printf("Malloc failed for %p of"                               \
+		       "size %li",                                             \
+		       ptr, (size));                                           \
+		return NULL;                                                   \
+	}
 
-#define REALLOC(ptr,size) 				\
-void * temp = realloc(ptr,size);   		\
-if(temp == NULL)     					\
-{                                       \
-	printf("Realloc failed for %p of"   \
-		   "size %li",ptr,(size));      \
-	return NULL;                        \
-}                                       \
-(ptr) = temp;
+#define REALLOC(ptr, size)                                                     \
+	void *temp = realloc(ptr, size);                                       \
+	if (temp == NULL) {                                                    \
+		printf("Realloc failed for %p of"                              \
+		       "size %li",                                             \
+		       ptr, (size));                                           \
+		return NULL;                                                   \
+	}                                                                      \
+	(ptr) = temp;
 
 
 static ast_symbol_table *create_new_symbol_table_node();
@@ -80,28 +80,29 @@ static void
 ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 				 void *data);
 
-const char *print_type(enum mCc_ast_type type){
+const char *print_type(enum mCc_ast_type type)
+{
 	switch (type) {
-		case MCC_AST_TYPE_STRING:
-			return "string";
-		case MCC_AST_TYPE_INT:
-			return "int";
-		case MCC_AST_TYPE_FLOAT:
-			return "float";
-		case MCC_AST_TYPE_BOOL:
-			return "bool";
-		case MCC_AST_TYPE_STRING_ARRAY:
-			return "string_array";
-		case MCC_AST_TYPE_INT_ARRAY:
-			return "int_array";
-		case MCC_AST_TYPE_FLOAT_ARRAY:
-			return "float_array";
-		case MCC_AST_TYPE_BOOL_ARRAY:
-			return "bool_array";
-		case MCC_AST_TYPE_VOID:
-			return "void";
-		default:
-			return "unknown";
+	case MCC_AST_TYPE_STRING:
+		return "string";
+	case MCC_AST_TYPE_INT:
+		return "int";
+	case MCC_AST_TYPE_FLOAT:
+		return "float";
+	case MCC_AST_TYPE_BOOL:
+		return "bool";
+	case MCC_AST_TYPE_STRING_ARRAY:
+		return "string_array";
+	case MCC_AST_TYPE_INT_ARRAY:
+		return "int_array";
+	case MCC_AST_TYPE_FLOAT_ARRAY:
+		return "float_array";
+	case MCC_AST_TYPE_BOOL_ARRAY:
+		return "bool_array";
+	case MCC_AST_TYPE_VOID:
+		return "void";
+	default:
+		return "unknown";
 	}
 }
 
@@ -192,7 +193,8 @@ static ast_symbol_table *add_element_symbols(ast_symbol_table *head, char *old,
 	symbol->d_type = d_type;
 	symbol->func_param_counter = num_params;
 	symbol->l_types = l_types;
-	REALLOC(head->symbols, sizeof(ast_symbol) * (head->symbols_counter + 1));
+	REALLOC(head->symbols,
+		sizeof(ast_symbol) * (head->symbols_counter + 1));
 
 	memcpy(&(head->symbols[head->symbols_counter]), symbol,
 	       sizeof(*symbol));
@@ -340,7 +342,8 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 			char error_msg[1024] = {0};
 			snprintf(error_msg, sizeof(error_msg),
 				 ERROR_DUBLICATE_FUNCTION, f->identifier->name);
-			mCc_add_error(new_string(ERROR_DUBLICATE_FUNCTION,f->identifier->name),
+			mCc_add_error(new_string(ERROR_DUBLICATE_FUNCTION,
+						 f->identifier->name),
 				      f->identifier->node.sloc.start_line,
 				      h_result);
 		}
@@ -396,8 +399,9 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 		mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
 			      h_result);
 	} else {
-        free(f->identifier->renamed);
-		f->identifier->renamed = new_string("%s%d", f->identifier->name, g_counter++);
+		free(f->identifier->renamed);
+		f->identifier->renamed =
+			new_string("%s%d", f->identifier->name, g_counter++);
 		switch (f->l_type) {
 		case (MCC_AST_LITERAL_TYPE_INT):
 			table = add_element_symbols(
@@ -504,21 +508,24 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 
 	if (strcmp(f->identifier->name, "main") == 0) {
 		if (has_main == true)
-			mCc_add_error(new_string(ERROR_DUBLICATE_FUNCTION,f->identifier->name),
+			mCc_add_error(new_string(ERROR_DUBLICATE_FUNCTION,
+						 f->identifier->name),
 				      f->identifier->node.sloc.start_line,
 				      h_result);
-        free(f->identifier->renamed);
+		free(f->identifier->renamed);
 		f->identifier->renamed = copy_string(f->identifier->name);
 
 		has_main = true;
 	} else {
 		if (find_element_symbols(table, f->identifier->name) != NULL)
-			mCc_add_error(new_string(ERROR_DUBLICATE_FUNCTION, f->identifier->name),
+			mCc_add_error(new_string(ERROR_DUBLICATE_FUNCTION,
+						 f->identifier->name),
 				      f->identifier->node.sloc.start_line,
 				      h_result);
-		 else {
-            free(f->identifier->renamed);
-			f->identifier->renamed = new_string("%s%d", f->identifier->name, g_counter++);
+		else {
+			free(f->identifier->renamed);
+			f->identifier->renamed = new_string(
+				"%s%d", f->identifier->name, g_counter++);
 			table = add_element_symbols(
 				table, f->identifier->name,
 				f->identifier->renamed, MCC_AST_TYPE_VOID,
@@ -605,7 +612,6 @@ static void ast_symbol_close_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 	assert(data);
 
 
-
 	if (current_fun->in_if) {
 		if (!current_fun->has_else) {
 			current_fun->has_ret = false;
@@ -628,7 +634,8 @@ static void ast_symbol_close_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 			current_fun = n_fun;
 		} else {
 			if (current_fun->has_else) {
-				ast_current_fun *n_fun = create_new_current_fun_node();
+				ast_current_fun *n_fun =
+					create_new_current_fun_node();
 				n_fun->type = current_fun->type;
 				n_fun->prev = current_fun;
 				n_fun->identifier = current_fun->identifier;
@@ -669,7 +676,7 @@ static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt,
 		mCc_add_error(error_msg, stmt->identifier->node.sloc.start_line,
 			      h_result);
 	} else {
-        free(stmt->identifier->renamed);
+		free(stmt->identifier->renamed);
 		stmt->identifier->renamed = copy_string(new_name);
 	}
 }
@@ -693,7 +700,7 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 				      stmt->identifier->node.sloc.start_line,
 				      h_result);
 		} else {
-            free(stmt->identifier->renamed);
+			free(stmt->identifier->renamed);
 			stmt->identifier->renamed = copy_string(help);
 			switch (stmt->literal) {
 			case (MCC_AST_LITERAL_TYPE_INT):
@@ -736,7 +743,7 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 				      stmt->identifier->node.sloc.start_line,
 				      h_result);
 		} else {
-            free(stmt->array_identifier->renamed);
+			free(stmt->array_identifier->renamed);
 			stmt->array_identifier->renamed = copy_string(help);
 			switch (stmt->literal) {
 			case (MCC_AST_LITERAL_TYPE_INT):
@@ -826,7 +833,9 @@ ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
 	assert(expression);
 	assert(data);
 
-	if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER || expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX) {
+	if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER
+	    || expression->type
+		       == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX) {
 		char *new_name = find_element_symbols(
 			table, expression->identifier->name);
 		ast_symbol_table *temp = table;
@@ -846,9 +855,9 @@ ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
 				expression->identifier->node.sloc.start_line,
 				h_result);
 		} else {
-            free(expression->identifier->renamed);
-            expression->identifier->renamed = copy_string(new_name);
-        }
+			free(expression->identifier->renamed);
+			expression->identifier->renamed = copy_string(new_name);
+		}
 	}
 }
 
@@ -913,9 +922,9 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 			      expression->identifier->node.sloc.start_line,
 			      h_result);
 	} else {
-        free(expression->identifier->renamed);
-        expression->identifier->renamed = copy_string(new_name);
-    }
+		free(expression->identifier->renamed);
+		expression->identifier->renamed = copy_string(new_name);
+	}
 }
 
 struct mCc_parser_result *mCc_ast_symbol_table(struct mCc_parser_result *result)

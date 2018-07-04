@@ -46,7 +46,8 @@ add_parse_error(struct mCc_parser_error_array *array,
 
 void mCc_delete_result(struct mCc_parser_result *result)
 {
-	mCc_ast_delete_function_def_array(result->func_def, result->has_toplevel);
+	mCc_ast_delete_function_def_array(result->func_def,
+					  result->has_toplevel);
 	free(result->errors->errors);
 	free(result->errors);
 }

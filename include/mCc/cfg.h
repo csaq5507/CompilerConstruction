@@ -16,17 +16,17 @@ extern "C" {
 int g_node_counter;
 char *actual_label;
 
-typedef struct mCc_cfg_list{
-    int node_num;
+typedef struct mCc_cfg_list {
+	int node_num;
 
-    int num_next_nodes;
-    int num_prev_nodes;
-    struct mCc_cfg_list * next_nodes;
-    struct mCc_cfg_list * prev_nodes;
-    struct mCc_cfg_list * branch;
+	int num_next_nodes;
+	int num_prev_nodes;
+	struct mCc_cfg_list *next_nodes;
+	struct mCc_cfg_list *prev_nodes;
+	struct mCc_cfg_list *branch;
 
-    struct mCc_tac_list * tac_start;
-    struct mCc_tac_list * tac_end;
+	struct mCc_tac_list *tac_start;
+	struct mCc_tac_list *tac_end;
 } cfg_list;
 
 
@@ -41,4 +41,4 @@ cfg_list *mCc_cfg_generate(tac_list *tac);
 }
 #endif
 
-#endif //MINICOMPILER_CFG_H
+#endif // MINICOMPILER_CFG_H

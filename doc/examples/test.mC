@@ -1,15 +1,27 @@
-void main(){
+void main()
+{
     int a;
-    int b;
-    int c;
-    a = 1;
-    b = 5;
-    if (a == 1) {
-        c = a + b;
-    } else if (a == 1) {
-       c = a + b;
-    } else {
-        c = a - b;
+    int  b;
+    int  c;
+    a = read_int();
+    b=read_int();
+    c=read_int();
+    if((a < b) && ( c < b))
+    {
+        print_int(a);
+    } else if((a < b) && ( c < b))
+    {
+        print_int(a);
+    } else if((a < b) && ( c < b))
+    {
+        print_int(a);
     }
+    else {
+        print_int(c);
+    }
+    int d;
 
+    while (a < 10) {
+        a = a + 1;
+    }
 }

@@ -53,6 +53,10 @@ struct regs{
     char* ebx;
     char* ecx;
     char* edx;
+    char* st0;
+    char* st1;
+    char* st2;
+    char* st3;
 };
 
 struct regs * registers;
@@ -134,6 +138,9 @@ struct mCc_assembly_line *mCc_assembly_conditional_jump(struct mCc_tac_list *tac
 
 struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac);
 
+struct mCc_assembly_line *mCc_assembly_nested_condition(struct mCc_tac_list *tac);
+
+struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac);
 
 /***************************************/
 /***************************************/
@@ -165,7 +172,11 @@ void free_register(char* identifier);
 
 char* get_register(char * identifier);
 
+void set_float_register(char *identifier);
+
 void update_register(char *old_identifier, char *new_identifier);
+
+int negate_binary_op_type(enum mCc_tac_operation_type type);
 
 #ifdef __cplusplus
 }

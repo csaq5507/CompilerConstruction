@@ -2,11 +2,31 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <memory.h>
+#include <mCc/utils.h>
 #include "mCc/ast_symbol_table.h"
 #include "mCc/error.h"
 
-#define DEBUG 0
 #define ARRAY_SIZE 2048
+
+#define MALLOC(ptr, size)                                                      \
+	ptr = malloc(size);                                                    \
+	if ((ptr) == NULL) {                                                   \
+		printf("Malloc failed for %p of"                               \
+		       "size %li",                                             \
+		       ptr, (size));                                           \
+		return NULL;                                                   \
+	}
+
+#define REALLOC(ptr, size)                                                     \
+	void *temp = realloc(ptr, size);                                       \
+	if (temp == NULL) {                                                    \
+		printf("Realloc failed for %p of"                              \
+		       "size %li",                                             \
+		       ptr, (size));                                           \
+		return NULL;                                                   \
+	}                                                                      \
+	(ptr) = temp;
+
 
 static ast_symbol_table *create_new_symbol_table_node();
 static void mCc_ast_symbol_table_add_default_function_names();
@@ -60,6 +80,31 @@ static void
 ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 				 void *data);
 
+const char *print_type(enum mCc_ast_type type)
+{
+	switch (type) {
+	case MCC_AST_TYPE_STRING:
+		return "string";
+	case MCC_AST_TYPE_INT:
+		return "int";
+	case MCC_AST_TYPE_FLOAT:
+		return "float";
+	case MCC_AST_TYPE_BOOL:
+		return "bool";
+	case MCC_AST_TYPE_STRING_ARRAY:
+		return "string_array";
+	case MCC_AST_TYPE_INT_ARRAY:
+		return "int_array";
+	case MCC_AST_TYPE_FLOAT_ARRAY:
+		return "float_array";
+	case MCC_AST_TYPE_BOOL_ARRAY:
+		return "bool_array";
+	case MCC_AST_TYPE_VOID:
+		return "void";
+	default:
+		return "unknown";
+	}
+}
 
 static struct mCc_ast_visitor symbol_table_visitor(ast_symbol_table *data)
 {
@@ -96,7 +141,9 @@ static struct mCc_ast_visitor symbol_table_visitor(ast_symbol_table *data)
 
 static ast_symbol_table *create_new_symbol_table_node()
 {
-	ast_symbol_table *table = malloc(sizeof(*table));
+	ast_symbol_table *table;
+	MALLOC(table, sizeof(ast_symbol_table));
+
 	table->next = NULL;
 	table->prev = NULL;
 	table->symbols_counter = 0;
@@ -137,23 +184,17 @@ static ast_symbol_table *add_element_symbols(ast_symbol_table *head, char *old,
 {
 	assert(head);
 	assert(old);
-	assert(new);
 
-	// printf("%s: %p\n", old, l_types);
-	ast_symbol *symbol = malloc(sizeof(*symbol));
+	ast_symbol *symbol;
+	MALLOC(symbol, sizeof(ast_symbol));
+
 	symbol->mCc_symbol_old = old;
 	symbol->mCc_symbol_new = new;
 	symbol->d_type = d_type;
 	symbol->func_param_counter = num_params;
 	symbol->l_types = l_types;
-
-
-	ast_symbol *temp = realloc(
-		head->symbols, sizeof(*symbol) * (head->symbols_counter + 1));
-	if (temp == NULL) {
-		return NULL;
-	}
-	head->symbols = temp;
+	REALLOC(head->symbols,
+		sizeof(ast_symbol) * (head->symbols_counter + 1));
 
 	memcpy(&(head->symbols[head->symbols_counter]), symbol,
 	       sizeof(*symbol));
@@ -245,7 +286,8 @@ static void delete_symbol_table_node(ast_symbol_table *head)
 
 static ast_current_fun *create_new_current_fun_node()
 {
-	ast_current_fun *elem = malloc(sizeof(*elem));
+	ast_current_fun *elem;
+	MALLOC(elem, sizeof(ast_current_fun));
 	elem->prev = NULL;
 	elem->next = NULL;
 	elem->has_ret = false;
@@ -253,6 +295,8 @@ static ast_current_fun *create_new_current_fun_node()
 	elem->identifier = NULL;
 	elem->in_if = false;
 	elem->in_else = false;
+	elem->missing_if_ret = false;
+	elem->has_else = false;
 	return elem;
 }
 
@@ -290,7 +334,7 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 	if (strcmp(f->identifier->name, "main") == 0) {
 		char error_msg[1024] = {0};
 		snprintf(error_msg, sizeof(error_msg), ERROR_MAIN_NOT_VOID,
-			 print_literal_type(f->identifier->d_type));
+			 print_type(f->identifier->d_type));
 		mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
 			      h_result);
 
@@ -298,7 +342,8 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 			char error_msg[1024] = {0};
 			snprintf(error_msg, sizeof(error_msg),
 				 ERROR_DUBLICATE_FUNCTION, f->identifier->name);
-			mCc_add_error(error_msg,
+			mCc_add_error(new_string(ERROR_DUBLICATE_FUNCTION,
+						 f->identifier->name),
 				      f->identifier->node.sloc.start_line,
 				      h_result);
 		}
@@ -347,9 +392,6 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 		       sizeof(*h_param) * f->params->counter);
 	}
 
-	char help[ARRAY_SIZE] = {0};
-	sprintf(help, "%s%d", f->identifier->name, g_counter++);
-
 	if (find_element_symbols(table, f->identifier->name) != NULL) {
 		char error_msg[1024] = {0};
 		snprintf(error_msg, sizeof(error_msg), ERROR_DUBLICATE_FUNCTION,
@@ -357,17 +399,9 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 		mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
 			      h_result);
 	} else {
-		char *temp = realloc(f->identifier->renamed,
-				     sizeof(char *) * ARRAY_SIZE);
-		if (temp == NULL) {
-			mCc_add_error(
-				"Realloc failed at "
-				"ast_symbol_table.c:ast_symbol_table_func_type",
-				f->identifier->node.sloc.start_line, h_result);
-			assert(NULL);
-		}
-		f->identifier->renamed = temp;
-		strcpy(f->identifier->renamed, help);
+		free(f->identifier->renamed);
+		f->identifier->renamed =
+			new_string("%s%d", f->identifier->name, g_counter++);
 		switch (f->l_type) {
 		case (MCC_AST_LITERAL_TYPE_INT):
 			table = add_element_symbols(
@@ -473,35 +507,25 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 
 
 	if (strcmp(f->identifier->name, "main") == 0) {
-		if (has_main == true) {
-
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 ERROR_DUBLICATE_FUNCTION, f->identifier->name);
-			mCc_add_error(error_msg,
+		if (has_main == true)
+			mCc_add_error(new_string(ERROR_DUBLICATE_FUNCTION,
+						 f->identifier->name),
 				      f->identifier->node.sloc.start_line,
 				      h_result);
-		}
+		free(f->identifier->renamed);
+		f->identifier->renamed = copy_string(f->identifier->name);
+
 		has_main = true;
 	} else {
-		char help[ARRAY_SIZE] = {0};
-		sprintf(help, "%s%d", f->identifier->name, g_counter++);
-		if (find_element_symbols(table, f->identifier->name) != NULL) {
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 ERROR_DUBLICATE_FUNCTION, f->identifier->name);
-			mCc_add_error(error_msg,
+		if (find_element_symbols(table, f->identifier->name) != NULL)
+			mCc_add_error(new_string(ERROR_DUBLICATE_FUNCTION,
+						 f->identifier->name),
 				      f->identifier->node.sloc.start_line,
 				      h_result);
-		} else {
-			char *temp = realloc(f->identifier->renamed,
-					     sizeof(char *) * ARRAY_SIZE);
-			if (temp == NULL) {
-				// TODO throw error
-				assert(NULL);
-			}
-			f->identifier->renamed = temp;
-			strcpy(f->identifier->renamed, help);
+		else {
+			free(f->identifier->renamed);
+			f->identifier->renamed = new_string(
+				"%s%d", f->identifier->name, g_counter++);
 			table = add_element_symbols(
 				table, f->identifier->name,
 				f->identifier->renamed, MCC_AST_TYPE_VOID,
@@ -528,8 +552,6 @@ static void ast_symbol_table_close_func(struct mCc_ast_function_def *f,
 	assert(f);
 	assert(data);
 
-	if (DEBUG)
-		printf("func close\n");
 	if (table->prev != NULL) {
 		ast_symbol_table *temp = table;
 		table = table->prev;
@@ -562,8 +584,6 @@ static void ast_symbol_table_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
 	assert(c_stmt);
 	assert(data);
 
-	if (DEBUG)
-		printf("cmp stmt\n");
 	ast_symbol_table *new = create_new_symbol_table_node();
 	table->next = new;
 	new->prev = table;
@@ -577,8 +597,6 @@ ast_symbol_table_close_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
 	assert(c_stmt);
 	assert(data);
 
-	if (DEBUG)
-		printf("close cmp stmt\n");
 	if (table->prev != NULL) {
 		ast_symbol_table *temp = table;
 		table = table->prev;
@@ -593,7 +611,11 @@ static void ast_symbol_close_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
+
 	if (current_fun->in_if) {
+		if (!current_fun->has_else) {
+			current_fun->has_ret = false;
+		}
 		if (current_fun->has_ret) {
 			if (current_fun->prev != NULL) {
 				ast_current_fun *temp = current_fun;
@@ -611,12 +633,25 @@ static void ast_symbol_close_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 			current_fun->next = n_fun;
 			current_fun = n_fun;
 		} else {
-			if (current_fun->prev != NULL) {
-				ast_current_fun *temp = current_fun;
-				current_fun = current_fun->prev;
-				temp->prev = NULL;
-				delete_current_fun(temp);
-				current_fun->next = NULL;
+			if (current_fun->has_else) {
+				ast_current_fun *n_fun =
+					create_new_current_fun_node();
+				n_fun->type = current_fun->type;
+				n_fun->prev = current_fun;
+				n_fun->identifier = current_fun->identifier;
+				n_fun->in_if = false;
+				n_fun->in_else = true;
+				n_fun->missing_if_ret = true;
+				current_fun->next = n_fun;
+				current_fun = n_fun;
+			} else {
+				if (current_fun->prev != NULL) {
+					ast_current_fun *temp = current_fun;
+					current_fun = current_fun->prev;
+					temp->prev = NULL;
+					delete_current_fun(temp);
+					current_fun->next = NULL;
+				}
 			}
 		}
 	}
@@ -641,14 +676,8 @@ static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt,
 		mCc_add_error(error_msg, stmt->identifier->node.sloc.start_line,
 			      h_result);
 	} else {
-		char *temp = realloc(stmt->identifier->renamed,
-				     sizeof(char *) * strlen(new_name));
-		if (temp == NULL) {
-			// TODO throw error
-			assert(NULL);
-		}
-		stmt->identifier->renamed = temp;
-		strcpy(stmt->identifier->renamed, new_name);
+		free(stmt->identifier->renamed);
+		stmt->identifier->renamed = copy_string(new_name);
 	}
 }
 
@@ -671,14 +700,8 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 				      stmt->identifier->node.sloc.start_line,
 				      h_result);
 		} else {
-			char *temp = realloc(stmt->identifier->renamed,
-					     sizeof(char *) * ARRAY_SIZE);
-			if (temp == NULL) {
-				// TODO throw error
-				assert(NULL);
-			}
-			stmt->identifier->renamed = temp;
-			strcpy(stmt->identifier->renamed, help);
+			free(stmt->identifier->renamed);
+			stmt->identifier->renamed = copy_string(help);
 			switch (stmt->literal) {
 			case (MCC_AST_LITERAL_TYPE_INT):
 				table = add_element_symbols(
@@ -720,14 +743,8 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 				      stmt->identifier->node.sloc.start_line,
 				      h_result);
 		} else {
-			char *temp = realloc(stmt->array_identifier->renamed,
-					     sizeof(char *) * strlen(help));
-			if (temp == NULL) {
-				// TODO throw error
-				assert(NULL);
-			}
-			stmt->array_identifier->renamed = temp;
-			strcpy(stmt->array_identifier->renamed, help);
+			free(stmt->array_identifier->renamed);
+			stmt->array_identifier->renamed = copy_string(help);
 			switch (stmt->literal) {
 			case (MCC_AST_LITERAL_TYPE_INT):
 				table = add_element_symbols(
@@ -773,15 +790,18 @@ static void ast_symbol_table_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
+	ast_current_fun *n_fun = create_new_current_fun_node();
 	if (stmt->else_statement != NULL) {
-		ast_current_fun *n_fun = create_new_current_fun_node();
-		n_fun->type = current_fun->type;
-		n_fun->prev = current_fun;
-		n_fun->identifier = current_fun->identifier;
-		n_fun->in_if = true;
-		current_fun->next = n_fun;
-		current_fun = n_fun;
+		n_fun->has_else = true;
+	} else {
+		n_fun->has_else = false;
 	}
+	n_fun->type = current_fun->type;
+	n_fun->prev = current_fun;
+	n_fun->identifier = current_fun->identifier;
+	n_fun->in_if = true;
+	current_fun->next = n_fun;
+	current_fun = n_fun;
 }
 
 static void ast_symbol_table_close_stmt(struct mCc_ast_stmt *stmt, void *data)
@@ -795,6 +815,8 @@ static void ast_symbol_table_close_stmt(struct mCc_ast_stmt *stmt, void *data)
 		}
 		if (current_fun->prev != NULL) {
 			ast_current_fun *temp = current_fun;
+			if (current_fun->missing_if_ret)
+				current_fun->has_ret = false;
 			current_fun = current_fun->prev;
 			current_fun->has_ret = temp->has_ret;
 			temp->prev = NULL;
@@ -811,7 +833,9 @@ ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
 	assert(expression);
 	assert(data);
 
-	if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER) {
+	if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER
+	    || expression->type
+		       == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX) {
 		char *new_name = find_element_symbols(
 			table, expression->identifier->name);
 		ast_symbol_table *temp = table;
@@ -831,15 +855,8 @@ ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
 				expression->identifier->node.sloc.start_line,
 				h_result);
 		} else {
-			char *temp1 =
-				realloc(expression->identifier->renamed,
-					sizeof(char *) * strlen(new_name));
-			if (temp1 == NULL) {
-				// TODO throw error
-				assert(NULL);
-			}
-			expression->identifier->renamed = temp1;
-			strcpy(expression->identifier->renamed, new_name);
+			free(expression->identifier->renamed);
+			expression->identifier->renamed = copy_string(new_name);
 		}
 	}
 }
@@ -905,14 +922,8 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 			      expression->identifier->node.sloc.start_line,
 			      h_result);
 	} else {
-		char *temp1 = realloc(expression->identifier->renamed,
-				      sizeof(char *) * strlen(new_name));
-		if (temp1 == NULL) {
-			// TODO throw error
-			assert(NULL);
-		}
-		expression->identifier->renamed = temp1;
-		strcpy(expression->identifier->renamed, new_name);
+		free(expression->identifier->renamed);
+		expression->identifier->renamed = copy_string(new_name);
 	}
 }
 

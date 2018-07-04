@@ -20,15 +20,12 @@ TEST(semantic_check, binary_ex_type_missmatch)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
-
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_BINARY_EX_TYPE_MISSMATCH,
 		 "int", "+", "float");
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 
@@ -45,15 +42,12 @@ TEST(semantic_check, wrong_parameter_type)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
-
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_WRONG_PARAMETER_TYPE,
 		 "func1", 1, "int", "float");
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 
@@ -71,8 +65,6 @@ TEST(semantic_check, wrong_return_type)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
-
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_WRONG_RETURN_TYPE, "int",
 		 "void");
@@ -80,7 +72,6 @@ TEST(semantic_check, wrong_return_type)
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 
@@ -97,8 +88,6 @@ TEST(semantic_check, wrong_return_type2)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
-
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_WRONG_RETURN_TYPE, "void",
 		 "int");
@@ -106,7 +95,6 @@ TEST(semantic_check, wrong_return_type2)
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 
@@ -124,8 +112,6 @@ TEST(semantic_check, wrong_assignment_type)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
-
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_WRONG_ASSIGNMENT_TYPE,
 		 "int", "float");
@@ -133,7 +119,6 @@ TEST(semantic_check, wrong_assignment_type)
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 
@@ -150,8 +135,6 @@ TEST(semantic_check, condition_not_boolean_if)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
-
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_CONDITION_NOT_BOOLEAN,
 		 "int");
@@ -159,7 +142,6 @@ TEST(semantic_check, condition_not_boolean_if)
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }
 
@@ -177,8 +159,6 @@ TEST(semantic_check, condition_not_boolean_while)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
-
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_CONDITION_NOT_BOOLEAN,
 		 "int");
@@ -186,6 +166,5 @@ TEST(semantic_check, condition_not_boolean_while)
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 }

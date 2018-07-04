@@ -141,7 +141,8 @@ literal         : INT_LITERAL       { $$ = mCc_ast_new_literal_int($1);    }
 identifier      : IDENTIFIER        {$$ = mCc_ast_new_identifier($1, line_counter); }
                 ;
 
-toplevel        : function_def_arr                  { result->func_def = $1; }
+toplevel        : function_def_arr                  { result->func_def = $1; result->has_toplevel = true; }
+                | expression                        { result->func_def = mCc_ast_gen_func_def($1); result->has_toplevel = true; }
                 ;
 
 function_def_arr: function_def_arr function_def     { $$ = mCc_ast_add_function_def_to_array($1,$2); }
@@ -282,7 +283,7 @@ struct mCc_parser_result mCc_parser_parse_file(FILE *input)
 	mCc_parser_set_in(input, scanner);
 
     struct mCc_parser_result result;
-
+    result.has_toplevel = false;
 	result.status = MCC_PARSER_STATUS_OK;
 	result.errors = new_parse_error_array();
 

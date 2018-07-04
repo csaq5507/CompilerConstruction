@@ -27,20 +27,18 @@ TEST(tac_generation, tac_generation_func_call)
 
 	struct mCc_tac_list *tac;
 	tac = mCc_tac_generate(result.func_def);
-	struct mCc_ast_function_def_array *func_def_arr = result.func_def;
 
 	ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-	mCc_ast_delete_function_def_array(func_def_arr);
 	mCc_delete_result(&result);
 
 
-    struct mCc_tac_list *tac2 = get_at(tac,12);
+    struct mCc_tac_list *tac2 = get_at(tac,11);
     ASSERT_NE(tac2, nullptr);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL,tac2->type);
     ASSERT_STREQ("func10",tac2->identifier1);
     ASSERT_EQ(2,tac2->num_function_param);
-    tac2=get_at(tac,15);
+    tac2=get_at(tac,14);
     ASSERT_STREQ("print",tac2->identifier1);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL,tac2->type);
     ASSERT_EQ(1,tac2->num_function_param);
@@ -62,20 +60,17 @@ TEST(tac_generation, tac_generation_conditional_jump)
 
     struct mCc_tac_list *tac;
     tac = mCc_tac_generate(result.func_def);
-    struct mCc_ast_function_def_array *func_def_arr = result.func_def;
 
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    mCc_ast_delete_function_def_array(func_def_arr);
     mCc_delete_result(&result);
 
     struct mCc_tac_list *tac2 = get_at(tac,5);
     ASSERT_NE(tac2, nullptr);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP,tac2->type);
-    ASSERT_STREQ("L0",tac2->jump->identifier1);
-    tac2=get_at(tac,8);
-    ASSERT_STREQ("L0",tac2->identifier1);
-    ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_LABEL,tac2->type);
+    ASSERT_STREQ("L1",tac2->jump->identifier1);
+    tac2=get_at(tac,5);
+    ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP,tac2->type);
     mCc_tac_delete(tac);
 
 }
@@ -94,19 +89,17 @@ TEST(tac_generation, tac_generation_unconditional_jump)
 
     struct mCc_tac_list *tac;
     tac = mCc_tac_generate(result.func_def);
-    struct mCc_ast_function_def_array *func_def_arr = result.func_def;
 
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    mCc_ast_delete_function_def_array(func_def_arr);
     mCc_delete_result(&result);
 
     struct mCc_tac_list *tac2 = get_at(tac,14);
     ASSERT_NE(tac2, nullptr);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP,tac2->type);
-    ASSERT_STREQ("L0",tac2->jump->identifier1);
-    tac2=get_at(tac,5);
-    ASSERT_STREQ("L0",tac2->identifier1);
+    ASSERT_STREQ("L1",tac2->jump->identifier1);
+    tac2=get_at(tac,4);
+    ASSERT_STREQ("L1",tac2->identifier1);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_LABEL,tac2->type);
     mCc_tac_delete(tac);
 

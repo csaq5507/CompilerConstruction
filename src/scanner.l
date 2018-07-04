@@ -90,6 +90,7 @@ comment_linebreak_r	[ \t]*[\r][ \t]*
 "if"                { return TK_IF; }
 "else"              { return TK_ELSE; }
 "while"             {return TK_WHILE; }
+"EOF"             { return TK_END; }
 
 {identifier}    {yylval->TK_IDENTIFIER = malloc(sizeof(char*) * strlen(yytext)); strcpy(yylval->TK_IDENTIFIER,yytext); return TK_IDENTIFIER; }
 

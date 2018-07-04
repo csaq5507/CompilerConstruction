@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include "mCc/ast_visit.h"
 
-#define DEBUG 1
-
 #define visit(node, callback, visitor)                                         \
 	do {                                                                   \
 		if (callback) {                                                \
@@ -76,6 +74,7 @@ void mCc_ast_visit_function_def_type(struct mCc_ast_function_def *f,
 
 	visit_if_pre_order(f->c_stmt, visitor->c_stmt, visitor);
 	mCc_ast_visit_compound_stmt(f->c_stmt, visitor);
+	visit(f->c_stmt, visitor->close_c_stmt, visitor);
 	visit_if_post_order(f->c_stmt, visitor->c_stmt, visitor);
 
 	visit(f, visitor->close_function_def, visitor);
@@ -95,6 +94,7 @@ void mCc_ast_visit_function_def_void(struct mCc_ast_function_def *f,
 
 	visit_if_pre_order(f->c_stmt, visitor->c_stmt, visitor);
 	mCc_ast_visit_compound_stmt(f->c_stmt, visitor);
+	visit(f->c_stmt, visitor->close_c_stmt, visitor);
 	visit_if_post_order(f->c_stmt, visitor->c_stmt, visitor);
 
 

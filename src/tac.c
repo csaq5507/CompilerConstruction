@@ -2,10 +2,7 @@
 #include <stdlib.h>
 #include <memory.h>
 #include "mCc/tac.h"
-
-
-#define ARRAY_SIZE 2048
-#define DEBUG 0
+#include "mCc/utils.h"
 
 static void tac_single_expression(struct mCc_ast_single_expression *expression,
 				  void *data);
@@ -61,17 +58,10 @@ static struct mCc_ast_visitor tac_visitor(void *out)
 tac_list *tac_new_list()
 {
 	tac_list *elem = malloc(sizeof(*elem));
+	elem->type = MCC_TAC_ELEMENT_TYPE_UNKNOWN;
 	elem->next = NULL;
 	elem->prev = NULL;
-	elem->jump = NULL;
-	elem->operation_type = MCC_TAC_OPERATION_TYPE_UNKNOWN;
-	elem->type = MCC_TAC_ELEMENT_TYPE_UNKNOWN;
-	elem->l_type = MCC_TAC_LITERAL_TYPE_UNKNWON;
-	elem->num_function_param = -1;
 	elem->identifier1 = NULL;
-	elem->identifier2 = NULL;
-	elem->ifentifier3 = NULL;
-	elem->s_literal = NULL;
 	return elem;
 }
 
@@ -84,66 +74,52 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 	assert(data);
 
 	tac_list *elem = tac_new_list();
-	char help[ARRAY_SIZE] = {0};
-	sprintf(help, "t%d", v_counter++);
 
-	elem->identifier1 = malloc(sizeof(char *) * ARRAY_SIZE);
-	strcpy(elem->identifier1, help);
+	elem->identifier1 = new_string("reg_%d", v_counter++);
 
 	if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL) {
-		if (DEBUG) {
-			printf("LITERAL\n");
-		}
-		elem->type = MCC_TAC_ELEMENT_TYPE_COPY;
+		elem->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
 		switch (expression->literal->type) {
 		case (MCC_AST_LITERAL_TYPE_INT):
-			elem->l_type = MCC_TAC_LITERAL_TYPE_INT;
+			elem->literal_type = MCC_TAC_LITERAL_TYPE_INT;
 			elem->i_literal = expression->literal->i_value;
 			break;
 		case (MCC_AST_LITERAL_TYPE_FLOAT):
-			elem->l_type = MCC_TAC_LITERAL_TYPE_FLOAT;
+			elem->literal_type = MCC_TAC_LITERAL_TYPE_FLOAT;
 			elem->f_literal = expression->literal->f_value;
 			break;
 		case (MCC_AST_LITERAL_TYPE_BOOL):
-			elem->l_type = MCC_TAC_LITERAL_TYPE_BOOL;
+			elem->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
 			elem->b_literal = expression->literal->b_value;
 			break;
 		case (MCC_AST_LITERAL_TYPE_STRING):
-			elem->l_type = MCC_TAC_LITERAL_TYPE_STRING;
+			elem->literal_type = MCC_TAC_LITERAL_TYPE_STRING;
 			elem->s_literal =
-				malloc(sizeof(char *)
-				       * strlen(expression->literal->s_value));
-			strcpy(elem->s_literal, expression->literal->s_value);
+				copy_string(expression->literal->s_value);
 			break;
 		}
 		expression->tac_start = elem;
 		expression->tac_end = elem;
 	} else if (expression->type
 		   == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER) {
-		if (DEBUG)
-			printf("IDENTIFIER\n");
-		elem->type = MCC_TAC_ELEMENT_TYPE_COPY;
-		elem->identifier2 =
-			malloc(sizeof(char *)
-			       * strlen(expression->identifier->renamed));
-		strcpy(elem->identifier2, expression->identifier->renamed);
+		elem->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
+
+		elem->copy_identifier =
+			copy_string(expression->identifier->renamed);
+
 		expression->tac_start = elem;
 		expression->tac_end = elem;
 	} else if (expression->type
 		   == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX) {
-		if (DEBUG)
-			printf("IDENTIFIER []\n");
 		elem->type = MCC_TAC_ELEMENT_TYPE_LOAD;
 
 		elem->identifier2 =
-			malloc(sizeof(char *)
-			       * strlen(expression->identifier->renamed));
-		strcpy(elem->identifier2, expression->identifier->renamed);
+			copy_string(expression->identifier->renamed);
 
 		tac_list *temp = expression->identifier_expression->tac_end;
-		elem->ifentifier3 =
-			malloc(sizeof(char *) * strlen(temp->identifier1));
-		strcpy(elem->ifentifier3, temp->identifier1);
+
+		elem->identifier3 = copy_string(temp->identifier1);
+
 		temp->next = elem;
 		elem->prev = temp;
 		expression->tac_start =
@@ -151,34 +127,30 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 		expression->tac_end = elem;
 	} else if (expression->type
 		   == MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR) {
-		if (DEBUG)
-			printf("CALL EXPRESSION FROM SINGLE EXPRESSION\n");
 		expression->tac_start = expression->call_expr->tac_start;
 		expression->tac_end = expression->call_expr->tac_end;
 		free(elem->identifier1);
 		free(elem);
 	} else if (expression->type
 		   == MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP) {
-		if (DEBUG)
-			printf("UNARY OPERATOR\n");
 		elem->type = MCC_TAC_ELEMENT_TYPE_UNARY;
 		switch (expression->unary_operator) {
 		case (MCC_AST_UNARY_OP_FAC):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_FAC;
+			elem->unary_op_type = MCC_TAC_OPERATION_TYPE_FAC;
 			break;
 		case (MCC_AST_UNARY_OP_NEGATION):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_MINUS;
+			elem->unary_op_type = MCC_TAC_OPERATION_TYPE_MINUS;
 			break;
 		}
 		tac_list *temp = expression->unary_expression->tac_end;
-		elem->identifier2 =
-			malloc(sizeof(char *) * strlen(temp->identifier1));
-		strcpy(elem->identifier2, temp->identifier1);
-		expression->tac_start = elem;
+
+		elem->unary_identifier = copy_string(temp->identifier1);
+
+		expression->tac_start = expression->unary_expression->tac_start;
+		elem->prev = temp;
+		temp->next = elem;
 		expression->tac_end = elem;
 	} else if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH) {
-		if (DEBUG)
-			printf("{ EXPRESSION }\n");
 		expression->tac_start = expression->expression->tac_start;
 		expression->tac_end = expression->expression->tac_end;
 		free(elem->identifier1);
@@ -193,70 +165,61 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data)
 
 
 	if (expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
-		if (DEBUG)
-			printf("SINGLE EXPRESSION\n");
 		expression->tac_start = expression->single_expr->tac_start;
 		expression->tac_end = expression->single_expr->tac_end;
 	} else if (expression->type == MCC_AST_EXPRESSION_TYPE_BINARY) {
 		tac_list *elem = tac_new_list();
 
-		char help[ARRAY_SIZE] = {0};
-		sprintf(help, "t%d", v_counter++);
+		elem->identifier1 = new_string("reg_%d", v_counter++);
 
-		elem->identifier1 = malloc(sizeof(char *) * ARRAY_SIZE);
-		strcpy(elem->identifier1, help);
-		if (DEBUG)
-			printf("BINARY OPERATION\n");
 		elem->type = MCC_TAC_ELEMENT_TYPE_BINARY;
 
 		tac_list *temp_lhs_end = expression->lhs->tac_end;
 		tac_list *temp_lhs_star = expression->lhs->tac_start;
-		elem->identifier2 = malloc(
-			sizeof(char *) * strlen(temp_lhs_end->identifier1));
-		strcpy(elem->identifier2, temp_lhs_end->identifier1);
+
+		elem->lhs = copy_string(temp_lhs_end->identifier1);
 
 		tac_list *temp_rhs_end = expression->rhs->tac_end;
 		tac_list *temp_rhs_start = expression->rhs->tac_start;
-		elem->ifentifier3 = malloc(
-			sizeof(char *) * strlen(temp_rhs_end->identifier1));
-		strcpy(elem->ifentifier3, temp_rhs_end->identifier1);
+
+		elem->rhs = copy_string(temp_rhs_end->identifier1);
 
 		switch (expression->op) {
 		case (MCC_AST_BINARY_OP_ADD):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_PLUS;
+			elem->binary_op_type = MCC_TAC_OPERATION_TYPE_PLUS;
 			break;
 		case (MCC_AST_BINARY_OP_DIV):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_DIVISION;
+			elem->binary_op_type = MCC_TAC_OPERATION_TYPE_DIVISION;
 			break;
 		case (MCC_AST_BINARY_OP_MUL):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_MULTIPLY;
+			elem->binary_op_type = MCC_TAC_OPERATION_TYPE_MULTIPLY;
 			break;
 		case (MCC_AST_BINARY_OP_SUB):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_MINUS;
+			elem->binary_op_type = MCC_TAC_OPERATION_TYPE_MINUS;
 			break;
 		case (MCC_AST_BINARY_OP_AND):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_AND;
+			elem->binary_op_type = MCC_TAC_OPERATION_TYPE_AND;
 			break;
 		case (MCC_AST_BINARY_OP_EQ):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_EQ;
+			elem->binary_op_type = MCC_TAC_OPERATION_TYPE_EQ;
 			break;
 		case (MCC_AST_BINARY_OP_GE):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_GE;
+			elem->binary_op_type = MCC_TAC_OPERATION_TYPE_GE;
 			break;
 		case (MCC_AST_BINARY_OP_GT):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_GT;
+			elem->binary_op_type = MCC_TAC_OPERATION_TYPE_GT;
 			break;
 		case (MCC_AST_BINARY_OP_LE):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_LE;
+			elem->binary_op_type = MCC_TAC_OPERATION_TYPE_LE;
 			break;
 		case (MCC_AST_BINARY_OP_LT):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_LT;
+			elem->binary_op_type = MCC_TAC_OPERATION_TYPE_LT;
 			break;
 		case (MCC_AST_BINARY_OP_NEQ):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_NE;
+			elem->binary_op_type = MCC_TAC_OPERATION_TYPE_NE;
 			break;
 		case (MCC_AST_BINARY_OP_OR):
-			elem->operation_type = MCC_TAC_OPERATION_TYPE_OR;
+			elem->binary_op_type = MCC_TAC_OPERATION_TYPE_OR;
 			break;
 		}
 		temp_lhs_end->next = temp_rhs_start;
@@ -274,9 +237,6 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 	assert(expression);
 	assert(data);
 
-	if (DEBUG)
-		printf("CALL EXPRESSION\n");
-
 	/* TODO for array and string
 	 MCC_TAC_ELEMENT_TYPE_ADDRESS_ASSIGNMENT,    x = &y
 	 since they are called by reference not by value
@@ -286,19 +246,16 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 
 	elem->type = MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL;
 
-	elem->identifier1 = malloc(sizeof(char *)
-				    * strlen(expression->identifier->renamed));
-	strcpy(elem->identifier1, expression->identifier->renamed);
+	elem->identifier1 = copy_string(expression->identifier->renamed);
 
 	if (expression->d_type != MCC_AST_TYPE_VOID) {
-		if (DEBUG)
-			printf("CALL EXPRESSION RETURN\n");
 		tac_list *ret_elem = tac_new_list();
 		ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
-		char *ret_name = "result";
-		ret_elem->identifier1 =
-			malloc(sizeof(char *) * strlen(ret_name));
-		strcpy(ret_elem->identifier1, ret_name);
+
+		ret_elem->identifier1 = copy_string("result");
+		ret_elem->param_size =
+			1; // default only arrays have another size
+
 		ret_elem->next = elem;
 		elem->prev = ret_elem;
 		if (expression->arguments == NULL)
@@ -309,8 +266,6 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 		expression->tac_start = ret_elem;
 		expression->tac_end = elem;
 	} else {
-		if (DEBUG)
-			printf("CALL EXPRESSION VOID\n");
 		expression->tac_start = elem;
 		expression->tac_end = elem;
 		if (expression->arguments == NULL)
@@ -320,7 +275,6 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 				expression->arguments->counter;
 	}
 
-	// TODO maybe move this to mcc_tac_arguments
 	if (expression->arguments != NULL) {
 		for (int i = expression->arguments->counter - 1; i >= 0; i--) {
 			tac_list *temp_end =
@@ -339,20 +293,17 @@ static void tac_function_def(struct mCc_ast_function_def *f, void *data)
 	assert(f);
 	assert(data);
 
-	if (DEBUG)
-		printf("FUNCTION DEFINITION\n");
 
 	tac_list *start = tac_new_list();
 	tac_list *end = tac_new_list();
 
 	start->type = MCC_TAC_ELEMENT_TYPE_FUNCTION_START;
-	start->identifier1 =
-		malloc(sizeof(char *) * strlen(f->identifier->renamed));
-	strcpy(start->identifier1, f->identifier->renamed);
+
+	start->identifier1 = copy_string(f->identifier->renamed);
+
 	end->type = MCC_TAC_ELEMENT_TYPE_FUNCTION_END;
-	end->identifier1 =
-		malloc(sizeof(char *) * strlen(f->identifier->renamed));
-	strcpy(end->identifier1, f->identifier->renamed);
+
+	end->identifier1 = copy_string(f->identifier->renamed);
 
 	tac_list *temp_c_stmt_start = f->c_stmt->tac_start;
 	tac_list *temp_c_stmt_end = f->c_stmt->tac_end;
@@ -379,8 +330,6 @@ static void tac_stmt(struct mCc_ast_stmt *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
-	if (DEBUG)
-		printf("STATEMENT\n");
 
 	switch (stmt->type) {
 	case (MCC_AST_IF_STMT):
@@ -421,9 +370,6 @@ static void tac_compound_stmt(struct mCc_ast_compound_stmt *c_stmt, void *data)
 	assert(c_stmt);
 	assert(data);
 
-	if (DEBUG)
-		printf("COMPOUND STATEMENT\n");
-
 	if (c_stmt->counter == 0) {
 		tac_list *elem = tac_new_list();
 		c_stmt->tac_start = elem;
@@ -448,17 +394,13 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
-	if (DEBUG)
-		printf("RETURN\n");
-
 	tac_list *elem = tac_new_list();
 	elem->type = MCC_TAC_ELEMENT_TYPE_RETURN;
 
 	if (stmt->expression != NULL) {
 		tac_list *temp = stmt->expression->tac_end;
-		elem->identifier1 =
-			malloc(sizeof(char *) * strlen(temp->identifier1));
-		strcpy(elem->identifier1, temp->identifier1);
+
+		elem->identifier1 = copy_string(temp->identifier1);
 
 		elem->prev = temp;
 		temp->next = elem;
@@ -466,7 +408,6 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
 		stmt->tac_start = stmt->expression->tac_start;
 		stmt->tac_end = elem;
 	} else {
-		//    elem->identifier1 = malloc(sizeof(char *));
 		stmt->tac_start = elem;
 		stmt->tac_end = elem;
 	}
@@ -477,22 +418,16 @@ static void tac_ass_stmt(struct mCc_ast_assignment *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
-
 	if (stmt->numerator == NULL) {
-		if (DEBUG)
-			printf("ASSIGNMENT STMT\n");
 		tac_list *elem = tac_new_list();
 
-		elem->type = MCC_TAC_ELEMENT_TYPE_COPY;
+		elem->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
 
-		elem->identifier1 = malloc(
-			sizeof(char *) * strlen(stmt->identifier->renamed));
-		strcpy(elem->identifier1, stmt->identifier->renamed);
+		elem->identifier1 = copy_string(stmt->identifier->renamed);
 
 		tac_list *temp = stmt->expression->tac_end;
-		elem->identifier2 =
-			malloc(sizeof(char *) * strlen(temp->identifier1));
-		strcpy(elem->identifier2, temp->identifier1);
+
+		elem->copy_identifier = copy_string(temp->identifier1);
 
 		temp->next = elem;
 		elem->prev = temp;
@@ -500,25 +435,20 @@ static void tac_ass_stmt(struct mCc_ast_assignment *stmt, void *data)
 		stmt->tac_start = stmt->expression->tac_start;
 		stmt->tac_end = elem;
 	} else {
-		if (DEBUG)
-			printf("ASSIGNMENT STMT []\n");
 		tac_list *elem = tac_new_list();
 
 		elem->type = MCC_TAC_ELEMENT_TYPE_STORE;
-		elem->identifier1 = malloc(
-			sizeof(char *) * strlen(stmt->identifier->renamed));
-		strcpy(elem->identifier1, stmt->identifier->renamed);
+
+		elem->identifier1 = copy_string(stmt->identifier->renamed);
 
 		tac_list *numerator_end = stmt->numerator->tac_end;
-		elem->identifier2 = malloc(
-			sizeof(char *) * strlen(numerator_end->identifier1));
-		strcpy(elem->identifier2, numerator_end->identifier1);
+
+		elem->identifier2 = copy_string(numerator_end->identifier1);
 
 		tac_list *expression_end = stmt->expression->tac_end;
 		tac_list *expression_start = stmt->expression->tac_start;
-		elem->ifentifier3 = malloc(
-			sizeof(char *) * strlen(expression_end->identifier1));
-		strcpy(elem->ifentifier3, expression_end->identifier1);
+
+		elem->identifier3 = copy_string(expression_end->identifier1);
 
 		numerator_end->next = expression_start;
 		expression_start->prev = numerator_end;
@@ -536,40 +466,80 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
-	if (DEBUG)
-		printf("IF STMT\n");
-
 	tac_list *jump_false = tac_new_list();
+	tac_list *jump = tac_new_list();
 	tac_list *label = tac_new_list();
+	tac_list *labelHelp = tac_new_list();
+
+
+	labelHelp->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+	labelHelp->identifier1 = new_string("L%d", l_counter++);
 
 	tac_list *temp_expression_end = stmt->expression->tac_end;
 	jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
-	jump_false->identifier1 = malloc(
-		sizeof(char *) * strlen(temp_expression_end->identifier1));
-	strcpy(jump_false->identifier1, temp_expression_end->identifier1);
+	jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
+
+	jump_false->identifier1 = copy_string(temp_expression_end->identifier1);
+
 	temp_expression_end->next = jump_false;
 	jump_false->prev = temp_expression_end;
 
-	char help[ARRAY_SIZE] = {0};
-	sprintf(help, "L%d", l_counter++);
-
 	label->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-	label->identifier1 = malloc(sizeof(char *) * ARRAY_SIZE);
-	strcpy(label->identifier1, help);
 
-	if (stmt->else_statement != NULL) {
+	label->identifier1 = new_string("L%d", l_counter++);
+
+	if (stmt->else_statement != NULL
+	    && stmt->else_statement->type == MCC_AST_COMPOUND_STMT) {
+		tac_list *label_end = tac_new_list();
+		label_end->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+		label_end->identifier1 = new_string("L%d", l_counter++);
 		tac_list *temp_else_stmt_start =
 			stmt->else_statement->tac_start;
 		tac_list *temp_else_stmt_end = stmt->else_statement->tac_end;
 		tac_list *temp_stmt_start = stmt->statement->tac_start;
 		tac_list *temp_stmt_end = stmt->statement->tac_end;
 		jump_false->jump = label;
+		jump->jump = label_end;
 
-		jump_false->next = temp_stmt_start;
-		temp_stmt_start->prev = jump_false;
+		jump_false->next = labelHelp;
+		labelHelp->prev = jump_false;
+		labelHelp->next = temp_stmt_start;
+		temp_stmt_start->prev = labelHelp;
 
-		temp_stmt_end->next = label;
-		label->prev = temp_stmt_end;
+		temp_stmt_end->next = jump;
+		jump->prev = temp_stmt_end;
+
+		jump->next = label;
+		label->prev = jump;
+
+		label->next = temp_else_stmt_start;
+		temp_else_stmt_start->prev = label;
+
+		temp_else_stmt_end->next = label_end;
+		label_end->prev = temp_else_stmt_end;
+
+		stmt->tac_end = label_end;
+
+	} else if (stmt->else_statement != NULL
+		   && stmt->else_statement->type != MCC_AST_COMPOUND_STMT) {
+		tac_list *temp_else_stmt_start =
+			stmt->else_statement->tac_start;
+		tac_list *temp_else_stmt_end = stmt->else_statement->tac_end;
+		tac_list *temp_stmt_start = stmt->statement->tac_start;
+		tac_list *temp_stmt_end = stmt->statement->tac_end;
+		jump_false->jump = label;
+		jump->jump = temp_else_stmt_end;
+
+		jump_false->next = labelHelp;
+		labelHelp->prev = jump_false;
+		labelHelp->next = temp_stmt_start;
+		temp_stmt_start->prev = labelHelp;
+
+		temp_stmt_end->next = jump;
+		jump->prev = temp_stmt_end;
+
+		jump->next = label;
+		label->prev = jump;
 
 		label->next = temp_else_stmt_start;
 		temp_else_stmt_start->prev = label;
@@ -580,8 +550,10 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 		tac_list *temp_stmt_end = stmt->statement->tac_end;
 		jump_false->jump = label;
 
-		jump_false->next = temp_stmt_start;
-		temp_stmt_start->prev = jump_false;
+		jump_false->next = labelHelp;
+		labelHelp->prev = jump_false;
+		labelHelp->next = temp_stmt_start;
+		temp_stmt_start->prev = labelHelp;
 
 		temp_stmt_end->next = label;
 		label->prev = temp_stmt_end;
@@ -596,27 +568,23 @@ static void tac_while_stmt(struct mCc_ast_while_stmt *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
-	if (DEBUG)
-		printf("WHILE STMT\n");
-
 	tac_list *jump = tac_new_list();
 	tac_list *jump_false = tac_new_list();
 	tac_list *label_jump_false = tac_new_list();
 	tac_list *label_jump = tac_new_list();
+	tac_list *labelHelp = tac_new_list();
 
-	char s_help[ARRAY_SIZE] = {0};
-	sprintf(s_help, "L%d", l_counter++);
+	labelHelp->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+	labelHelp->identifier1 = new_string("L%d", l_counter++);
+
 
 	label_jump->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-	label_jump->identifier1 = malloc(sizeof(char *) * ARRAY_SIZE);
-	strcpy(label_jump->identifier1, s_help);
 
-	char f_help[ARRAY_SIZE] = {0};
-	sprintf(f_help, "L%d", l_counter++);
+	label_jump->identifier1 = new_string("L%d", l_counter++);
 
 	label_jump_false->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-	label_jump_false->identifier1 = malloc(sizeof(char *) * ARRAY_SIZE);
-	strcpy(label_jump_false->identifier1, f_help);
+
+	label_jump_false->identifier1 = new_string("L%d", l_counter++);
 
 
 	tac_list *temp_stmt_start = stmt->statement->tac_start;
@@ -629,9 +597,8 @@ static void tac_while_stmt(struct mCc_ast_while_stmt *stmt, void *data)
 	temp_expression_start->prev = label_jump;
 
 	jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
-	jump_false->identifier1 = malloc(
-		sizeof(char *) * strlen(temp_expression_end->identifier1));
-	strcpy(jump_false->identifier1, temp_expression_end->identifier1);
+
+	jump_false->identifier1 = copy_string(temp_expression_end->identifier1);
 
 	jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
 	jump->jump = label_jump;
@@ -641,8 +608,10 @@ static void tac_while_stmt(struct mCc_ast_while_stmt *stmt, void *data)
 
 	jump_false->jump = label_jump_false;
 
-	jump_false->next = temp_stmt_start;
-	temp_stmt_start->prev = jump_false;
+	jump_false->next = labelHelp;
+	labelHelp->prev = jump_false;
+	labelHelp->next = temp_stmt_start;
+	temp_stmt_start->prev = labelHelp;
 
 
 	temp_stmt_end->next = jump;
@@ -661,26 +630,24 @@ static void tac_declaration(struct mCc_ast_declaration *declaration, void *data)
 	assert(declaration);
 	assert(data);
 
-	if (DEBUG)
-		printf("DECLARATION\n");
-
 	if (declaration->type == MCC_AST_DECLARATION_TYPE_SINGLE) {
 		tac_list *elem = tac_new_list();
 		elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
+
 		elem->identifier1 =
-			malloc(sizeof(char *)
-			       * strlen(declaration->identifier->renamed));
-		strcpy(elem->identifier1, declaration->identifier->renamed);
+			copy_string(declaration->identifier->renamed);
+		elem->decl_lit_type = declaration->literal;
+		elem->param_size = 1;
 		declaration->tac_start = elem;
 		declaration->tac_end = elem;
 	} else if (declaration->type == MCC_AST_DECLARATION_TYPE_ARRAY) {
 		tac_list *elem = tac_new_list();
 		elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
-		elem->identifier1 = malloc(
-			sizeof(char *)
-			* strlen(declaration->array_identifier->renamed));
-		strcpy(elem->identifier1,
-		       declaration->array_identifier->renamed);
+
+		elem->identifier1 =
+			copy_string(declaration->array_identifier->renamed);
+		elem->decl_lit_type = declaration->literal;
+		elem->param_size = declaration->numerator;
 		declaration->tac_start = elem;
 		declaration->tac_end = elem;
 	}
@@ -690,9 +657,6 @@ static void tac_parameter(struct mCc_ast_parameter *parameter, void *data)
 {
 	assert(parameter);
 	assert(data);
-
-	if (DEBUG)
-		printf("PARAMETER\n");
 
 	if (parameter->counter == 0) {
 		tac_list *elem = tac_new_list();
@@ -718,9 +682,6 @@ static void tac_argument(struct mCc_ast_argument *argument, void *data)
 {
 	assert(argument);
 	assert(data);
-
-	if (DEBUG)
-		printf("ARGUMENT\n");
 }
 
 
@@ -740,6 +701,26 @@ struct mCc_tac_list *mCc_tac_generate(struct mCc_ast_function_def_array *f)
 
 	mCc_ast_visit_function_def_array(f, &visitor);
 
+	while (head->prev != NULL)
+		head = head->prev;
+	struct mCc_tac_list *temp = head;
+	while (true) {
+		if (temp->type == MCC_TAC_ELEMENT_TYPE_UNKNOWN) {
+			struct mCc_tac_list *temp2 = temp->next;
+			if (temp->prev != NULL)
+				temp->prev->next = temp->next;
+
+			if (temp->next != NULL)
+				temp->next->prev = temp->prev;
+			if (temp == head)
+				head = temp2;
+			free(temp);
+			temp = temp2;
+		} else
+			temp = temp->next;
+		if (temp == NULL)
+			break;
+	}
 	return head;
 }
 
@@ -748,18 +729,36 @@ void mCc_tac_delete(struct mCc_tac_list *head)
 	while (head->prev != NULL)
 		head = head->prev;
 
-
 	struct mCc_tac_list *current = head;
 	while (current != NULL) {
 		struct mCc_tac_list *next = current->next;
-		if (current->identifier1 != NULL)
-			free(current->identifier1);
-		if (current->identifier2 != NULL)
+		switch (current->type) {
+		case MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER:
+			free(current->copy_identifier);
+			break;
+		case MCC_TAC_ELEMENT_TYPE_COPY_LITERAL:
+			if (current->literal_type
+			    == MCC_TAC_LITERAL_TYPE_STRING)
+				free(current->s_literal);
+			break;
+		case MCC_TAC_ELEMENT_TYPE_BINARY:
+			free(current->lhs);
+			free(current->rhs);
+			break;
+		case MCC_TAC_ELEMENT_TYPE_UNARY:
+			free(current->unary_identifier);
+			break;
+		case MCC_TAC_ELEMENT_TYPE_LOAD:
+		case MCC_TAC_ELEMENT_TYPE_STORE:
 			free(current->identifier2);
-		if (current->ifentifier3 != NULL)
-			free(current->ifentifier3);
-		if (current->s_literal != NULL)
-			free(current->s_literal);
+			free(current->identifier3);
+			break;
+		default:
+			break;
+		}
+		if (current->identifier1 != NULL
+		    && strlen(current->identifier1) > 0)
+			free(current->identifier1);
 		free(current);
 		current = next;
 	}
@@ -773,168 +772,167 @@ void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 	struct mCc_tac_list *current = head;
 	while (current != NULL) {
 		struct mCc_tac_list *next = current->next;
-		switch (current->type) {
-		case (MCC_TAC_ELEMENT_TYPE_UNKNOWN):
-			if (DEBUG);
-
-			fprintf(out, "UNKNOWN\n");
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_COPY):
-			switch (current->l_type) {
-			case (MCC_TAC_LITERAL_TYPE_UNKNWON):
-				fprintf(out, "COPY: %s = %s\n",
-					current->identifier1,
-					current->identifier2);
-				break;
-			case (MCC_TAC_LITERAL_TYPE_INT):
-				fprintf(out, "COPY: %s = %ld\n",
-					current->identifier1,
-					current->i_literal);
-				break;
-			case (MCC_TAC_LITERAL_TYPE_FLOAT):
-				fprintf(out, "COPY: %s = %f\n",
-					current->identifier1,
-					current->f_literal);
-				break;
-			case (MCC_TAC_LITERAL_TYPE_BOOL):
-				fprintf(out, "COPY: %s = %d\n",
-					current->identifier1,
-					current->b_literal);
-				break;
-			case (MCC_TAC_LITERAL_TYPE_STRING):
-				fprintf(out, "COPY: %s = %s\n",
-					current->identifier1,
-					current->s_literal);
-				break;
-			}
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_UNARY):
-			fprintf(out, "UNARY: ");
-			switch (current->operation_type) {
-			case (MCC_TAC_OPERATION_TYPE_MINUS):
-				fprintf(out, " - ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_FAC):
-				fprintf(out, " ! ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_ASSIGNMENT):
-			case (MCC_TAC_OPERATION_TYPE_UNKNOWN):
-			case (MCC_TAC_OPERATION_TYPE_PLUS):
-			case (MCC_TAC_OPERATION_TYPE_DIVISION):
-			case (MCC_TAC_OPERATION_TYPE_MULTIPLY):
-			case (MCC_TAC_OPERATION_TYPE_AND):
-			case (MCC_TAC_OPERATION_TYPE_EQ):
-			case (MCC_TAC_OPERATION_TYPE_GE):
-			case (MCC_TAC_OPERATION_TYPE_GT):
-			case (MCC_TAC_OPERATION_TYPE_LE):
-			case (MCC_TAC_OPERATION_TYPE_LT):
-			case (MCC_TAC_OPERATION_TYPE_NE):
-			case (MCC_TAC_OPERATION_TYPE_OR):
-				break;
-			}
-			fprintf(out, "%s %s\n", current->identifier1,
-				current->identifier2);
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_BINARY):
-			fprintf(out, "BINARY: ");
-			switch (current->operation_type) {
-			case (MCC_TAC_OPERATION_TYPE_PLUS):
-				fprintf(out, " + ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_DIVISION):
-				fprintf(out, " / ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_MULTIPLY):
-				fprintf(out, " * ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_MINUS):
-				fprintf(out, " - ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_AND):
-				fprintf(out, " && ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_EQ):
-				fprintf(out, " == ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_GE):
-				fprintf(out, " >= ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_GT):
-				fprintf(out, " > ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_LE):
-				fprintf(out, " <= ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_LT):
-				fprintf(out, " < ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_NE):
-				fprintf(out, " != ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_OR):
-				fprintf(out, " || ");
-				break;
-			case (MCC_TAC_OPERATION_TYPE_FAC):
-			case (MCC_TAC_OPERATION_TYPE_ASSIGNMENT):
-			case (MCC_TAC_OPERATION_TYPE_UNKNOWN):
-				break;
-			}
-			fprintf(out, "%s %s %s\n", current->identifier1,
-				current->identifier2, current->ifentifier3);
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP):
-			fprintf(out, "UNCONDITIONAL JUMP: %s\n",
-				current->jump->identifier1);
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP):
-			fprintf(out, "CONDITIONAL JUMP: %s %s\n",
-				current->identifier1,
-				current->jump->identifier1);
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_LABEL):
-			fprintf(out, "LABEL: %s\n", current->identifier1);
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP):
-			fprintf(out, "PARAM: %s\n", current->identifier1);
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL):
-			fprintf(out, "CALL: %s, %d\n", current->identifier1,
-				current->num_function_param);
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_LOAD):
-			fprintf(out, "LOAD: %s %s %s\n", current->identifier1,
-				current->identifier2, current->ifentifier3);
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_STORE):
-			fprintf(out, "STORE: %s %s %s\n", current->identifier1,
-				current->identifier2, current->ifentifier3);
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_ADDRESS_ASSIGNMENT):
-			fprintf(out, "ADDRESS ASSIGNMENT\n");
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_POINTER_ASSIGNMENT):
-			fprintf(out, "POINTER ASSIGNMENT\n");
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_FUNCTION_START):
-			fprintf(out, "<FUNCTION START> %s\n",
-				current->identifier1);
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_FUNCTION_END):
-			fprintf(out, "<FUNCTION END> %s\n",
-				current->identifier1);
-			break;
-		case (MCC_TAC_ELEMENT_TYPE_RETURN):
-			fprintf(out, "RETURN %s\n", current->identifier1);
-			break;
-		}
+		print_tac_elem(out, current);
+		fprintf(out, "\n");
 		current = next;
 	}
 }
 
-struct mCc_tac_list * get_at(struct mCc_tac_list* head, int index)
+void print_tac_elem(FILE *out, tac_list *current)
+{
+	assert(current);
+	assert(out);
+
+	switch (current->type) {
+	case (MCC_TAC_ELEMENT_TYPE_UNKNOWN):
+		fprintf(out, "UNKNOWN:");
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_COPY_LITERAL):
+		switch (current->literal_type) {
+		case (MCC_TAC_LITERAL_TYPE_INT):
+			fprintf(out, "COPY: %s = %ld", current->identifier1,
+				current->i_literal);
+			break;
+		case (MCC_TAC_LITERAL_TYPE_FLOAT):
+			fprintf(out, "COPY: %s = %f", current->identifier1,
+				current->f_literal);
+			break;
+		case (MCC_TAC_LITERAL_TYPE_BOOL):
+			fprintf(out, "COPY: %s = %d", current->identifier1,
+				current->b_literal);
+			break;
+		case (MCC_TAC_LITERAL_TYPE_STRING):
+			fprintf(out, "COPY: %s = %s", current->identifier1,
+				current->s_literal);
+			break;
+		}
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER):
+		fprintf(out, "COPY: %s = %s", current->identifier1,
+			current->copy_identifier);
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_UNARY):
+		fprintf(out, "UNARY: ");
+		switch (current->unary_op_type) {
+		case (MCC_TAC_OPERATION_TYPE_MINUS):
+			fprintf(out, " - ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_FAC):
+			fprintf(out, " ! ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_ASSIGNMENT):
+		case (MCC_TAC_OPERATION_TYPE_PLUS):
+		case (MCC_TAC_OPERATION_TYPE_DIVISION):
+		case (MCC_TAC_OPERATION_TYPE_MULTIPLY):
+		case (MCC_TAC_OPERATION_TYPE_AND):
+		case (MCC_TAC_OPERATION_TYPE_EQ):
+		case (MCC_TAC_OPERATION_TYPE_GE):
+		case (MCC_TAC_OPERATION_TYPE_GT):
+		case (MCC_TAC_OPERATION_TYPE_LE):
+		case (MCC_TAC_OPERATION_TYPE_LT):
+		case (MCC_TAC_OPERATION_TYPE_NE):
+		case (MCC_TAC_OPERATION_TYPE_OR):
+			break;
+		}
+		fprintf(out, "%s %s", current->identifier1,
+			current->unary_identifier);
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_BINARY):
+		fprintf(out, "BINARY: ");
+		switch (current->binary_op_type) {
+		case (MCC_TAC_OPERATION_TYPE_PLUS):
+			fprintf(out, " + ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_DIVISION):
+			fprintf(out, " / ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_MULTIPLY):
+			fprintf(out, " * ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_MINUS):
+			fprintf(out, " - ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_AND):
+			fprintf(out, " && ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_EQ):
+			fprintf(out, " == ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_GE):
+			fprintf(out, " >= ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_GT):
+			fprintf(out, " > ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_LE):
+			fprintf(out, " <= ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_LT):
+			fprintf(out, " < ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_NE):
+			fprintf(out, " != ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_OR):
+			fprintf(out, " || ");
+			break;
+		case (MCC_TAC_OPERATION_TYPE_FAC):
+		case (MCC_TAC_OPERATION_TYPE_ASSIGNMENT):
+			break;
+		}
+		fprintf(out, "%s %s %s", current->identifier1, current->lhs,
+			current->rhs);
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP):
+		fprintf(out, "UNCONDITIONAL JUMP: %s",
+			current->jump->identifier1);
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP):
+		fprintf(out, "CONDITIONAL JUMP: %s %s", current->identifier1,
+			current->jump->identifier1);
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_LABEL):
+		fprintf(out, "LABEL: %s", current->identifier1);
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP):
+		fprintf(out, "PARAM: %s %d", current->identifier1,
+			current->param_size);
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL):
+		fprintf(out, "CALL: %s, %d", current->identifier1,
+			current->num_function_param);
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_LOAD):
+		fprintf(out, "LOAD: %s %s %s", current->identifier1,
+			current->identifier2, current->identifier3);
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_STORE):
+		fprintf(out, "STORE: %s %s %s", current->identifier1,
+			current->identifier2, current->identifier3);
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_ADDRESS_ASSIGNMENT):
+		fprintf(out, "ADDRESS ASSIGNMENT");
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_POINTER_ASSIGNMENT):
+		fprintf(out, "POINTER ASSIGNMENT");
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_FUNCTION_START):
+		fprintf(out, "<FUNCTION START> %s", current->identifier1);
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_FUNCTION_END):
+		fprintf(out, "<FUNCTION END> %s", current->identifier1);
+		break;
+	case (MCC_TAC_ELEMENT_TYPE_RETURN):
+		fprintf(out, "RETURN %s", current->identifier1);
+		break;
+	}
+}
+
+
+struct mCc_tac_list *get_at(struct mCc_tac_list *head, int index)
 {
 	assert(head);
-	while(index-- > 0 && head != NULL)
+	while (index-- > 0 && head != NULL)
 		head = head->next;
 
 	return head;

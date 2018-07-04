@@ -429,7 +429,9 @@ mCc_ast_add_function_def_to_array(ast_function_def_array *f,
 
 ast_function_def_array *mCc_ast_new_function_def_array(ast_function_def *f);
 
-void mCc_ast_delete_function_def_array(ast_function_def_array *f);
+ast_function_def_array *mCc_ast_gen_func_def(ast_expr * expr);
+
+void mCc_ast_delete_function_def_array(ast_function_def_array *f, bool has_func_def);
 void mCc_ast_delete_function_def(ast_function_def *f, void *data);
 
 /* ----------------------------------------------------------- Declaration */

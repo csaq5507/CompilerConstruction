@@ -40,12 +40,11 @@ void compiler_error(const char *msg, FILE *error,
     }
 }
 
-void clean_up(FILE *error, FILE *graph, FILE *tac,FILE *assembly,  FILE *file_std_err,
+void clean_up(FILE *error, FILE *graph, FILE *tac,  FILE *file_std_err,
               FILE *output, FILE *cfg, char *outputFileName) {
     fclose(error);
     fclose(graph);
     fclose(tac);
-    fclose(assembly);
     fclose(file_std_err);
     fclose(output);
     fclose(cfg);
@@ -216,7 +215,8 @@ int main(int argc, char *argv[]) {
         compiler_error("Parse Error:\n", file_std_err,
                        &result);
         mCc_delete_result(&result);
-        clean_up(error, graph, tac,assembly, file_std_err, output, cfg, outputFileName);
+        clean_up(error, graph, tac, file_std_err, output, cfg, outputFileName);
+        fclose(assembly);
         return EXIT_SUCCESS;
     }
 
@@ -230,7 +230,8 @@ int main(int argc, char *argv[]) {
         compiler_error("Semantic_error:\n", file_std_err,
                        &result);
         mCc_delete_result(&result);
-        clean_up(error, graph, tac,assembly, file_std_err, output, cfg, outputFileName);
+        clean_up(error, graph, tac, file_std_err, output, cfg, outputFileName);
+        fclose(assembly);
 
         return EXIT_SUCCESS;
     }
@@ -242,8 +243,8 @@ int main(int argc, char *argv[]) {
         compiler_error("Semantic_error:\n", error, &result);
         compiler_error("Semantic_error:\n", file_std_err, &result);
         mCc_delete_result(&result);
-        clean_up(error, graph, tac,assembly, file_std_err, output, cfg, outputFileName);
-
+        clean_up(error, graph, tac, file_std_err, output, cfg, outputFileName);
+        fclose(assembly);
         return EXIT_SUCCESS;
     }
 
@@ -259,12 +260,13 @@ int main(int argc, char *argv[]) {
         mCc_cfg_print(cfg, _cfg);
     }
 
-   // struct mCc_assembly * ass= mCc_assembly_generate(_tac,outputFileName);
+    struct mCc_assembly * ass= mCc_assembly_generate(_tac,outputFileName);
 
     mCc_delete_result(&result);
     mCc_cfg_delete(_cfg);
 
-    //mCc_assembly_print(assembly, ass);
+    mCc_assembly_print(assembly, ass);
+    fclose(assembly);
     char * command = new_string("gcc -m32 -c %s",assemblyFileName);
     system(command);
     free(command);
@@ -276,7 +278,7 @@ int main(int argc, char *argv[]) {
 
     // mCc_assembly_delete(ass);
     /* cleanup */
-    clean_up(error, graph, tac,assembly, file_std_err, output, cfg, outputFileName);
+    clean_up(error, graph, tac, file_std_err, output, cfg, outputFileName);
 
 
     /*    TODO

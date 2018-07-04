@@ -17,6 +17,11 @@ void main() {
     float result;
     result = 1.6;
     i = 0;
+ if (i == 0) {
+                        i = 6;
+                     } else {
+                        i = 7;
+                     }
     while (i < times) {
        result = result * result;
        i = i+1;

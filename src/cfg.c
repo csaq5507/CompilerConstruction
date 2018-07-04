@@ -169,8 +169,12 @@ cfg_list *generate_block(tac_list *head) {
 	} else if (head->type == MCC_TAC_ELEMENT_TYPE_LABEL) {
         actual_label = head->identifier1;
 		ret->tac_end = head->prev;
-		if (head->next->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END)
-			ret = mCc_cfg_add_node(ret, generate_block(head->next));
+		if (head->next->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END) {
+            if (head->next->type == MCC_TAC_ELEMENT_TYPE_LABEL)
+                ret = mCc_cfg_add_node(ret, generate_block(head->next->next));
+            else
+                ret = mCc_cfg_add_node(ret, generate_block(head->next));
+        }
 	}
 	return ret;
 }

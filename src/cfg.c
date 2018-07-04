@@ -151,7 +151,10 @@ cfg_list *generate_block(tac_list *head) {
 		help->tac_end = head->jump->prev;
 		if (head->jump->next->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END)
 			ret =  mCc_cfg_add_node(ret, generate_block(head->jump->next));
-		if (help->tac_end->type == MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP && strcmp(help->tac_end->jump->identifier1, actual_label) == 0) {
+		if ((help->tac_end->type == MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP &&
+				strcmp(help->tac_end->jump->identifier1, actual_label) == 0) &&
+				((ret->next_nodes != NULL && ret->next_nodes[ret->num_next_nodes -1].node_num < ret->node_num) ||
+						ret->next_nodes == NULL)) {
 			help->tac_end = head->jump->prev->prev;
             help->num_next_nodes = 1;
             MALLOC(help->next_nodes, sizeof(cfg_list));
@@ -166,8 +169,12 @@ cfg_list *generate_block(tac_list *head) {
 	} else if (head->type == MCC_TAC_ELEMENT_TYPE_LABEL) {
         actual_label = head->identifier1;
 		ret->tac_end = head->prev;
-		if (head->next->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END)
-			ret = mCc_cfg_add_node(ret, generate_block(head->next));
+		if (head->next->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END) {
+            if (head->next->type == MCC_TAC_ELEMENT_TYPE_LABEL)
+                ret = mCc_cfg_add_node(ret, generate_block(head->next->next));
+            else
+                ret = mCc_cfg_add_node(ret, generate_block(head->next));
+        }
 	}
 	return ret;
 }

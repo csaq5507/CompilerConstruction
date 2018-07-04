@@ -1,44 +1,39 @@
-void main()
-{
-    int c;
-    int a;
-    print("a: ");
-    a = read_int();
-    int b;
-    print("b: ");
-    b = read_int();
+/* Does a given number of float multiplications and then outputs ackermann(m,n) for Benchmarking.
+*  Warning: ackermann(4,1) already takes about 10 seconds (C implementation)
+*/
 
-    print("Min: ");
-    if(a<b){
-        print_int(a);
-    }else if(b<a)
-    {
-        print_int(b);
-    } else {
-        print("none");
+int ackermann(int m, int n){
+        if ( (m == 0) && (n != 1000) ) return n + 1;
+        if (n == 0) return ackermann(m - 1, 1);
+        return ackermann(m - 1, ackermann(m, n - 1));
+}
+
+void main() {
+    int times;
+    print("number of float multiplications: ");
+    times = read_int();
+    print_nl();
+    int i;
+    float result;
+    result = 1.6;
+    i = 0;
+ if (i == 0) {
+                        i = 6;
+                     } else {
+                        i = 7;
+                     }
+    while (i < times) {
+       result = result * result;
+       i = i+1;
     }
+    int m;
+    int n;
+    print("m: ");
+    m = read_int();
     print_nl();
-    print("Negation a: ");
-    c = -a;
-    print_int(c);
+    print("n: ");
+    n = read_int();
     print_nl();
-    print("Factorial a: ");
-    c = !a;
-    print_int(c);
+    print_int(ackermann(m,n));
     print_nl();
-
-
-    int [4] y;
-    a = 3;
-    while(a>=0)
-    {
-        print("y[");
-        print_int(a);
-        print("]=");
-        y[a]=-read_int();
-        print_nl();
-        a=a-1;
-    }
-    print("y[2]=");
-    print_int(y[2]);
 }

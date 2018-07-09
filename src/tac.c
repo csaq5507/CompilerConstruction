@@ -285,6 +285,42 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 			expression->tac_start =
 				expression->arguments->expression[i].tac_start;
 		}
+		if (expression->d_type == MCC_AST_TYPE_VOID) {
+			for (int i = 0; i < expression->arguments->counter; i++) {
+				tac_list *actual =
+						expression->arguments->expression[i].tac_end;
+				tac_list *ret_elem = tac_new_list();
+				ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
+
+				ret_elem->identifier1 = copy_string(actual->identifier1);
+				ret_elem->param_size =
+						1; // default only arrays have another size
+				tac_list *temp_end = expression->tac_end;
+				tac_list *temp_end1 = temp_end->prev;
+				temp_end1->next = ret_elem;
+				ret_elem->prev = temp_end1;
+				ret_elem->next = temp_end;
+				temp_end->prev = ret_elem;
+			}
+		} else {
+			for (int i = 0; i < expression->arguments->counter; i++) {
+				tac_list *actual =
+						expression->arguments->expression[i].tac_end;
+				tac_list *ret_elem = tac_new_list();
+				ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
+
+				ret_elem->identifier1 = copy_string(actual->identifier1);
+				ret_elem->param_size =
+						1; // default only arrays have another size
+				tac_list *temp_end = expression->tac_end;
+				temp_end = temp_end->prev;
+				tac_list *temp_end1 = temp_end->prev;
+				temp_end1->next = ret_elem;
+				ret_elem->prev = temp_end1;
+				ret_elem->next = temp_end;
+				temp_end->prev = ret_elem;
+			}
+		}
 	}
 }
 

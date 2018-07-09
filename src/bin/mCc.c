@@ -277,8 +277,8 @@ int main(int argc, char *argv[])
 	fclose(assembly);
 	char *command = new_string("gcc -m32 %s", assemblyFileName);
 
-	printf("%s: %d", command, system(command));
-    system("chmod 777 a.out");
+	//printf("%s: %d", command, system(command));
+   // system("chmod 777 a.out");
 	free(command);
 
 	free(assemblyFileName);
@@ -291,12 +291,6 @@ int main(int argc, char *argv[])
 	/* cleanup */
 	clean_up(error, graph, tac, file_std_err, output, cfg, outputFileName);
 
-
-	/*    TODO
-	 * - do some optimisations
-	 * - output assembly code
-	 * - invoke backend compiler
-	 */
 
 
 	return EXIT_SUCCESS;

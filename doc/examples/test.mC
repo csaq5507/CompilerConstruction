@@ -1,22 +1,44 @@
-void f1(int a)
-{
-}
+void main() {
+    int a;
+    int b;
+    int c;
+    int d;
+    int e;
+    int f;
+    int m;
+    int n;
+    int q;
+    int r;
+    int s;
+    int t;
+    int u;
+    int v;
+    int w;
+    int x;
+    int y;
+    int z;
 
-int f2(int b) {
-return 4;
-}
+    m = a + b;
+    n = a + b;
 
-int f3(int a, int b, int c) {
-    return a + b + c;
-}
-
-void main()
-{
-    int [5] a;
-    a[3]=5;
-    f1(4);
-    f1(a[3]);
-    a[4] = f2(a[2]);
-    f1(a[2] + 1);
-    f3(1,2,3);
+    if (m == 5) {
+        q = a + b;
+        r = c + d;
+        if (r == 5) {
+            e = b + 5;
+            s = a + b;
+            u = e + f;
+        } else {
+            e = b + 8;
+            t = c + d;
+            u = e + f;
+        }
+        v = a + b;
+        w = c + d;
+        x = e + f;
+    } else {
+        y = a + b;
+        z = c + d;
+    }
+    z = a;
 }

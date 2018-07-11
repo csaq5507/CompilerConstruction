@@ -250,7 +250,7 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 
 	if (expression->d_type != MCC_AST_TYPE_VOID) {
 		tac_list *ret_elem = tac_new_list();
-		ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
+		ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP_CALL;
 
 		ret_elem->identifier1 = copy_string("result");
 		ret_elem->param_size =
@@ -290,7 +290,7 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 				tac_list *actual =
 						expression->arguments->expression[i].tac_end;
 				tac_list *ret_elem = tac_new_list();
-				ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
+				ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP_CALL;
 
 				ret_elem->identifier1 = copy_string(actual->identifier1);
 				ret_elem->param_size =
@@ -307,7 +307,7 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 				tac_list *actual =
 						expression->arguments->expression[i].tac_end;
 				tac_list *ret_elem = tac_new_list();
-				ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
+				ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP_CALL;
 
 				ret_elem->identifier1 = copy_string(actual->identifier1);
 				ret_elem->param_size =
@@ -856,7 +856,6 @@ void print_tac_elem(FILE *out, tac_list *current)
 		case (MCC_TAC_OPERATION_TYPE_FAC):
 			fprintf(out, " ! ");
 			break;
-		case (MCC_TAC_OPERATION_TYPE_ASSIGNMENT):
 		case (MCC_TAC_OPERATION_TYPE_PLUS):
 		case (MCC_TAC_OPERATION_TYPE_DIVISION):
 		case (MCC_TAC_OPERATION_TYPE_MULTIPLY):
@@ -913,7 +912,6 @@ void print_tac_elem(FILE *out, tac_list *current)
 			fprintf(out, " || ");
 			break;
 		case (MCC_TAC_OPERATION_TYPE_FAC):
-		case (MCC_TAC_OPERATION_TYPE_ASSIGNMENT):
 			break;
 		}
 		fprintf(out, "%s %s %s", current->identifier1, current->lhs,
@@ -930,6 +928,10 @@ void print_tac_elem(FILE *out, tac_list *current)
 	case (MCC_TAC_ELEMENT_TYPE_LABEL):
 		fprintf(out, "LABEL: %s", current->identifier1);
 		break;
+	case (MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP_CALL):
+        fprintf(out, "CALL_PARAM: %s %d", current->identifier1,
+                current->param_size);
+        break;
 	case (MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP):
 		fprintf(out, "PARAM: %s %d", current->identifier1,
 			current->param_size);

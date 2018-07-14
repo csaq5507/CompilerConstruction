@@ -95,20 +95,38 @@ cfg_list *cfg_new_list()
 	return new;
 }
 
+cfg_list *mCc_cfg_add_prev(cfg_list *head, cfg_list *new_elem)
+{
+    assert(head);
+    assert(new_elem);
+
+    if (head->num_prev_nodes == 0) {
+        MALLOC(head->prev_nodes, sizeof(cfg_list));
+    } else {
+        REALLOC(head->prev_nodes,
+                sizeof(cfg_list) * (head->num_prev_nodes + 1));
+    }
+
+
+    head->prev_nodes[head->num_prev_nodes] = *new_elem;
+    head->num_prev_nodes++;
+    return head;
+}
+
 cfg_list *mCc_cfg_add_node(cfg_list *head, cfg_list *new_elem)
 {
-	assert(head);
-	assert(new_elem);
+    assert(head);
+    assert(new_elem);
 
-	REALLOC(head->next_nodes,
-		sizeof(cfg_list) * (head->num_next_nodes + 1));
+    REALLOC(head->next_nodes,
+            sizeof(cfg_list) * (head->num_next_nodes + 1));
 
-	new_elem->prev_nodes = head;
-	memcpy(&head->next_nodes[head->num_next_nodes], new_elem,
-	       sizeof(cfg_list));
-	head->num_next_nodes++;
-	free(new_elem);
-	return head;
+    mCc_cfg_add_prev(new_elem, head);
+    memcpy(&head->next_nodes[head->num_next_nodes], new_elem,
+           sizeof(cfg_list));
+    head->num_next_nodes++;
+    free(new_elem);
+    return head;
 }
 
 void mCc_cfg_delete(cfg_list *head)
@@ -120,16 +138,21 @@ void mCc_cfg_delete(cfg_list *head)
 			mCc_cfg_delete(&head->next_nodes[i]);
 	}
 
-
-	if (head->next_nodes != NULL)
-		free(head->next_nodes);
-	if (head->branch != NULL)
-		free(head->branch);
-	if (head->node_num == 0)
+	if (head->next_nodes != NULL) {
+        free(head->next_nodes);
+    }
+    if (head->prev_nodes != NULL) {
+        free(head->prev_nodes);
+    }
+	if (head->branch != NULL) {
+        free(head->branch);
+    }
+	if (head->node_num == 0) {
 		free(head);
+    }
 }
 
-cfg_list *generate_block(tac_list *head)
+cfg_list *generate_block(tac_list *head, tac_list *last_head)
 {
 	assert(head);
 
@@ -157,52 +180,128 @@ cfg_list *generate_block(tac_list *head)
 		cfg_list *help = cfg_new_list();
 		help->tac_start = head->next->next;
 		help->tac_end = head->jump->prev;
-		if (head->jump->next->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END)
-			ret = mCc_cfg_add_node(
-				ret, generate_block(head->jump->next));
-		if ((help->tac_end->type
-			     == MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP
-		     && strcmp(help->tac_end->jump->identifier1, actual_label)
-				== 0)
-		    && ((ret->next_nodes != NULL
-			 && ret->next_nodes[ret->num_next_nodes - 1].node_num
-				    < ret->node_num)
-			|| ret->next_nodes == NULL)) {
-			help->tac_end = head->jump->prev->prev;
-			help->num_next_nodes = 1;
-			MALLOC(help->next_nodes, sizeof(cfg_list));
-			help->next_nodes[0] = *ret;
-            ret = mCc_cfg_add_node(ret, help);
-		} else {
-			help->tac_end = head->jump->prev->prev;
-			help->num_next_nodes = 0;
-            cfg_list *help1 = generate_block(help->tac_start);
-            free(help);
-            help = help1;
-            help1 = help;
-            while(help1 != NULL && help1->num_next_nodes > 0)
-                help1 = &help1->next_nodes[0];
-            help1->num_next_nodes = 0;
-            if (ret->next_nodes != NULL && ret->next_nodes[ret->num_next_nodes - 1].num_next_nodes > 0) {
-                MALLOC(help1->branch, sizeof(cfg_list));
-                help1->branch[0] =
-                        ret->next_nodes[ret->num_next_nodes - 1].next_nodes[0];
+
+        tac_list *left_side = head->jump->next;
+        while (left_side->type == MCC_TAC_ELEMENT_TYPE_LABEL ||
+                left_side->type == MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP ||
+                left_side->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP)
+                left_side = left_side->next;
+        if (last_head != left_side) {
+            if (left_side->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END)
+                ret = mCc_cfg_add_node(
+                        ret, generate_block(left_side, NULL));
+
+            if (ret->tac_start->prev != NULL && ret->tac_start->prev->type == MCC_TAC_ELEMENT_TYPE_LABEL
+                && strcmp(ret->tac_start->prev->identifier1, head->identifier1) == 0) {
+                help->tac_end = head->jump->prev->prev;
+                help->num_next_nodes = 1;
+                MALLOC(help->next_nodes, sizeof(cfg_list));
+                help->next_nodes[0] = *ret;
+            } else {
+                help->tac_end = head->jump->prev->prev;
+                help->num_next_nodes = 0;
+                cfg_list *help1;
+                if (ret->next_nodes != NULL)
+                    help1 = generate_block(help->tac_start, head->jump->next);
+                else
+                    help1 = generate_block(help->tac_start, NULL);
+                free(help);
+                help = help1;
             }
-            ret = mCc_cfg_add_node(ret, help);
-		}
+
+        }
+        ret = mCc_cfg_add_node(ret, help);
+
 	} else if (head->type == MCC_TAC_ELEMENT_TYPE_LABEL) {
 		actual_label = head->identifier1;
 		ret->tac_end = head->prev;
-		if (head->next->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END) {
+		if (head->next->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END && last_head != head->next) {
 			if (head->next->type == MCC_TAC_ELEMENT_TYPE_LABEL)
 				ret = mCc_cfg_add_node(
-					ret, generate_block(head->next->next));
+					ret, generate_block(head->next->next, NULL));
 			else
 				ret = mCc_cfg_add_node(
-					ret, generate_block(head->next));
+					ret, generate_block(head->next, NULL));
 		}
 	}
 	return ret;
+}
+
+bool is_branch_avail(cfg_list *elem, cfg_list *branch) {
+    assert(elem);
+    assert(branch);
+
+    for (int i = 0; i < elem->num_next_nodes; i++) {
+        if (&elem->next_nodes[0] == branch)
+            return true;
+    }
+    return false;
+
+}
+
+cfg_list *find_branch(char *jump, cfg_list *head) {
+    assert(jump);
+    assert(head);
+
+    tac_list *prev = head->tac_start->prev;
+    while (prev->type == MCC_TAC_ELEMENT_TYPE_LABEL ||
+            prev->type == MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP ||
+            prev->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {
+        if (prev->type == MCC_TAC_ELEMENT_TYPE_LABEL &&
+                strcmp(prev->identifier1, jump) == 0) {
+            return head;
+        }
+        prev = prev->next;
+    }
+
+
+    for (int i = 0; i < head->num_next_nodes; i++) {
+        cfg_list *ret = find_branch(jump, &head->next_nodes[i]);
+        if (ret != NULL)
+            return ret;
+    }
+    return NULL;
+}
+
+void generate_branches_single_block(cfg_list *actual, cfg_list *head) {
+    assert(actual);
+    assert(head);
+
+    cfg_list *branch = NULL;
+
+    for (int i = 0; i < actual->num_next_nodes; i++) {
+        generate_branches_single_block(&actual->next_nodes[i], head);
+    }
+
+    tac_list *next = actual->tac_end->next;
+    while (next->type == MCC_TAC_ELEMENT_TYPE_LABEL)
+        next = next->next;
+    if (next->type == MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP ||
+        next->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP)
+        branch = find_branch(next->jump->identifier1, head);
+    if (next->type != MCC_TAC_ELEMENT_TYPE_LABEL &&
+        next->prev->type == MCC_TAC_ELEMENT_TYPE_LABEL &&
+            branch == NULL)
+        branch = find_branch(next->prev->identifier1, head);
+    if (branch != NULL && !is_branch_avail(actual, branch))  {
+        actual->branch = malloc(sizeof(cfg_list));
+        if ((actual->branch) == NULL) {
+            return;
+        }
+        actual->branch[0] = *branch;
+    }
+}
+
+void generate_branches(cfg_list *head) {
+    assert(head);
+
+    for (int i = 0; i < head->num_next_nodes; i++) {
+        cfg_list *first_elem = &head->next_nodes[i];
+        for (int j = 0; j < first_elem->num_next_nodes; j++) {
+            generate_branches_single_block(&first_elem->next_nodes[j], &head->next_nodes[i]);
+        }
+    }
+
 }
 
 void generate_node_name(FILE *out, tac_list *start, tac_list *end)
@@ -211,12 +310,13 @@ void generate_node_name(FILE *out, tac_list *start, tac_list *end)
 	assert(start);
 	assert(end);
 
-	while (start != end) {
+	while (start != end && start != NULL) {
 		print_tac_elem(out, start);
 		fprintf(out, "\\n");
 		start = start->next;
 	}
-	print_tac_elem(out, start);
+	if (start != NULL)
+		print_tac_elem(out, start);
 }
 
 static void print_cfg_function(FILE *out, cfg_list *head)
@@ -269,7 +369,7 @@ cfg_list *mCc_cfg_generate(tac_list *tac)
 
 	while (tac->next != NULL) {
 		tac = tac->next;
-		mCc_cfg_add_node(ret, generate_block(tac));
+		mCc_cfg_add_node(ret, generate_block(tac, NULL));
 		while (true) {
 			if (tac->type == MCC_TAC_ELEMENT_TYPE_FUNCTION_END)
 				break;
@@ -278,6 +378,8 @@ cfg_list *mCc_cfg_generate(tac_list *tac)
 		if (tac->next != NULL)
 			tac = tac->next;
 	}
+
+    generate_branches(ret);
 
 	return ret;
 }

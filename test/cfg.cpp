@@ -9,7 +9,8 @@
 #include "mCc/cfg.h"
 
 /*
- * Above each test the graph is shown in some graphical way.
+ * Above each test the graph is shown in some graphical way (If
+ * the graph is not to complex).
  *
  * Each node gets simple a number. Afterwards in the test the
  * same number is given to a variable to make some tests.

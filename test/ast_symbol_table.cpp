@@ -221,6 +221,7 @@ TEST(symbol_table, error_num_arguments)
 
 	mCc_delete_result(&result);
 }
+
 TEST(symbol_table, error_num_arguments2)
 {
 

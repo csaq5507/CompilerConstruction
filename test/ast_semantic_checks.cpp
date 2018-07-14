@@ -51,7 +51,6 @@ TEST(semantic_check, wrong_parameter_type)
 	mCc_delete_result(&result);
 }
 
-
 TEST(semantic_check, wrong_return_type)
 {
 
@@ -98,7 +97,6 @@ TEST(semantic_check, wrong_return_type2)
 	mCc_delete_result(&result);
 }
 
-
 TEST(semantic_check, wrong_assignment_type)
 {
 
@@ -144,7 +142,6 @@ TEST(semantic_check, condition_not_boolean_if)
 
 	mCc_delete_result(&result);
 }
-
 
 TEST(semantic_check, condition_not_boolean_while)
 {

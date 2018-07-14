@@ -582,6 +582,7 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 
 		stmt->tac_end = temp_else_stmt_end;
 	} else {
+		free(jump);
 		tac_list *temp_stmt_start = stmt->statement->tac_start;
 		tac_list *temp_stmt_end = stmt->statement->tac_end;
 		jump_false->jump = label;

@@ -48,6 +48,7 @@ typedef struct mCc_ast_symbol {
 
 	int func_param_counter;
 	enum mCc_ast_type *l_types;
+	int symbol_size;
 } ast_symbol;
 
 typedef struct mCc_ast_current_func {

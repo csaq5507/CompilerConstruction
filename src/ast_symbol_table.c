@@ -34,11 +34,13 @@ static ast_symbol_table *add_element_symbols(ast_symbol_table *head, char *old,
 					     char *new,
 					     enum mCc_ast_type d_type,
 					     int num_params,
-					     enum mCc_ast_type *l_types);
+					     enum mCc_ast_type *l_types,
+					 	 int symbol_size);
 static char *find_element_symbols(ast_symbol_table *head, char *elem);
 static enum mCc_ast_type find_identifier_type(ast_symbol_table *head,
 					      char *elem);
 static int find_element_param_num(ast_symbol_table *head, char *elem);
+static int find_element_symbol_size(ast_symbol_table *head, char *elem);
 static void delete_symbol_table_node(ast_symbol_table *head);
 static enum mCc_ast_type *find_element_param_types(ast_symbol_table *head,
 						   char *elem);
@@ -162,17 +164,17 @@ static void mCc_ast_symbol_table_add_default_function_names()
 
 
 	table = add_element_symbols(table, print, print, MCC_AST_TYPE_VOID, 1,
-				    NULL);
+				    NULL, 0);
 	table = add_element_symbols(table, print_nl, print_nl,
-				    MCC_AST_TYPE_VOID, 0, NULL);
+				    MCC_AST_TYPE_VOID, 0, NULL, 0);
 	table = add_element_symbols(table, print_int, print_int,
-				    MCC_AST_TYPE_VOID, 1, NULL);
+				    MCC_AST_TYPE_VOID, 1, NULL, 0);
 	table = add_element_symbols(table, print_float, print_float,
-				    MCC_AST_TYPE_VOID, 1, NULL);
+				    MCC_AST_TYPE_VOID, 1, NULL, 0);
 	table = add_element_symbols(table, read_int, read_int, MCC_AST_TYPE_INT,
-				    0, NULL);
+				    0, NULL, 0);
 	table = add_element_symbols(table, read_float, read_float,
-				    MCC_AST_TYPE_FLOAT, 0, NULL);
+				    MCC_AST_TYPE_FLOAT, 0, NULL, 0);
 }
 
 
@@ -180,7 +182,8 @@ static ast_symbol_table *add_element_symbols(ast_symbol_table *head, char *old,
 					     char *new,
 					     enum mCc_ast_type d_type,
 					     int num_params,
-					     enum mCc_ast_type *l_types)
+					     enum mCc_ast_type *l_types,
+						 int symbol_size)
 {
 	assert(head);
 	assert(old);
@@ -193,6 +196,7 @@ static ast_symbol_table *add_element_symbols(ast_symbol_table *head, char *old,
 	symbol->d_type = d_type;
 	symbol->func_param_counter = num_params;
 	symbol->l_types = l_types;
+	symbol->symbol_size = symbol_size;
 	REALLOC(head->symbols,
 		sizeof(ast_symbol) * (head->symbols_counter + 1));
 
@@ -267,6 +271,23 @@ static enum mCc_ast_type *find_element_param_types(ast_symbol_table *head,
 	return NULL;
 }
 
+static int find_element_symbol_size(ast_symbol_table *head,
+												   char *elem)
+{
+	assert(head);
+	assert(elem);
+	while (head != NULL) {
+		for (int i = 0; i < head->symbols_counter; i++) {
+			if (strcmp(head->symbols[i].mCc_symbol_old, elem)
+				== 0) {
+				return head->symbols[i].symbol_size;
+			}
+		}
+		head = head->prev;
+	}
+	return 0;
+}
+
 static void delete_symbol_table_node(ast_symbol_table *head)
 {
 	while (head->prev != NULL)
@@ -339,7 +360,6 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 			      h_result);
 
 		if (has_main == true) {
-			char error_msg[1024] = {0};
 			snprintf(error_msg, sizeof(error_msg),
 				 ERROR_DUBLICATE_FUNCTION, f->identifier->name);
 			mCc_add_error(new_string(ERROR_DUBLICATE_FUNCTION,
@@ -407,25 +427,25 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 			table = add_element_symbols(
 				table, f->identifier->name,
 				f->identifier->renamed, MCC_AST_TYPE_INT,
-				f->params->counter, f->identifier->param_types);
+				f->params->counter, f->identifier->param_types, 0);
 			break;
 		case (MCC_AST_LITERAL_TYPE_FLOAT):
 			table = add_element_symbols(
 				table, f->identifier->name,
 				f->identifier->renamed, MCC_AST_TYPE_FLOAT,
-				f->params->counter, f->identifier->param_types);
+				f->params->counter, f->identifier->param_types, 0);
 			break;
 		case (MCC_AST_LITERAL_TYPE_BOOL):
 			table = add_element_symbols(
 				table, f->identifier->name,
 				f->identifier->renamed, MCC_AST_TYPE_BOOL,
-				f->params->counter, f->identifier->param_types);
+				f->params->counter, f->identifier->param_types, 0);
 			break;
 		case (MCC_AST_LITERAL_TYPE_STRING):
 			table = add_element_symbols(
 				table, f->identifier->name,
 				f->identifier->renamed, MCC_AST_TYPE_STRING,
-				f->params->counter, f->identifier->param_types);
+				f->params->counter, f->identifier->param_types, 0);
 			break;
 		}
 	}
@@ -529,7 +549,7 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 			table = add_element_symbols(
 				table, f->identifier->name,
 				f->identifier->renamed, MCC_AST_TYPE_VOID,
-				f->params->counter, f->identifier->param_types);
+				f->params->counter, f->identifier->param_types, 0);
 		}
 	}
 
@@ -678,6 +698,7 @@ static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt,
 	} else {
 		free(stmt->identifier->renamed);
 		stmt->identifier->renamed = copy_string(new_name);
+		stmt->identifier->size = find_element_symbol_size(temp, stmt->identifier->name);
 	}
 }
 
@@ -707,25 +728,25 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 				table = add_element_symbols(
 					table, stmt->identifier->name,
 					stmt->identifier->renamed,
-					MCC_AST_TYPE_INT, 0, NULL);
+					MCC_AST_TYPE_INT, 0, NULL, 1);
 				break;
 			case (MCC_AST_LITERAL_TYPE_FLOAT):
 				table = add_element_symbols(
 					table, stmt->identifier->name,
 					stmt->identifier->renamed,
-					MCC_AST_TYPE_FLOAT, 0, NULL);
+					MCC_AST_TYPE_FLOAT, 0, NULL, 1);
 				break;
 			case (MCC_AST_LITERAL_TYPE_STRING):
 				table = add_element_symbols(
 					table, stmt->identifier->name,
 					stmt->identifier->renamed,
-					MCC_AST_TYPE_STRING, 0, NULL);
+					MCC_AST_TYPE_STRING, 0, NULL, 1);
 				break;
 			case (MCC_AST_LITERAL_TYPE_BOOL):
 				table = add_element_symbols(
 					table, stmt->identifier->name,
 					stmt->identifier->renamed,
-					MCC_AST_TYPE_BOOL, 0, NULL);
+					MCC_AST_TYPE_BOOL, 0, NULL, 1);
 				break;
 			}
 		}
@@ -750,25 +771,25 @@ static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 				table = add_element_symbols(
 					table, stmt->array_identifier->name,
 					stmt->array_identifier->renamed,
-					MCC_AST_TYPE_INT_ARRAY, 0, NULL);
+					MCC_AST_TYPE_INT_ARRAY, 0, NULL, stmt->numerator);
 				break;
 			case (MCC_AST_LITERAL_TYPE_FLOAT):
 				table = add_element_symbols(
 					table, stmt->array_identifier->name,
 					stmt->array_identifier->renamed,
-					MCC_AST_TYPE_FLOAT_ARRAY, 0, NULL);
+					MCC_AST_TYPE_FLOAT_ARRAY, 0, NULL, stmt->numerator);
 				break;
 			case (MCC_AST_LITERAL_TYPE_STRING):
 				table = add_element_symbols(
 					table, stmt->array_identifier->name,
 					stmt->array_identifier->renamed,
-					MCC_AST_TYPE_STRING_ARRAY, 0, NULL);
+					MCC_AST_TYPE_STRING_ARRAY, 0, NULL, stmt->numerator);
 				break;
 			case (MCC_AST_LITERAL_TYPE_BOOL):
 				table = add_element_symbols(
 					table, stmt->array_identifier->name,
 					stmt->array_identifier->renamed,
-					MCC_AST_TYPE_BOOL_ARRAY, 0, NULL);
+					MCC_AST_TYPE_BOOL_ARRAY, 0, NULL, stmt->numerator);
 				break;
 			}
 		}
@@ -857,6 +878,8 @@ ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
 		} else {
 			free(expression->identifier->renamed);
 			expression->identifier->renamed = copy_string(new_name);
+			expression->identifier->size = find_element_symbol_size(
+					temp, expression->identifier->name);
 		}
 	}
 }

@@ -294,6 +294,17 @@ static void ast_semantic_check_ass_stmt(struct mCc_ast_assignment *stmt,
 			break;
 		}
 	}
+	if (stmt->expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE &&
+			stmt->expression->single_expr->type == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER)
+		if (stmt->expression->single_expr->identifier->size != stmt->identifier->size) {
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg),
+					 ERROR_WRONG_ASSIGNMENT_SIZE,
+					 stmt->identifier->name,
+					 stmt->expression->single_expr->identifier->name);
+			mCc_add_error(error_msg, stmt->identifier->node.sloc.start_line,
+						  g_result);
+		}
 	if (stmt->identifier->d_type != stmt->expression->d_type) {
 		char error_msg[1024] = {0};
 		snprintf(error_msg, sizeof(error_msg),

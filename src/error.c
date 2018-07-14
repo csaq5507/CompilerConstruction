@@ -37,6 +37,8 @@ const char *ERROR_WRONG_PARAMETER_TYPE =
 	"function %s expect %d. parameter of type %s, %s given";
 const char *ERROR_WRONG_RETURN_TYPE =
 	"wrong return of type %s for function, expected %s";
+const char *ERROR_WRONG_ASSIGNMENT_SIZE =
+	"size of array '%s' is not the same of array '%s'";
 const char *ERROR_WRONG_ASSIGNMENT_TYPE =
 	"assignment types not compatible: %s = %s";
 const char *ERROR_CONDITION_NOT_BOOLEAN =

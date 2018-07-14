@@ -87,6 +87,7 @@ ast_identifier *mCc_ast_new_identifier(char *name, int line)
 	identifier->node.sloc.start_line = line;
 	identifier->d_type = MCC_AST_TYPE_VOID;
 	identifier->param_types = NULL;
+	identifier->size = 0;
 	return identifier;
 }
 

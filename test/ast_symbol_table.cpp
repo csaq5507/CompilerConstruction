@@ -54,9 +54,6 @@ TEST(symbol_table, main_not_void)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-
-
-
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_MAIN_NOT_VOID, "int");
 
@@ -104,6 +101,7 @@ TEST(symbol_table, dublicate_function)
 
 	mCc_delete_result(&result);
 }
+
 TEST(symbol_table, dublicate_variable)
 {
 	const char input[] =
@@ -133,8 +131,7 @@ TEST(symbol_table, dublicate_variable)
 	mCc_delete_result(&result);
 }
 
-
-TEST(symbol_table, no_return)
+TEST(symbol_table, no_return1)
 {
 
 	const char input[] = "void main() {int a; } int func1(){}";
@@ -153,6 +150,26 @@ TEST(symbol_table, no_return)
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
 	mCc_delete_result(&result);
+}
+
+TEST(symbol_table, no_return2) {
+	// if without else
+}
+
+TEST(symbol_table, no_return3) {
+	// return in if not in else
+}
+
+TEST(symbol_table, no_return4) {
+	// return in else not in if
+}
+
+TEST(symbol_table, no_return5) {
+	// if with else if
+}
+
+TEST(symbol_table, no_return6) {
+	// if with else if
 }
 
 TEST(symbol_table, missing_variable_def)

@@ -8,13 +8,6 @@
 #include "mCc/tac.h"
 
 
-/*
- * Here we could test so many things that we decided to just look at the tac
- * output of the example programs.
- *
- */
-
-
 TEST(tac_generation, tac_generation_func_call)
 {
 
@@ -100,5 +93,17 @@ TEST(tac_generation, tac_generation_unconditional_jump)
     ASSERT_STREQ("L1",tac2->identifier1);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_LABEL,tac2->type);
     mCc_tac_delete(tac);
+
+}
+
+TEST(tac_generation, empty_if1) {
+
+}
+
+TEST(tac_generation, empty_if2) {
+
+}
+
+TEST(tac_generation, empty_if3) {
 
 }

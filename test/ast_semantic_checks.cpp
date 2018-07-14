@@ -97,7 +97,7 @@ TEST(semantic_check, wrong_return_type2)
 	mCc_delete_result(&result);
 }
 
-TEST(semantic_check, wrong_assignment_type)
+TEST(semantic_check, wrong_assignment_type1)
 {
 
 	const char input[] = "void main() { int a; a = 2.0;}";
@@ -118,6 +118,14 @@ TEST(semantic_check, wrong_assignment_type)
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
 	mCc_delete_result(&result);
+}
+
+TEST(semantic_check, wrong_assignment_type2) {
+	// a = b[]
+}
+
+TEST(semantic_check, wrong_assignment_type3) {
+	// a[2] = b[3]
 }
 
 TEST(semantic_check, condition_not_boolean_if)

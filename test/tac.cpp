@@ -33,14 +33,14 @@ TEST(tac_generation, tac_generation_func_call)
 	mCc_delete_result(&result);
 
 
-    struct mCc_tac_list *tac2 = get_at(tac,11);
+    struct mCc_tac_list *tac2 = get_at(tac,12);
     ASSERT_NE(tac2, nullptr);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL,tac2->type);
     ASSERT_STREQ("func10",tac2->identifier1);
     ASSERT_EQ(2,tac2->num_function_param);
-    tac2=get_at(tac,14);
-    ASSERT_STREQ("print",tac2->identifier1);
+    tac2=get_at(tac,16);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL,tac2->type);
+    ASSERT_STREQ("print",tac2->identifier1);
     ASSERT_EQ(1,tac2->num_function_param);
 
     mCc_tac_delete(tac);

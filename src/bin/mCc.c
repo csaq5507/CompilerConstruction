@@ -224,6 +224,7 @@ int main(int argc, char *argv[])
 		clean_up(error, graph, tac, file_std_err, output, cfg,
 			 outputFileName);
 		fclose(assembly);
+		free(assemblyFileName);
 		return EXIT_SUCCESS;
 	}
 
@@ -239,6 +240,7 @@ int main(int argc, char *argv[])
 		clean_up(error, graph, tac, file_std_err, output, cfg,
 			 outputFileName);
 		fclose(assembly);
+		free(assemblyFileName);
 
 		return EXIT_SUCCESS;
 	}
@@ -253,6 +255,7 @@ int main(int argc, char *argv[])
 		clean_up(error, graph, tac, file_std_err, output, cfg,
 			 outputFileName);
 		fclose(assembly);
+		free(assemblyFileName);
 		return EXIT_SUCCESS;
 	}
 
@@ -260,18 +263,18 @@ int main(int argc, char *argv[])
 	struct mCc_tac_list *_tac;
 	_tac = mCc_tac_generate(result.func_def);
 
-//	cfg_list *_cfg = mCc_cfg_generate(_tac);
+	cfg_list *_cfg = mCc_cfg_generate(_tac);
 
 
 	if (print_tac) {
 		mCc_tac_print(tac, _tac);
-	//	mCc_cfg_print(cfg, _cfg);
+		mCc_cfg_print(cfg, _cfg);
 	}
 
 	struct mCc_assembly *ass = mCc_assembly_generate(_tac, outputFileName);
 
 	mCc_delete_result(&result);
-//	mCc_cfg_delete(_cfg);
+	mCc_cfg_delete(_cfg);
 
 	mCc_assembly_print(assembly, ass);
 	fclose(assembly);

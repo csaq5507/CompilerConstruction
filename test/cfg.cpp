@@ -163,9 +163,9 @@ TEST(cfg, SingleIfClause1)
  *        |
  *        1
  *       / \
- *       | 2
+ *       | 3
  *       |/
- *       3
+ *       2
  */
 TEST(cfg, SingleIfClause2)
 {
@@ -206,7 +206,7 @@ TEST(cfg, SingleIfClause2)
     cfg_list *cfg_2 = &cfg_1->next_nodes[0];
 
     ASSERT_EQ(cfg_2->num_next_nodes, 0);
-    ASSERT_EQ(cfg_2->num_prev_nodes, 1);
+    ASSERT_EQ(cfg_2->num_prev_nodes, 2);
     ASSERT_EQ(cfg_2->node_num, 3);
 
     cfg_list *cfg_3 = &cfg_1->next_nodes[1];
@@ -229,9 +229,7 @@ TEST(cfg, SingleIfClause2)
  *        |
  *        1
  *       / \
- *       | 2
- *       |/
- *       3
+ *       2 3
  */
 TEST(cfg, IFWithElseClause1)
 {
@@ -293,8 +291,8 @@ TEST(cfg, IFWithElseClause1)
  *        1
  *       / \
  *       2 3
- *       \/
- *       4
+ *       \ /
+ *        4
  */
 TEST(cfg, IFWithElseClause2)
 {
@@ -346,9 +344,15 @@ TEST(cfg, IFWithElseClause2)
     ASSERT_EQ(cfg_3->num_prev_nodes, 1);
     ASSERT_EQ(cfg_3->node_num, 5);
 
+    cfg_list *cfg_4 = &cfg_2->next_nodes[0];
+
+    ASSERT_EQ(cfg_4->num_next_nodes, 0);
+    ASSERT_EQ(cfg_4->num_prev_nodes, 2);
+    ASSERT_EQ(cfg_4->node_num, 4);
+
     cfg_list *cfg_3_branch = cfg_3->branch;
 
-    ASSERT_EQ(cfg_2->next_nodes[0].node_num, cfg_3_branch->node_num);
+    ASSERT_EQ(cfg_4->node_num, cfg_3_branch->node_num);
 
     mCc_cfg_delete(cfg_head);
 
@@ -430,11 +434,11 @@ TEST(cfg, IfWithElseIfClause1)
  *        |
  *        1
  *       / \
- *       2 3
+ *       2 5
  *     / | |
- *     | 4 |
+ *     | 3 |
  *     \ | /
- *       5
+ *       4
  */
 TEST(cfg, IfWithElseIfClause2)
 {
@@ -486,17 +490,23 @@ TEST(cfg, IfWithElseIfClause2)
     ASSERT_EQ(cfg_3->num_prev_nodes, 1);
     ASSERT_EQ(cfg_3->node_num, 7);
 
+    cfg_list *cfg_3_branch = cfg_3->branch;
+
     cfg_list *cfg_4 = &cfg_2->next_nodes[0];
 
+    ASSERT_EQ(cfg_3_branch->node_num, cfg_4->node_num);
     ASSERT_EQ(cfg_4->num_next_nodes, 0);
-    ASSERT_EQ(cfg_4->num_prev_nodes, 1);
+    ASSERT_EQ(cfg_4->num_prev_nodes, 3);
     ASSERT_EQ(cfg_4->node_num, 5);
 
     cfg_list *cfg_5 = &cfg_2->next_nodes[1];
 
+    cfg_list *cfg_5_branch = cfg_5->branch;
+
     ASSERT_EQ(cfg_5->num_next_nodes, 0);
     ASSERT_EQ(cfg_5->num_prev_nodes, 1);
     ASSERT_EQ(cfg_5->node_num, 6);
+    ASSERT_EQ(cfg_5_branch->node_num, cfg_4->node_num);
 
     mCc_cfg_delete(cfg_head);
 
@@ -507,11 +517,11 @@ TEST(cfg, NestedIfClause)
 {
     const char input[] = ""
             "void main(){\n"
-            "    int a;\n"
-            "    int b;\n"
-            "    int c;\n"
-            "    a = 1;\n"
-            "    b = 5;\n"
+            "   int a;\n"
+            "   int b;\n"
+            "   int c;\n"
+            "   a = 1;\n"
+            "   b = 5;\n"
             "   if (a == 1) {\n"
             "       c = a + b;\n"
             "       if (a == 2) {\n"
@@ -547,7 +557,7 @@ TEST(cfg, NestedIfClause)
     cfg_list *cfg_2 = &cfg_1->next_nodes[0];
 
     ASSERT_EQ(cfg_2->num_next_nodes, 1);
-    ASSERT_EQ(cfg_2->num_prev_nodes, 1);
+    ASSERT_EQ(cfg_2->num_prev_nodes, 2);
     ASSERT_EQ(cfg_2->node_num, 3);
 
     cfg_list *cfg_3 = &cfg_1->next_nodes[1];
@@ -559,7 +569,7 @@ TEST(cfg, NestedIfClause)
     cfg_list *cfg_4 = &cfg_2->next_nodes[0];
 
     ASSERT_EQ(cfg_4->num_next_nodes, 0);
-    ASSERT_EQ(cfg_4->num_prev_nodes, 1);
+    ASSERT_EQ(cfg_4->num_prev_nodes, 2);
     ASSERT_EQ(cfg_4->node_num, 4);
 
     cfg_list *cfg_5 = &cfg_2->next_nodes[1];
@@ -620,7 +630,7 @@ TEST(cfg, WhileLoop1)
     cfg_list *cfg_2 = &cfg_1->next_nodes[0];
 
     ASSERT_EQ(cfg_2->num_next_nodes, 1);
-    ASSERT_EQ(cfg_2->num_prev_nodes, 1);
+    ASSERT_EQ(cfg_2->num_prev_nodes, 2);
 
     cfg_list *cfg_3 = &cfg_2->next_nodes[0];
 
@@ -636,17 +646,6 @@ TEST(cfg, WhileLoop1)
     mCc_tac_delete(tac);
 }
 
-/*
- *      HEAD
- *        |
- *        1
- *        |
- *        2
- *       /|
- *      /| |
- *      |  3
- *      4
- */
 TEST(cfg, WhileLoop2)
 {
     const char input[] = ""
@@ -686,7 +685,7 @@ TEST(cfg, WhileLoop2)
     cfg_list *cfg_2 = &cfg_1->next_nodes[0];
 
     ASSERT_EQ(cfg_2->num_next_nodes, 2);
-    ASSERT_EQ(cfg_2->num_prev_nodes, 1);
+    ASSERT_EQ(cfg_2->num_prev_nodes, 2);
 
     cfg_list *cfg_4 = &cfg_2->next_nodes[1];
 
@@ -746,7 +745,7 @@ TEST(cfg, NestedWhileLoop)
     cfg_list *cfg_2 = &cfg_1->next_nodes[0];
 
     ASSERT_EQ(cfg_2->num_next_nodes, 2);
-    ASSERT_EQ(cfg_2->num_prev_nodes, 1);
+    ASSERT_EQ(cfg_2->num_prev_nodes, 2);
 
     cfg_list *cfg_3 = &cfg_2->next_nodes[0];
 
@@ -766,7 +765,7 @@ TEST(cfg, NestedWhileLoop)
     cfg_list *cfg_6 = &cfg_5->next_nodes[0];
 
     ASSERT_EQ(cfg_6->num_next_nodes, 2);
-    ASSERT_EQ(cfg_6->num_prev_nodes, 1);
+    ASSERT_EQ(cfg_6->num_prev_nodes, 2);
 
     cfg_list *cfg_7 = &cfg_6->next_nodes[0];
 
@@ -825,7 +824,7 @@ TEST(cfg, WhileIfCombination)
     cfg_list *cfg_2 = &cfg_1->next_nodes[0];
 
     ASSERT_EQ(cfg_2->num_next_nodes, 1);
-    ASSERT_EQ(cfg_2->num_prev_nodes, 1);
+    ASSERT_EQ(cfg_2->num_prev_nodes, 2);
 
     cfg_list *cfg_3 = &cfg_2->next_nodes[0];
 
@@ -835,7 +834,7 @@ TEST(cfg, WhileIfCombination)
     cfg_list *cfg_4 = &cfg_3->next_nodes[0];
 
     ASSERT_EQ(cfg_4->num_next_nodes, 0);
-    ASSERT_EQ(cfg_4->num_prev_nodes, 1);
+    ASSERT_EQ(cfg_4->num_prev_nodes, 2);
 
     cfg_list *cfg_5 = &cfg_3->next_nodes[1];
 

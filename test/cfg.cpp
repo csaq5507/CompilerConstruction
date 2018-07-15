@@ -19,7 +19,8 @@
 /*
  * HEAD -> 1
  */
-TEST(cfg, SimpleFunction) {
+TEST(cfg, SimpleFunction)
+{
     const char input[] = ""
             "void main(){\n"
             "    int a;\n"
@@ -61,7 +62,8 @@ TEST(cfg, SimpleFunction) {
  *       /\
  *      1 2
  */
-TEST(cfg, DoubleFunction) {
+TEST(cfg, DoubleFunction)
+{
     const char input[] = ""
             "void f() {\n"
             "   int a;\n"
@@ -111,7 +113,8 @@ TEST(cfg, DoubleFunction) {
 /*
  * HEAD -> 1 -> 2
  */
-TEST(cfg, SingleIfClause1) {
+TEST(cfg, SingleIfClause1)
+{
     const char input[] = ""
             "void main(){\n"
             "    int a;\n"
@@ -164,7 +167,8 @@ TEST(cfg, SingleIfClause1) {
  *       |/
  *       3
  */
-TEST(cfg, SingleIfClause2) {
+TEST(cfg, SingleIfClause2)
+{
     const char input[] = ""
             "void main(){\n"
             "    int a;\n"
@@ -229,7 +233,8 @@ TEST(cfg, SingleIfClause2) {
  *       |/
  *       3
  */
-TEST(cfg, IFWithElseClause1) {
+TEST(cfg, IFWithElseClause1)
+{
     const char input[] = ""
             "void main(){\n"
             "    int a;\n"
@@ -291,7 +296,8 @@ TEST(cfg, IFWithElseClause1) {
  *       \/
  *       4
  */
-TEST(cfg, IFWithElseClause2) {
+TEST(cfg, IFWithElseClause2)
+{
     const char input[] = ""
             "void main(){\n"
             "    int a;\n"
@@ -358,7 +364,8 @@ TEST(cfg, IFWithElseClause2) {
  *       |
  *       4
  */
-TEST(cfg, IfWithElseIfClause1) {
+TEST(cfg, IfWithElseIfClause1)
+{
     const char input[] = ""
             "void main(){\n"
             "    int a;\n"
@@ -429,7 +436,8 @@ TEST(cfg, IfWithElseIfClause1) {
  *     \ | /
  *       5
  */
-TEST(cfg, IfWithElseIfClause2) {
+TEST(cfg, IfWithElseIfClause2)
+{
     const char input[] = ""
             "void main(){\n"
             "    int a;\n"
@@ -495,7 +503,8 @@ TEST(cfg, IfWithElseIfClause2) {
     mCc_tac_delete(tac);
 }
 
-TEST(cfg, NestedIfClause) {
+TEST(cfg, NestedIfClause)
+{
     const char input[] = ""
             "void main(){\n"
             "    int a;\n"
@@ -573,7 +582,8 @@ TEST(cfg, NestedIfClause) {
  *        3
 
  */
-TEST(cfg, WhileLoop1) {
+TEST(cfg, WhileLoop1)
+{
     const char input[] = ""
             "void main(){\n"
             "    int a;\n"
@@ -637,7 +647,8 @@ TEST(cfg, WhileLoop1) {
  *      |  3
  *      4
  */
-TEST(cfg, WhileLoop2) {
+TEST(cfg, WhileLoop2)
+{
     const char input[] = ""
             "void main(){\n"
             "    int a;\n"
@@ -692,7 +703,8 @@ TEST(cfg, WhileLoop2) {
     mCc_tac_delete(tac);
 }
 
-TEST(cfg, NestedWhileLoop) {
+TEST(cfg, NestedWhileLoop)
+{
     const char input[] = ""
             "void main(){\n"
             "    int a;\n"
@@ -771,7 +783,8 @@ TEST(cfg, NestedWhileLoop) {
     mCc_tac_delete(tac);
 }
 
-TEST(cfg, WhileIfCombination) {
+TEST(cfg, WhileIfCombination)
+{
     const char input[] = ""
             "void main(){\n"
             "   int a;\n"

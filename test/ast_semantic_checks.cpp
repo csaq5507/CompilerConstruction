@@ -120,7 +120,8 @@ TEST(semantic_check, wrong_assignment_type1)
 	mCc_delete_result(&result);
 }
 
-TEST(semantic_check, wrong_assignment_type2) {
+TEST(semantic_check, wrong_assignment_type2)
+{
 	const char input[] = "void main() { int a; int [3]b; a = b;}";
 
 	auto result = mCc_parser_parse_string(input);
@@ -140,7 +141,8 @@ TEST(semantic_check, wrong_assignment_type2) {
 	mCc_delete_result(&result);
 }
 
-TEST(semantic_check, wrong_assignment_type3) {
+TEST(semantic_check, wrong_assignment_type3)
+{
     const char input[] = "void main() { int [2]a; int [3]b; a = b;}";
 
     auto result = mCc_parser_parse_string(input);

@@ -40,7 +40,8 @@ TEST(parser_lexer, ast_generation)
 	mCc_delete_result(&result);
 }
 
-TEST(parser_lexer, literal) {
+TEST(parser_lexer, literal)
+{
 	mCc_ast_literal *i_literal = mCc_ast_new_literal_int(10);
 	mCc_ast_literal *f_literal = mCc_ast_new_literal_float(22.5);
 	mCc_ast_literal *b_literal = mCc_ast_new_literal_bool(true);
@@ -66,7 +67,8 @@ TEST(parser_lexer, literal) {
     free(s_literal);
 }
 
-TEST(parser_lexer, identifier) {
+TEST(parser_lexer, identifier)
+{
     char test[] = "var_name";
     char *name = (char *) malloc(sizeof(test));
     strcpy(name, test);
@@ -83,7 +85,8 @@ TEST(parser_lexer, identifier) {
     free(identifier);
 }
 
-TEST(parser_lexer, array_declaration) {
+TEST(parser_lexer, array_declaration)
+{
     ast_identifier *identifier = (ast_identifier *) malloc(sizeof(ast_identifier));
 
     ast_declaration *declaration_int =
@@ -122,7 +125,8 @@ TEST(parser_lexer, array_declaration) {
     free(declaration_string);
 }
 
-TEST(parser_lexer, single_declaration) {
+TEST(parser_lexer, single_declaration)
+{
     ast_identifier *identifier = (ast_identifier *) malloc(sizeof(ast_identifier));
 
     ast_declaration *declaration_int =
@@ -157,7 +161,8 @@ TEST(parser_lexer, single_declaration) {
     free(declaration_string);
 }
 
-TEST(parser_lexer, array_assignment) {
+TEST(parser_lexer, array_assignment)
+{
     ast_identifier *identifier = (ast_identifier *) malloc(sizeof(ast_identifier));
 
     ast_expr *ex_1 = (ast_expr*) malloc(sizeof(ast_expr));
@@ -176,7 +181,8 @@ TEST(parser_lexer, array_assignment) {
     free(assignment);
 }
 
-TEST(parser_lexer, single_assignment) {
+TEST(parser_lexer, single_assignment)
+{
     ast_identifier *identifier = (ast_identifier *) malloc(sizeof(ast_identifier));
 
     ast_expr *ex = (ast_expr*) malloc(sizeof(ast_expr));
@@ -194,7 +200,8 @@ TEST(parser_lexer, single_assignment) {
     free(assignment);
 }
 
-TEST(parser_lexer, single_expression_literal) {
+TEST(parser_lexer, single_expression_literal)
+{
 
     ast_literal *literal = (ast_literal*) malloc(sizeof(ast_literal));
 
@@ -207,7 +214,8 @@ TEST(parser_lexer, single_expression_literal) {
     free(single_expr);
 }
 
-TEST(parser_lexer, single_expression_identifier_ex) {
+TEST(parser_lexer, single_expression_identifier_ex)
+{
 
     ast_identifier *identifier = (ast_identifier *) malloc(sizeof(ast_identifier));
     ast_expr *exp = (ast_expr *) malloc(sizeof(ast_expr));
@@ -224,7 +232,8 @@ TEST(parser_lexer, single_expression_identifier_ex) {
     free(single_expr);
 }
 
-TEST(parser_lexer, single_expression_identifier) {
+TEST(parser_lexer, single_expression_identifier)
+{
 
     ast_identifier *identifier = (ast_identifier *) malloc(sizeof(ast_identifier));
 
@@ -238,7 +247,8 @@ TEST(parser_lexer, single_expression_identifier) {
     free(single_expr);
 }
 
-TEST(parser_lexer, single_expression_call_expr) {
+TEST(parser_lexer, single_expression_call_expr)
+{
 
     ast_call_expr *call_expr = (ast_call_expr *) malloc(sizeof(ast_call_expr));
 
@@ -252,7 +262,8 @@ TEST(parser_lexer, single_expression_call_expr) {
     free(single_expr);
 }
 
-TEST(parser_lexer, single_expression_unary_op) {
+TEST(parser_lexer, single_expression_unary_op)
+{
 
     ast_expr *unary_expr = (ast_expr *) malloc(sizeof(ast_expr));
 
@@ -276,7 +287,8 @@ TEST(parser_lexer, single_expression_unary_op) {
     free(single_expr_fac);
 }
 
-TEST(parser_lexer, single_expression_parenth) {
+TEST(parser_lexer, single_expression_parenth)
+{
 
     ast_expr *expression = (ast_expr *) malloc(sizeof(ast_expr));
 
@@ -290,7 +302,8 @@ TEST(parser_lexer, single_expression_parenth) {
     free(single_expr);
 }
 
-TEST(parser_lexer, single_argument) {
+TEST(parser_lexer, single_argument)
+{
 
     ast_expr *expression = (ast_expr *) malloc(sizeof(ast_expr));
 
@@ -303,8 +316,8 @@ TEST(parser_lexer, single_argument) {
     free(argument);
 }
 
-
-TEST(parser_lexer, empty_call_expr) {
+TEST(parser_lexer, empty_call_expr)
+{
 
     ast_identifier *identifier = (ast_identifier *) malloc(sizeof(ast_identifier));
 
@@ -317,7 +330,8 @@ TEST(parser_lexer, empty_call_expr) {
     free(call_expr);
 }
 
-TEST(parser_lexer, call_expr) {
+TEST(parser_lexer, call_expr)
+{
 
     ast_identifier *identifier = (ast_identifier *) malloc(sizeof(ast_identifier));
     ast_argument *arguments = (ast_argument *) malloc(sizeof(ast_argument));
@@ -332,7 +346,8 @@ TEST(parser_lexer, call_expr) {
     free(call_expr);
 }
 
-TEST(parser_lexer, expression_single) {
+TEST(parser_lexer, expression_single)
+{
 
     ast_single_expr *single_expr = (ast_single_expr *) malloc(sizeof(ast_single_expr));
 
@@ -345,7 +360,8 @@ TEST(parser_lexer, expression_single) {
     free(expr);
 }
 
-TEST(parser_lexer, expression_binary_op) {
+TEST(parser_lexer, expression_binary_op)
+{
 
     ast_single_expr *lhs = (ast_single_expr *) malloc(sizeof(ast_single_expr));
     ast_expr *rhs = (ast_expr *) malloc(sizeof(ast_expr));
@@ -365,7 +381,8 @@ TEST(parser_lexer, expression_binary_op) {
     free(expr);
 }
 
-TEST(parser_lexer, ret) {
+TEST(parser_lexer, ret)
+{
 
     ast_expr *ex = (ast_expr *) malloc(sizeof(ast_expr));
 
@@ -378,7 +395,8 @@ TEST(parser_lexer, ret) {
 
 }
 
-TEST(parser_lexer, empty_ret) {
+TEST(parser_lexer, empty_ret)
+{
 
 
     ast_ret_stmt *ret = mCc_ast_new_empty_ret();
@@ -388,7 +406,8 @@ TEST(parser_lexer, empty_ret) {
     free(ret);
 }
 
-TEST(parser_lexer, while_stmt) {
+TEST(parser_lexer, while_stmt)
+{
 
     ast_while_stmt *while_st = (ast_while_stmt *) malloc(sizeof(ast_while_stmt));
 
@@ -402,7 +421,8 @@ TEST(parser_lexer, while_stmt) {
 
 }
 
-TEST(parser_lexer, if_stmt) {
+TEST(parser_lexer, if_stmt)
+{
 
     ast_stmt *stmt = (ast_stmt *) malloc(sizeof(ast_stmt));
     ast_expr *ex = (ast_expr *) malloc(sizeof(ast_expr));
@@ -417,7 +437,8 @@ TEST(parser_lexer, if_stmt) {
     free(if_stmt);
 }
 
-TEST(parser_lexer, if_else) {
+TEST(parser_lexer, if_else)
+{
 
     ast_expr *ex = (ast_expr *) malloc(sizeof(ast_expr));
     ast_stmt *stmt = (ast_stmt *) malloc(sizeof(ast_stmt));
@@ -435,8 +456,8 @@ TEST(parser_lexer, if_else) {
     free(if_stmt);
 }
 
-
-TEST(parser_lexer, compound_stmt) {
+TEST(parser_lexer, compound_stmt)
+{
 
     ast_compound_stmt *compound_stmt = (ast_compound_stmt *) malloc(sizeof(ast_compound_stmt));
 
@@ -449,7 +470,8 @@ TEST(parser_lexer, compound_stmt) {
     free(cmp_stmt);
 }
 
-TEST(parser_lexer, declaration) {
+TEST(parser_lexer, declaration)
+{
 
     ast_declaration *decl_stmt = (ast_declaration *) malloc(sizeof(ast_declaration));
 
@@ -464,7 +486,8 @@ TEST(parser_lexer, declaration) {
 
 }
 
-TEST(parser_lexer, assignment) {
+TEST(parser_lexer, assignment)
+{
 
     ast_assignment *ass_stmt = (ast_assignment *) malloc(sizeof(ast_assignment));
 
@@ -477,7 +500,8 @@ TEST(parser_lexer, assignment) {
     free(stmt);
 }
 
-TEST(parser_lexer, empty_compound) {
+TEST(parser_lexer, empty_compound)
+{
 
     ast_compound_stmt *cmp_stmt = mCc_ast_new_empty_compound();
 
@@ -487,7 +511,8 @@ TEST(parser_lexer, empty_compound) {
     free(cmp_stmt);
 }
 
-TEST(parser_lexer, single_compound) {
+TEST(parser_lexer, single_compound)
+{
     ast_stmt *stmt = (ast_stmt *) malloc(sizeof(ast_stmt));
 
     ast_compound_stmt *cmp_stmt = mCc_ast_new_single_compound(stmt);
@@ -499,7 +524,8 @@ TEST(parser_lexer, single_compound) {
     free(cmp_stmt);
 }
 
-TEST(parser_lexer, parameter_array) {
+TEST(parser_lexer, parameter_array)
+{
 
     ast_parameter *params = mCc_ast_new_empty_parameter_array();
 
@@ -509,7 +535,8 @@ TEST(parser_lexer, parameter_array) {
     free(params);
 }
 
-TEST(parser_lexer, empty_parameter_array) {
+TEST(parser_lexer, empty_parameter_array)
+{
 
     ast_parameter *param = mCc_ast_new_empty_parameter_array();
 
@@ -518,7 +545,8 @@ TEST(parser_lexer, empty_parameter_array) {
     free(param);
 }
 
-TEST(parser_lexer, single_parameter) {
+TEST(parser_lexer, single_parameter)
+{
 
     ast_declaration *decl = (ast_declaration *) malloc(sizeof(ast_declaration));
 
@@ -531,7 +559,8 @@ TEST(parser_lexer, single_parameter) {
     free(param);
 }
 
-TEST(parser_lexer, type_function_def) {
+TEST(parser_lexer, type_function_def)
+{
 
     ast_identifier *identifier = (ast_identifier *) malloc(sizeof(ast_identifier));
     ast_parameter *params = (ast_parameter *) malloc(sizeof(ast_parameter));
@@ -553,7 +582,8 @@ TEST(parser_lexer, type_function_def) {
     free(func);
 }
 
-TEST(parser_lexer, void_function_def) {
+TEST(parser_lexer, void_function_def)
+{
 
     ast_identifier *identifier = (ast_identifier *) malloc(sizeof(ast_identifier));
     ast_parameter *params = (ast_parameter *) malloc(sizeof(ast_parameter));
@@ -574,7 +604,8 @@ TEST(parser_lexer, void_function_def) {
     free(func);
 }
 
-TEST(parser_lexer, function_def_array) {
+TEST(parser_lexer, function_def_array)
+{
 
     ast_function_def *f = (ast_function_def *) malloc(sizeof(ast_function_def));
 

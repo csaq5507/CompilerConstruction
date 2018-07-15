@@ -40,7 +40,6 @@ TEST(tac_generation, tac_generation_func_call)
 
 }
 
-
 TEST(tac_generation, tac_generation_conditional_jump)
 {
 
@@ -96,7 +95,8 @@ TEST(tac_generation, tac_generation_unconditional_jump)
 
 }
 
-TEST(tac_generation, empty_if1) {
+TEST(tac_generation, empty_if1)
+{
     const char input[] = "void main() { int a; a=0; if(a<5){ } a = 10; }";
 
     auto result = mCc_parser_parse_string(input);
@@ -127,7 +127,8 @@ TEST(tac_generation, empty_if1) {
     mCc_tac_delete(tac);
 }
 
-TEST(tac_generation, empty_if2) {
+TEST(tac_generation, empty_if2)
+{
     const char input[] = "void main() { int a; a=0; if(a<5){ } else {a = 10;} a = 10; }";
 
     auto result = mCc_parser_parse_string(input);
@@ -173,7 +174,8 @@ TEST(tac_generation, empty_if2) {
     mCc_tac_delete(tac);
 }
 
-TEST(tac_generation, empty_if3) {
+TEST(tac_generation, empty_if3)
+{
     const char input[] = "void main() { int a; a=0; if(a<5){ } else {} a = 10; }";
 
     auto result = mCc_parser_parse_string(input);
@@ -199,7 +201,8 @@ TEST(tac_generation, empty_if3) {
     mCc_tac_delete(tac);
 }
 
-TEST(tac_generation, empty_while) {
+TEST(tac_generation, empty_while)
+{
     const char input[] = "void main() { int a; a=0; while(a<5){ } a = 10; }";
 
     auto result = mCc_parser_parse_string(input);

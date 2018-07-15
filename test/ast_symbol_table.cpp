@@ -42,7 +42,6 @@ TEST(symbol_table, correct_symbol_table)
 	mCc_delete_result(&result);
 }
 
-
 TEST(symbol_table, main_not_void)
 {
 
@@ -61,7 +60,6 @@ TEST(symbol_table, main_not_void)
 
 	mCc_delete_result(&result);
 }
-
 
 TEST(symbol_table, no_main)
 {
@@ -133,7 +131,6 @@ TEST(symbol_table, dublicate_variable)
 
 TEST(symbol_table, no_return1)
 {
-
 	const char input[] = "void main() {int a; } int func1(){}";
 
 	auto result = mCc_parser_parse_string(input);
@@ -152,24 +149,134 @@ TEST(symbol_table, no_return1)
 	mCc_delete_result(&result);
 }
 
-TEST(symbol_table, no_return2) {
-	// if without else
+TEST(symbol_table, no_return2)
+{
+	const char input[] = "void main() {int a; } int func1(){int a; if (a == 5) { return 6;}}";
+
+	auto result = mCc_parser_parse_string(input);
+
+	result = *(mCc_ast_symbol_table(&result));
+
+	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
+
+
+
+	char error_msg[1024] = {0};
+	snprintf(error_msg, sizeof(error_msg), ERROR_NO_RETURN, "func1");
+
+	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
+
+	mCc_delete_result(&result);
 }
 
-TEST(symbol_table, no_return3) {
-	// return in if not in else
+TEST(symbol_table, no_return3)
+{
+    const char input[] = "void main() {int a; } int func1(){int a; if (a == 5) { return 6;} else {a = 6;}}";
+
+    auto result = mCc_parser_parse_string(input);
+
+    result = *(mCc_ast_symbol_table(&result));
+
+    ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
+
+
+
+    char error_msg[1024] = {0};
+    snprintf(error_msg, sizeof(error_msg), ERROR_NO_RETURN, "func1");
+
+    ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
+
+    mCc_delete_result(&result);
 }
 
-TEST(symbol_table, no_return4) {
-	// return in else not in if
+TEST(symbol_table, no_return4)
+{
+    const char input[] = "void main() {int a; } int func1(){int a; if (a == 5) { a = 6;} else {return 6;}}";
+
+    auto result = mCc_parser_parse_string(input);
+
+    result = *(mCc_ast_symbol_table(&result));
+
+    ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
+
+
+
+    char error_msg[1024] = {0};
+    snprintf(error_msg, sizeof(error_msg), ERROR_NO_RETURN, "func1");
+
+    ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
+
+    mCc_delete_result(&result);
 }
 
-TEST(symbol_table, no_return5) {
-	// if with else if
+TEST(symbol_table, no_return5)
+{
+    const char input[] = "void main() {int a; } int func1(){int a; if (a == 5) { a = 6;} else if (a == 5) {return 6;}}";
+
+    auto result = mCc_parser_parse_string(input);
+
+    result = *(mCc_ast_symbol_table(&result));
+
+    ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
+
+
+
+    char error_msg[1024] = {0};
+    snprintf(error_msg, sizeof(error_msg), ERROR_NO_RETURN, "func1");
+
+    ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
+
+    mCc_delete_result(&result);
 }
 
-TEST(symbol_table, no_return6) {
-	// if with else if
+TEST(symbol_table, no_return6)
+{
+    const char input[] = "void main() {int a; } int func1(){int a; if (a == 5) { return 6;} else if (a == 5) {a = 6;}}";
+
+    auto result = mCc_parser_parse_string(input);
+
+    result = *(mCc_ast_symbol_table(&result));
+
+    ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
+
+    char error_msg[1024] = {0};
+    snprintf(error_msg, sizeof(error_msg), ERROR_NO_RETURN, "func1");
+
+    ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
+
+    mCc_delete_result(&result);
+}
+
+TEST(symbol_table, no_return7)
+{
+    const char input[] = "void main() {int a; } int func1(){int a; if (a == 5) { return 6;} else if (a == 5) {return 8;}}";
+
+    auto result = mCc_parser_parse_string(input);
+
+    result = *(mCc_ast_symbol_table(&result));
+
+    ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
+
+    char error_msg[1024] = {0};
+    snprintf(error_msg, sizeof(error_msg), ERROR_NO_RETURN, "func1");
+
+    ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
+
+    mCc_delete_result(&result);
+}
+
+TEST(symbol_table, correct_return_if)
+{
+    const char input[] = "void main() {int a; } int func1(){int a; if (a == 5) { return 6;} else {return 8;}}";
+
+    auto result = mCc_parser_parse_string(input);
+
+    result = *(mCc_ast_symbol_table(&result));
+
+    ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
+
+
+    mCc_delete_result(&result);
 }
 
 TEST(symbol_table, missing_variable_def)
@@ -193,7 +300,6 @@ TEST(symbol_table, missing_variable_def)
 	mCc_delete_result(&result);
 }
 
-
 TEST(symbol_table, missing_function_def)
 {
 
@@ -215,7 +321,6 @@ TEST(symbol_table, missing_function_def)
 
 	mCc_delete_result(&result);
 }
-
 
 TEST(symbol_table, error_num_arguments)
 {

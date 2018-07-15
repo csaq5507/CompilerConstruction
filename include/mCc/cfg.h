@@ -32,7 +32,8 @@ typedef struct mCc_cfg_list {
 cfg_list *cfg_new_list();
 void mCc_cfg_delete(cfg_list *head);
 
-void mCc_cfg_print(FILE *out, cfg_list *head);
+void mCc_cfg_print_complete(FILE *out, cfg_list *head);
+void mCc_cfg_print_single_function(FILE *out, cfg_list *head);
 
 cfg_list *mCc_cfg_generate(tac_list *tac);
 

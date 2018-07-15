@@ -1,19 +1,25 @@
-int f(int a)
-{
-    print_int(a);
-    print_nl();
-    return a * 2;
+void f1() {
+
 }
 
-void main() {
+void heureka() {
     int a;
-    a = read_int();
-    print("fac of ");
-    print_int(a);
-    print(" is: ");
+}
+
+void f3() {
+
+}
+
+void main(){
+    int a;
     int b;
-    b = f(a);
-    print_int(b);
-    print_nl();
-    print_int(!a);
+    int c;
+    a = 1;
+    b = 5;
+    if (a == 1) {
+        c = a + b;
+    } else if (a == 2) {
+        c = a + b;
+    }
+    a = b;
 }

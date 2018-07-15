@@ -66,6 +66,7 @@ void mCc_ast_delete_identifier(ast_identifier *identifier, void *data)
     free(identifier->name);
     free(identifier->renamed);
 
+
 	if (identifier->param_types != NULL)
 		free(identifier->param_types);
 

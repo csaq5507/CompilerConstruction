@@ -737,61 +737,71 @@ static void tac_while_stmt(struct mCc_ast_while_stmt *stmt, void *data)
 	assert(stmt);
 	assert(data);
 
-	tac_list *jump = tac_new_list();
-	tac_list *jump_false = tac_new_list();
-	tac_list *label_jump_false = tac_new_list();
-	tac_list *label_jump = tac_new_list();
-	tac_list *labelHelp = tac_new_list();
+	if (stmt->statement->tac_start == stmt->statement->tac_end) {
+		tac_list *labelHelp = tac_new_list();
+		labelHelp->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+		labelHelp->identifier1 = new_string("L%d", l_counter++);
+		stmt->tac_start = labelHelp;
+		stmt->tac_end = labelHelp;
+		mCc_tac_delete(stmt->expression->tac_start);
+		mCc_tac_delete(stmt->statement->tac_start);
+	} else {
+		tac_list *jump = tac_new_list();
+		tac_list *jump_false = tac_new_list();
+		tac_list *label_jump_false = tac_new_list();
+		tac_list *label_jump = tac_new_list();
+		tac_list *labelHelp = tac_new_list();
 
-	labelHelp->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-	labelHelp->identifier1 = new_string("L%d", l_counter++);
-
-
-	label_jump->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-
-	label_jump->identifier1 = new_string("L%d", l_counter++);
-
-	label_jump_false->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-
-	label_jump_false->identifier1 = new_string("L%d", l_counter++);
-
-
-	tac_list *temp_stmt_start = stmt->statement->tac_start;
-	tac_list *temp_stmt_end = stmt->statement->tac_end;
-
-	tac_list *temp_expression_start = stmt->expression->tac_start;
-	tac_list *temp_expression_end = stmt->expression->tac_end;
-
-	label_jump->next = temp_expression_start;
-	temp_expression_start->prev = label_jump;
-
-	jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
-
-	jump_false->identifier1 = copy_string(temp_expression_end->identifier1);
-
-	jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
-	jump->jump = label_jump;
-
-	temp_expression_end->next = jump_false;
-	jump_false->prev = temp_expression_end;
-
-	jump_false->jump = label_jump_false;
-
-	jump_false->next = labelHelp;
-	labelHelp->prev = jump_false;
-	labelHelp->next = temp_stmt_start;
-	temp_stmt_start->prev = labelHelp;
+		labelHelp->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+		labelHelp->identifier1 = new_string("L%d", l_counter++);
 
 
-	temp_stmt_end->next = jump;
-	jump->prev = temp_stmt_end;
+		label_jump->type = MCC_TAC_ELEMENT_TYPE_LABEL;
 
-	jump->next = label_jump_false;
-	label_jump_false->prev = jump;
+		label_jump->identifier1 = new_string("L%d", l_counter++);
 
-	stmt->tac_end = label_jump_false;
+		label_jump_false->type = MCC_TAC_ELEMENT_TYPE_LABEL;
 
-	stmt->tac_start = label_jump;
+		label_jump_false->identifier1 = new_string("L%d", l_counter++);
+
+
+		tac_list *temp_stmt_start = stmt->statement->tac_start;
+		tac_list *temp_stmt_end = stmt->statement->tac_end;
+
+		tac_list *temp_expression_start = stmt->expression->tac_start;
+		tac_list *temp_expression_end = stmt->expression->tac_end;
+
+		label_jump->next = temp_expression_start;
+		temp_expression_start->prev = label_jump;
+
+		jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
+
+		jump_false->identifier1 = copy_string(temp_expression_end->identifier1);
+
+		jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
+		jump->jump = label_jump;
+
+		temp_expression_end->next = jump_false;
+		jump_false->prev = temp_expression_end;
+
+		jump_false->jump = label_jump_false;
+
+		jump_false->next = labelHelp;
+		labelHelp->prev = jump_false;
+		labelHelp->next = temp_stmt_start;
+		temp_stmt_start->prev = labelHelp;
+
+
+		temp_stmt_end->next = jump;
+		jump->prev = temp_stmt_end;
+
+		jump->next = label_jump_false;
+		label_jump_false->prev = jump;
+
+		stmt->tac_end = label_jump_false;
+
+		stmt->tac_start = label_jump;
+	}
 }
 
 static void tac_declaration(struct mCc_ast_declaration *declaration, void *data)

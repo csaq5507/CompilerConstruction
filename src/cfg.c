@@ -244,11 +244,11 @@ cfg_list *find_branch(char *jump, cfg_list *head) {
     while (prev->type == MCC_TAC_ELEMENT_TYPE_LABEL ||
             prev->type == MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP ||
             prev->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {
-        if (prev->type == MCC_TAC_ELEMENT_TYPE_LABEL &&
-                strcmp(prev->identifier1, jump) == 0) {
-            return head;
-        }
-        prev = prev->next;
+		if (prev->type == MCC_TAC_ELEMENT_TYPE_LABEL &&
+			strcmp(prev->identifier1, jump) == 0) {
+				return head;
+		}
+        prev = prev->prev;
     }
 
 
@@ -286,6 +286,7 @@ void generate_branches_single_block(cfg_list *actual, cfg_list *head) {
             return;
         }
         actual->branch[0] = *branch;
+		mCc_cfg_add_prev(branch, actual);
     }
 }
 
@@ -339,7 +340,7 @@ static void print_cfg_function(FILE *out, cfg_list *head)
 	}
 }
 
-void mCc_cfg_print(FILE *out, cfg_list *head)
+void mCc_cfg_print_complete(FILE *out, cfg_list *head)
 {
 	assert(out);
 	assert(head);
@@ -357,6 +358,32 @@ void mCc_cfg_print(FILE *out, cfg_list *head)
 	print_dot_end(out);
 }
 
+void mCc_cfg_print_single_function(FILE *out, cfg_list *head) {
+    assert(out);
+    assert(head);
+
+    print_dot_begin(out);
+
+    print_dot_node_start(out, head->node_num, "#FFFFFF");
+    generate_node_name(out, head->tac_start, head->tac_end);
+    print_dot_node_end(out);
+
+    for (int i = 0; i < head->num_next_nodes; i++) {
+        print_dot_edge(out, head->node_num,
+                       head->next_nodes[i].node_num, "");
+    }
+    if (head->branch != NULL) {
+        print_dot_edge(out, head->node_num, head->branch->node_num, "");
+    }
+
+    for (int i = 0; i < head->num_next_nodes; i++) {
+        if (head->node_num < head->next_nodes[i].node_num)
+            print_cfg_function(out, &head->next_nodes[i]);
+    }
+
+    print_dot_end(out);
+}
+
 cfg_list *mCc_cfg_generate(tac_list *tac)
 {
 	assert(tac);
@@ -365,15 +392,22 @@ cfg_list *mCc_cfg_generate(tac_list *tac)
 	cfg_list *ret = cfg_new_list();
 
 	while (tac->next != NULL) {
-		tac = tac->next;
-		mCc_cfg_add_node(ret, generate_block(tac, NULL));
-		while (true) {
-			if (tac->type == MCC_TAC_ELEMENT_TYPE_FUNCTION_END)
-				break;
-			tac = tac->next;
-		}
-		if (tac->next != NULL)
-			tac = tac->next;
+        if (tac->type == MCC_TAC_ELEMENT_TYPE_FUNCTION_START &&
+                tac->next->type == MCC_TAC_ELEMENT_TYPE_FUNCTION_END) {
+            tac = tac->next;
+            if (tac->next != NULL)
+                tac = tac->next;
+        } else {
+            tac = tac->next;
+            mCc_cfg_add_node(ret, generate_block(tac, NULL));
+            while (true) {
+                if (tac->type == MCC_TAC_ELEMENT_TYPE_FUNCTION_END)
+                    break;
+                tac = tac->next;
+            }
+            if (tac->next != NULL)
+                tac = tac->next;
+        }
 	}
 
     generate_branches(ret);

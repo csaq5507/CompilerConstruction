@@ -55,7 +55,7 @@ mCc_lib = library('mCc', mCc_src,
 
 # ----------------------------------------------------------------- EXECUTABLES
 
-mCc_exes = [ 'mCc' ]
+mCc_exes = [ 'mCc', 'mC_cfg_to_dot' ]
 
 
 foreach exe : mCc_exes

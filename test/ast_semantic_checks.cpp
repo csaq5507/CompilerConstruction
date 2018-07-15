@@ -121,11 +121,43 @@ TEST(semantic_check, wrong_assignment_type1)
 }
 
 TEST(semantic_check, wrong_assignment_type2) {
-	// a = b[]
+	const char input[] = "void main() { int a; int [3]b; a = b;}";
+
+	auto result = mCc_parser_parse_string(input);
+
+	result = *(mCc_ast_symbol_table(&result));
+	result = *(mCc_ast_semantic_check(&result));
+
+
+	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
+
+	char error_msg[1024] = {0};
+	snprintf(error_msg, sizeof(error_msg), ERROR_WRONG_ASSIGNMENT_SIZE,
+			 "a", "b");
+
+	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
+
+	mCc_delete_result(&result);
 }
 
 TEST(semantic_check, wrong_assignment_type3) {
-	// a[2] = b[3]
+    const char input[] = "void main() { int [2]a; int [3]b; a = b;}";
+
+    auto result = mCc_parser_parse_string(input);
+
+    result = *(mCc_ast_symbol_table(&result));
+    result = *(mCc_ast_semantic_check(&result));
+
+
+    ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
+
+    char error_msg[1024] = {0};
+    snprintf(error_msg, sizeof(error_msg), ERROR_WRONG_ASSIGNMENT_SIZE,
+             "a", "b");
+
+    ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
+
+    mCc_delete_result(&result);
 }
 
 TEST(semantic_check, condition_not_boolean_if)

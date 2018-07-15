@@ -95,6 +95,44 @@ const char *print_binary_op(enum mCc_ast_binary_op op)
 	}
 }
 
+static enum mCc_ast_type get_d_type(enum mCc_ast_literal_type type) {
+	switch (type) {
+		case (MCC_AST_LITERAL_TYPE_INT):
+			return MCC_AST_TYPE_INT;
+		case (MCC_AST_LITERAL_TYPE_STRING):
+			return MCC_AST_TYPE_STRING;
+		case (MCC_AST_LITERAL_TYPE_BOOL):
+			return MCC_AST_TYPE_BOOL;
+		case (MCC_AST_LITERAL_TYPE_FLOAT):
+			return MCC_AST_TYPE_FLOAT;
+	}
+	return MCC_AST_TYPE_VOID;
+}
+
+static enum mCc_ast_type get_d_type_array(enum mCc_ast_type type) {
+	switch (type) {
+		case (MCC_AST_TYPE_VOID):
+			return MCC_AST_TYPE_VOID;
+		case (MCC_AST_TYPE_INT):
+			return MCC_AST_TYPE_INT;
+		case (MCC_AST_TYPE_FLOAT):
+			return MCC_AST_TYPE_FLOAT;
+		case (MCC_AST_TYPE_BOOL):
+			return MCC_AST_TYPE_BOOL;
+		case (MCC_AST_TYPE_STRING):
+			return MCC_AST_TYPE_STRING;
+		case (MCC_AST_TYPE_INT_ARRAY):
+			return MCC_AST_TYPE_INT;
+		case (MCC_AST_TYPE_FLOAT_ARRAY):
+			return MCC_AST_TYPE_FLOAT;
+		case (MCC_AST_TYPE_BOOL_ARRAY):
+			return MCC_AST_TYPE_BOOL;
+		case (MCC_AST_TYPE_STRING_ARRAY):
+			return MCC_AST_TYPE_STRING;
+	}
+	return MCC_AST_TYPE_VOID;
+}
+
 static void ast_semantic_check_single_expression(
 	struct mCc_ast_single_expression *expression, void *data)
 {
@@ -103,62 +141,56 @@ static void ast_semantic_check_single_expression(
 
 	switch (expression->type) {
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL):
-		switch (expression->literal->type) {
-		case (MCC_AST_LITERAL_TYPE_INT):
-			expression->d_type = MCC_AST_TYPE_INT;
-			break;
-		case (MCC_AST_LITERAL_TYPE_STRING):
-			expression->d_type = MCC_AST_TYPE_STRING;
-			break;
-		case (MCC_AST_LITERAL_TYPE_BOOL):
-			expression->d_type = MCC_AST_TYPE_BOOL;
-			break;
-		case (MCC_AST_LITERAL_TYPE_FLOAT):
-			expression->d_type = MCC_AST_TYPE_FLOAT;
-			break;
-		}
+		expression->d_type = get_d_type(expression->literal->type);
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER):
 		expression->d_type = expression->only_identifier->d_type;
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX):
-		// expression->d_type = expression->identifier->d_type;
-
-		switch (expression->identifier->d_type) {
-		case (MCC_AST_TYPE_VOID):
-		case (MCC_AST_TYPE_INT):
-		case (MCC_AST_TYPE_FLOAT):
-		case (MCC_AST_TYPE_BOOL):
-		case (MCC_AST_TYPE_STRING):
-			break;
-		case (MCC_AST_TYPE_INT_ARRAY):
-			expression->d_type = MCC_AST_TYPE_INT;
-			break;
-		case (MCC_AST_TYPE_FLOAT_ARRAY):
-			expression->d_type = MCC_AST_TYPE_FLOAT;
-			break;
-		case (MCC_AST_TYPE_BOOL_ARRAY):
-			expression->d_type = MCC_AST_TYPE_BOOL;
-			break;
-		case (MCC_AST_TYPE_STRING_ARRAY):
-			expression->d_type = MCC_AST_TYPE_STRING;
-			break;
-		}
-
-
+		expression->d_type = get_d_type_array(expression->identifier->d_type);
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR):
 		expression->d_type = expression->call_expr->d_type;
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP):
-		// TODO check if type compatible with operator (string not
-		// compatible with -)
 		expression->d_type = expression->unary_expression->d_type;
 		break;
 	case (MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH):
 		expression->d_type = expression->expression->d_type;
 		break;
 	}
+}
+
+static void check_different_data_type(struct mCc_ast_expression *expression) {
+	if (expression->lhs->d_type != expression->rhs->d_type) {
+		char error_msg[1024] = {0};
+		snprintf(error_msg, sizeof(error_msg),
+				 ERROR_BINARY_EX_TYPE_MISSMATCH,
+				 print_literal_type(expression->lhs->d_type),
+				 print_binary_op(expression->op),
+				 print_literal_type(expression->rhs->d_type));
+		mCc_add_error(error_msg, 0, g_result);
+	}
+}
+
+static enum mCc_ast_type get_d_type_binary_op(struct mCc_ast_expression *expression) {
+	switch (expression->op) {
+		case (MCC_AST_BINARY_OP_ADD):
+		case (MCC_AST_BINARY_OP_DIV):
+		case (MCC_AST_BINARY_OP_MUL):
+		case (MCC_AST_BINARY_OP_SUB):
+			return expression->lhs->d_type;
+		case (MCC_AST_BINARY_OP_AND):
+		case (MCC_AST_BINARY_OP_EQ):
+		case (MCC_AST_BINARY_OP_GE):
+		case (MCC_AST_BINARY_OP_GT):
+		case (MCC_AST_BINARY_OP_LE):
+		case (MCC_AST_BINARY_OP_LT):
+		case (MCC_AST_BINARY_OP_NEQ):
+		case (MCC_AST_BINARY_OP_OR):
+			return MCC_AST_TYPE_BOOL;
+	}
+	return expression->lhs->d_type;
 }
 
 static void ast_semantic_check_expression(struct mCc_ast_expression *expression,
@@ -172,34 +204,8 @@ static void ast_semantic_check_expression(struct mCc_ast_expression *expression,
 		expression->d_type = expression->single_expr->d_type;
 		break;
 	case (MCC_AST_EXPRESSION_TYPE_BINARY):
-		if (expression->lhs->d_type != expression->rhs->d_type) {
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 ERROR_BINARY_EX_TYPE_MISSMATCH,
-				 print_literal_type(expression->lhs->d_type),
-				 print_binary_op(expression->op),
-				 print_literal_type(expression->rhs->d_type));
-			mCc_add_error(error_msg, 0, g_result);
-		}
-		switch (expression->op) {
-		case (MCC_AST_BINARY_OP_ADD):
-		case (MCC_AST_BINARY_OP_DIV):
-		case (MCC_AST_BINARY_OP_MUL):
-		case (MCC_AST_BINARY_OP_SUB):
-			expression->d_type = expression->lhs->d_type;
-			break;
-		case (MCC_AST_BINARY_OP_AND):
-		case (MCC_AST_BINARY_OP_EQ):
-		case (MCC_AST_BINARY_OP_GE):
-		case (MCC_AST_BINARY_OP_GT):
-		case (MCC_AST_BINARY_OP_LE):
-		case (MCC_AST_BINARY_OP_LT):
-		case (MCC_AST_BINARY_OP_NEQ):
-		case (MCC_AST_BINARY_OP_OR):
-			expression->d_type = MCC_AST_TYPE_BOOL;
-			break;
-		}
-
+		check_different_data_type(expression);
+		expression->d_type = get_d_type_binary_op(expression);
 		break;
 	}
 }
@@ -215,28 +221,27 @@ ast_semantic_check_call_expression(struct mCc_ast_call_expr *expression,
 
 	if (expression->arguments != NULL) {
 		for (int i = 0; i < expression->arguments->counter; i++) {
-			if (expression->identifier->param_types != NULL) {
-				if (expression->arguments->expression[i].d_type
-				    != expression->identifier->param_types[i]) {
-					char error_msg[1024] = {0};
-					snprintf(error_msg, sizeof(error_msg),
-						 ERROR_WRONG_PARAMETER_TYPE,
-						 expression->identifier->name,
-						 i + 1,
-						 print_literal_type(
-							 expression->identifier
-								 ->param_types
-									 [i]),
-						 print_literal_type(
-							 expression->arguments
-								 ->expression[i]
-								 .d_type));
-					mCc_add_error(
-						error_msg,
-						expression->identifier->node
-							.sloc.start_line,
-						g_result);
-				}
+			if (expression->identifier->param_types != NULL &&
+				(expression->arguments->expression[i].d_type
+				!= expression->identifier->param_types[i])) {
+				char error_msg[1024] = {0};
+				snprintf(error_msg, sizeof(error_msg),
+					 ERROR_WRONG_PARAMETER_TYPE,
+					 expression->identifier->name,
+					 i + 1,
+					 print_literal_type(
+						 expression->identifier
+							 ->param_types
+								 [i]),
+					 print_literal_type(
+						 expression->arguments
+							 ->expression[i]
+							 .d_type));
+				mCc_add_error(
+					error_msg,
+					expression->identifier->node
+						.sloc.start_line,
+					g_result);
 			}
 		}
 	}
@@ -272,26 +277,25 @@ static void ast_semantic_check_ass_stmt(struct mCc_ast_assignment *stmt,
 	assert(data);
 
 	if (stmt->numerator != NULL) {
-
 		switch (stmt->identifier->d_type) {
-		case (MCC_AST_TYPE_VOID):
-		case (MCC_AST_TYPE_INT):
-		case (MCC_AST_TYPE_FLOAT):
-		case (MCC_AST_TYPE_BOOL):
-		case (MCC_AST_TYPE_STRING):
-			break;
-		case (MCC_AST_TYPE_INT_ARRAY):
-			stmt->identifier->d_type = MCC_AST_TYPE_INT;
-			break;
-		case (MCC_AST_TYPE_FLOAT_ARRAY):
-			stmt->identifier->d_type = MCC_AST_TYPE_FLOAT;
-			break;
-		case (MCC_AST_TYPE_BOOL_ARRAY):
-			stmt->identifier->d_type = MCC_AST_TYPE_BOOL;
-			break;
-		case (MCC_AST_TYPE_STRING_ARRAY):
-			stmt->identifier->d_type = MCC_AST_TYPE_STRING;
-			break;
+			case (MCC_AST_TYPE_VOID):
+			case (MCC_AST_TYPE_INT):
+			case (MCC_AST_TYPE_FLOAT):
+			case (MCC_AST_TYPE_BOOL):
+			case (MCC_AST_TYPE_STRING):
+				break;
+			case (MCC_AST_TYPE_INT_ARRAY):
+				stmt->identifier->d_type = MCC_AST_TYPE_INT;
+				break;
+			case (MCC_AST_TYPE_FLOAT_ARRAY):
+				stmt->identifier->d_type = MCC_AST_TYPE_FLOAT;
+				break;
+			case (MCC_AST_TYPE_BOOL_ARRAY):
+				stmt->identifier->d_type = MCC_AST_TYPE_BOOL;
+				break;
+			case (MCC_AST_TYPE_STRING_ARRAY):
+				stmt->identifier->d_type = MCC_AST_TYPE_STRING;
+				break;
 		}
 	}
 	if (stmt->expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE &&

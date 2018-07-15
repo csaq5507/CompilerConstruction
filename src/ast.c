@@ -123,7 +123,6 @@ ast_literal *mCc_ast_new_literal_bool(bool value)
 	return lit;
 }
 
-
 char *replace(char const *const original, char const *const pattern,
 	      char const *const replacement)
 {

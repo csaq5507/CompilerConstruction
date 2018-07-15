@@ -293,7 +293,6 @@ static void delete_symbol_table_node(ast_symbol_table *head)
 	while (head->prev != NULL)
 		head = head->prev;
 
-
 	ast_symbol_table *current = head;
 	while (current != NULL) {
 		ast_symbol_table *next = current->next;
@@ -345,6 +344,63 @@ static void ast_symbol_table_identifier(struct mCc_ast_identifier *identifier,
 	identifier->d_type = d_type;
 }
 
+static enum mCc_ast_type literal_to_ast_type_single(enum mCc_ast_literal_type type) {
+	switch (type) {
+		case (MCC_AST_LITERAL_TYPE_INT):
+			return MCC_AST_TYPE_INT;
+		case (MCC_AST_LITERAL_TYPE_FLOAT):
+			return MCC_AST_TYPE_FLOAT;
+		case (MCC_AST_LITERAL_TYPE_BOOL):
+			return MCC_AST_TYPE_BOOL;
+		case (MCC_AST_LITERAL_TYPE_STRING):
+			return MCC_AST_TYPE_STRING;
+	}
+	return MCC_AST_TYPE_INT;
+}
+
+static enum mCc_ast_type literal_to_ast_type_array(enum mCc_ast_literal_type type) {
+	switch (type) {
+		case (MCC_AST_LITERAL_TYPE_INT):
+			return MCC_AST_TYPE_INT_ARRAY;
+		case (MCC_AST_LITERAL_TYPE_FLOAT):
+			return MCC_AST_TYPE_FLOAT_ARRAY;
+		case (MCC_AST_LITERAL_TYPE_BOOL):
+			return MCC_AST_TYPE_BOOL_ARRAY;
+		case (MCC_AST_LITERAL_TYPE_STRING):
+			return MCC_AST_TYPE_STRING_ARRAY;
+	}
+	return MCC_AST_TYPE_INT_ARRAY;
+}
+
+
+static void add_function_name_to_table(struct mCc_ast_function_def *f) {
+	switch (f->l_type) {
+		case (MCC_AST_LITERAL_TYPE_INT):
+			table = add_element_symbols(
+					table, f->identifier->name,
+					f->identifier->renamed, MCC_AST_TYPE_INT,
+					f->params->counter, f->identifier->param_types, 0);
+			break;
+		case (MCC_AST_LITERAL_TYPE_FLOAT):
+			table = add_element_symbols(
+					table, f->identifier->name,
+					f->identifier->renamed, MCC_AST_TYPE_FLOAT,
+					f->params->counter, f->identifier->param_types, 0);
+			break;
+		case (MCC_AST_LITERAL_TYPE_BOOL):
+			table = add_element_symbols(
+					table, f->identifier->name,
+					f->identifier->renamed, MCC_AST_TYPE_BOOL,
+					f->params->counter, f->identifier->param_types, 0);
+			break;
+		case (MCC_AST_LITERAL_TYPE_STRING):
+			table = add_element_symbols(
+					table, f->identifier->name,
+					f->identifier->renamed, MCC_AST_TYPE_STRING,
+					f->params->counter, f->identifier->param_types, 0);
+			break;
+	}
+}
 
 static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 				       void *data)
@@ -376,36 +432,10 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 		for (int i = 0; i < f->params->counter; i++) {
 			if (f->params->declaration[i].type
 			    == MCC_AST_DECLARATION_TYPE_SINGLE) {
-				switch (f->params->declaration[i].literal) {
-				case (MCC_AST_LITERAL_TYPE_INT):
-					h_param[i] = MCC_AST_TYPE_INT;
-					break;
-				case (MCC_AST_LITERAL_TYPE_FLOAT):
-					h_param[i] = MCC_AST_TYPE_FLOAT;
-					break;
-				case (MCC_AST_LITERAL_TYPE_BOOL):
-					h_param[i] = MCC_AST_TYPE_BOOL;
-					break;
-				case (MCC_AST_LITERAL_TYPE_STRING):
-					h_param[i] = MCC_AST_TYPE_STRING;
-					break;
-				}
+				h_param[i] = literal_to_ast_type_single(f->params->declaration[i].literal);
 			} else if (f->params->declaration[i].type
 				   == MCC_AST_DECLARATION_TYPE_ARRAY) {
-				switch (f->params->declaration[i].literal) {
-				case (MCC_AST_LITERAL_TYPE_INT):
-					h_param[i] = MCC_AST_TYPE_INT_ARRAY;
-					break;
-				case (MCC_AST_LITERAL_TYPE_FLOAT):
-					h_param[i] = MCC_AST_TYPE_FLOAT_ARRAY;
-					break;
-				case (MCC_AST_LITERAL_TYPE_BOOL):
-					h_param[i] = MCC_AST_TYPE_BOOL_ARRAY;
-					break;
-				case (MCC_AST_LITERAL_TYPE_STRING):
-					h_param[i] = MCC_AST_TYPE_STRING_ARRAY;
-					break;
-				}
+				h_param[i] = literal_to_ast_type_array(f->params->declaration[i].literal);
 			}
 		}
 		memcpy(f->identifier->param_types, h_param,
@@ -422,32 +452,7 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 		free(f->identifier->renamed);
 		f->identifier->renamed =
 			new_string("%s%d", f->identifier->name, g_counter++);
-		switch (f->l_type) {
-		case (MCC_AST_LITERAL_TYPE_INT):
-			table = add_element_symbols(
-				table, f->identifier->name,
-				f->identifier->renamed, MCC_AST_TYPE_INT,
-				f->params->counter, f->identifier->param_types, 0);
-			break;
-		case (MCC_AST_LITERAL_TYPE_FLOAT):
-			table = add_element_symbols(
-				table, f->identifier->name,
-				f->identifier->renamed, MCC_AST_TYPE_FLOAT,
-				f->params->counter, f->identifier->param_types, 0);
-			break;
-		case (MCC_AST_LITERAL_TYPE_BOOL):
-			table = add_element_symbols(
-				table, f->identifier->name,
-				f->identifier->renamed, MCC_AST_TYPE_BOOL,
-				f->params->counter, f->identifier->param_types, 0);
-			break;
-		case (MCC_AST_LITERAL_TYPE_STRING):
-			table = add_element_symbols(
-				table, f->identifier->name,
-				f->identifier->renamed, MCC_AST_TYPE_STRING,
-				f->params->counter, f->identifier->param_types, 0);
-			break;
-		}
+		add_function_name_to_table(f);
 	}
 
 	ast_symbol_table *new = create_new_symbol_table_node();
@@ -457,18 +462,18 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 
 	ast_current_fun *n_fun = create_new_current_fun_node();
 	switch (f->l_type) {
-	case (MCC_AST_LITERAL_TYPE_INT):
-		n_fun->type = MCC_AST_TYPE_INT;
-		break;
-	case (MCC_AST_LITERAL_TYPE_FLOAT):
-		n_fun->type = MCC_AST_TYPE_FLOAT;
-		break;
-	case (MCC_AST_LITERAL_TYPE_BOOL):
-		n_fun->type = MCC_AST_TYPE_BOOL;
-		break;
-	case (MCC_AST_LITERAL_TYPE_STRING):
-		n_fun->type = MCC_AST_TYPE_STRING;
-		break;
+		case (MCC_AST_LITERAL_TYPE_INT):
+			n_fun->type = MCC_AST_TYPE_INT;
+			break;
+		case (MCC_AST_LITERAL_TYPE_FLOAT):
+			n_fun->type = MCC_AST_TYPE_FLOAT;
+			break;
+		case (MCC_AST_LITERAL_TYPE_BOOL):
+			n_fun->type = MCC_AST_TYPE_BOOL;
+			break;
+		case (MCC_AST_LITERAL_TYPE_STRING):
+			n_fun->type = MCC_AST_TYPE_STRING;
+			break;
 	}
 	n_fun->prev = current_fun;
 	n_fun->identifier = f->identifier;
@@ -489,42 +494,15 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 		for (int i = 0; i < f->params->counter; i++) {
 			if (f->params->declaration[i].type
 			    == MCC_AST_DECLARATION_TYPE_SINGLE) {
-				switch (f->params->declaration[i].literal) {
-				case (MCC_AST_LITERAL_TYPE_INT):
-					h_param[i] = MCC_AST_TYPE_INT;
-					break;
-				case (MCC_AST_LITERAL_TYPE_FLOAT):
-					h_param[i] = MCC_AST_TYPE_FLOAT;
-					break;
-				case (MCC_AST_LITERAL_TYPE_BOOL):
-					h_param[i] = MCC_AST_TYPE_BOOL;
-					break;
-				case (MCC_AST_LITERAL_TYPE_STRING):
-					h_param[i] = MCC_AST_TYPE_STRING;
-					break;
-				}
+				h_param[i] = literal_to_ast_type_single(f->params->declaration[i].literal);
 			} else if (f->params->declaration[i].type
 				   == MCC_AST_DECLARATION_TYPE_ARRAY) {
-				switch (f->params->declaration[i].literal) {
-				case (MCC_AST_LITERAL_TYPE_INT):
-					h_param[i] = MCC_AST_TYPE_INT_ARRAY;
-					break;
-				case (MCC_AST_LITERAL_TYPE_FLOAT):
-					h_param[i] = MCC_AST_TYPE_FLOAT_ARRAY;
-					break;
-				case (MCC_AST_LITERAL_TYPE_BOOL):
-					h_param[i] = MCC_AST_TYPE_BOOL_ARRAY;
-					break;
-				case (MCC_AST_LITERAL_TYPE_STRING):
-					h_param[i] = MCC_AST_TYPE_STRING_ARRAY;
-					break;
-				}
+				h_param[i] = literal_to_ast_type_array(f->params->declaration[i].literal);
 			}
 		}
 		memcpy(f->identifier->param_types, h_param,
 		       sizeof(*h_param) * f->params->counter);
 	}
-
 
 	if (strcmp(f->identifier->name, "main") == 0) {
 		if (has_main == true)
@@ -702,98 +680,115 @@ static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt,
 	}
 }
 
+static void add_decl_name_to_table_single(struct mCc_ast_declaration *stmt) {
+	switch (stmt->literal) {
+		case (MCC_AST_LITERAL_TYPE_INT):
+			table = add_element_symbols(
+					table, stmt->identifier->name,
+					stmt->identifier->renamed,
+					MCC_AST_TYPE_INT, 0, NULL, 1);
+			break;
+		case (MCC_AST_LITERAL_TYPE_FLOAT):
+			table = add_element_symbols(
+					table, stmt->identifier->name,
+					stmt->identifier->renamed,
+					MCC_AST_TYPE_FLOAT, 0, NULL, 1);
+			break;
+		case (MCC_AST_LITERAL_TYPE_STRING):
+			table = add_element_symbols(
+					table, stmt->identifier->name,
+					stmt->identifier->renamed,
+					MCC_AST_TYPE_STRING, 0, NULL, 1);
+			break;
+		case (MCC_AST_LITERAL_TYPE_BOOL):
+			table = add_element_symbols(
+					table, stmt->identifier->name,
+					stmt->identifier->renamed,
+					MCC_AST_TYPE_BOOL, 0, NULL, 1);
+			break;
+	}
+}
+
+static void single_declaration(struct mCc_ast_declaration *stmt) {
+	char help[ARRAY_SIZE] = {0};
+	sprintf(help, "%s%d", stmt->identifier->name, g_counter++);
+	if (find_element_symbols(table, stmt->identifier->name)
+		!= NULL) {
+		char error_msg[1024] = {0};
+		snprintf(error_msg, sizeof(error_msg),
+				 ERROR_DUBLICATE_VARIABLE,
+				 stmt->identifier->name);
+		mCc_add_error(error_msg,
+					  stmt->identifier->node.sloc.start_line,
+					  h_result);
+	} else {
+		free(stmt->identifier->renamed);
+		stmt->identifier->renamed = copy_string(help);
+		add_decl_name_to_table_single(stmt);
+	}
+}
+
+static void add_decl_name_to_table_array(struct mCc_ast_declaration *stmt) {
+	switch (stmt->literal) {
+		case (MCC_AST_LITERAL_TYPE_INT):
+			table = add_element_symbols(
+					table, stmt->array_identifier->name,
+					stmt->array_identifier->renamed,
+					MCC_AST_TYPE_INT_ARRAY, 0, NULL, stmt->numerator);
+			break;
+		case (MCC_AST_LITERAL_TYPE_FLOAT):
+			table = add_element_symbols(
+					table, stmt->array_identifier->name,
+					stmt->array_identifier->renamed,
+					MCC_AST_TYPE_FLOAT_ARRAY, 0, NULL, stmt->numerator);
+			break;
+		case (MCC_AST_LITERAL_TYPE_STRING):
+			table = add_element_symbols(
+					table, stmt->array_identifier->name,
+					stmt->array_identifier->renamed,
+					MCC_AST_TYPE_STRING_ARRAY, 0, NULL, stmt->numerator);
+			break;
+		case (MCC_AST_LITERAL_TYPE_BOOL):
+			table = add_element_symbols(
+					table, stmt->array_identifier->name,
+					stmt->array_identifier->renamed,
+					MCC_AST_TYPE_BOOL_ARRAY, 0, NULL, stmt->numerator);
+			break;
+	}
+}
+
+static void array_declaration(struct mCc_ast_declaration *stmt) {
+	char help[ARRAY_SIZE] = {0};
+	sprintf(help, "%s%d", stmt->array_identifier->name,
+			g_counter++);
+	if (find_element_symbols(table, stmt->array_identifier->name)
+		!= NULL) {
+		char error_msg[1024] = {0};
+		snprintf(error_msg, sizeof(error_msg),
+				 ERROR_DUBLICATE_VARIABLE,
+				 stmt->identifier->name);
+		mCc_add_error(error_msg,
+					  stmt->identifier->node.sloc.start_line,
+					  h_result);
+	} else {
+		free(stmt->array_identifier->renamed);
+		stmt->array_identifier->renamed = copy_string(help);
+		add_decl_name_to_table_array(stmt);
+	}
+}
+
 static void ast_symbol_table_decl_stmt(struct mCc_ast_declaration *stmt,
 				       void *data)
 {
 	assert(stmt);
 	assert(data);
-	char help[ARRAY_SIZE] = {0};
 	switch (stmt->type) {
-	case (MCC_AST_DECLARATION_TYPE_SINGLE):
-		sprintf(help, "%s%d", stmt->identifier->name, g_counter++);
-		if (find_element_symbols(table, stmt->identifier->name)
-		    != NULL) {
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 ERROR_DUBLICATE_VARIABLE,
-				 stmt->identifier->name);
-			mCc_add_error(error_msg,
-				      stmt->identifier->node.sloc.start_line,
-				      h_result);
-		} else {
-			free(stmt->identifier->renamed);
-			stmt->identifier->renamed = copy_string(help);
-			switch (stmt->literal) {
-			case (MCC_AST_LITERAL_TYPE_INT):
-				table = add_element_symbols(
-					table, stmt->identifier->name,
-					stmt->identifier->renamed,
-					MCC_AST_TYPE_INT, 0, NULL, 1);
-				break;
-			case (MCC_AST_LITERAL_TYPE_FLOAT):
-				table = add_element_symbols(
-					table, stmt->identifier->name,
-					stmt->identifier->renamed,
-					MCC_AST_TYPE_FLOAT, 0, NULL, 1);
-				break;
-			case (MCC_AST_LITERAL_TYPE_STRING):
-				table = add_element_symbols(
-					table, stmt->identifier->name,
-					stmt->identifier->renamed,
-					MCC_AST_TYPE_STRING, 0, NULL, 1);
-				break;
-			case (MCC_AST_LITERAL_TYPE_BOOL):
-				table = add_element_symbols(
-					table, stmt->identifier->name,
-					stmt->identifier->renamed,
-					MCC_AST_TYPE_BOOL, 0, NULL, 1);
-				break;
-			}
-		}
-		break;
-	case (MCC_AST_DECLARATION_TYPE_ARRAY):
-		sprintf(help, "%s%d", stmt->array_identifier->name,
-			g_counter++);
-		if (find_element_symbols(table, stmt->array_identifier->name)
-		    != NULL) {
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 ERROR_DUBLICATE_VARIABLE,
-				 stmt->identifier->name);
-			mCc_add_error(error_msg,
-				      stmt->identifier->node.sloc.start_line,
-				      h_result);
-		} else {
-			free(stmt->array_identifier->renamed);
-			stmt->array_identifier->renamed = copy_string(help);
-			switch (stmt->literal) {
-			case (MCC_AST_LITERAL_TYPE_INT):
-				table = add_element_symbols(
-					table, stmt->array_identifier->name,
-					stmt->array_identifier->renamed,
-					MCC_AST_TYPE_INT_ARRAY, 0, NULL, stmt->numerator);
-				break;
-			case (MCC_AST_LITERAL_TYPE_FLOAT):
-				table = add_element_symbols(
-					table, stmt->array_identifier->name,
-					stmt->array_identifier->renamed,
-					MCC_AST_TYPE_FLOAT_ARRAY, 0, NULL, stmt->numerator);
-				break;
-			case (MCC_AST_LITERAL_TYPE_STRING):
-				table = add_element_symbols(
-					table, stmt->array_identifier->name,
-					stmt->array_identifier->renamed,
-					MCC_AST_TYPE_STRING_ARRAY, 0, NULL, stmt->numerator);
-				break;
-			case (MCC_AST_LITERAL_TYPE_BOOL):
-				table = add_element_symbols(
-					table, stmt->array_identifier->name,
-					stmt->array_identifier->renamed,
-					MCC_AST_TYPE_BOOL_ARRAY, 0, NULL, stmt->numerator);
-				break;
-			}
-		}
-		break;
+		case (MCC_AST_DECLARATION_TYPE_SINGLE):
+			single_declaration(stmt);
+			break;
+		case (MCC_AST_DECLARATION_TYPE_ARRAY):
+			array_declaration(stmt);
+			break;
 	}
 }
 

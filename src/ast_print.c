@@ -345,29 +345,29 @@ static void print_dot_stmt_statement(struct mCc_ast_stmt *stmt, void *data)
 	print_dot_node(out, stmt, "Statement", COLOR_STMT);
 
 	switch (stmt->type) {
-	case (MCC_AST_IF_STMT):
-		print_dot_edge(out, stmt, stmt->if_stmt, "");
-		break;
-	case (MCC_AST_WHILE_STMT):
-		print_dot_edge(out, stmt, stmt->while_stmt, "");
-		break;
-	case (MCC_AST_RET_STMT):
-		print_dot_edge(out, stmt, stmt->ret_stmt, "");
-		break;
-	case (MCC_AST_DECL_STMT):
-		print_dot_edge(out, stmt, stmt->declaration, "");
-		break;
-	case (MCC_AST_ASS_STMT):
-		print_dot_edge(out, stmt, stmt->assignment, "");
-		break;
-	case (MCC_AST_EXPR_STMT):
-		print_dot_edge(out, stmt, stmt->expression, "");
-		break;
-	case (MCC_AST_COMPOUND_STMT):
-		print_dot_edge(out, stmt, stmt->compound_stmt, "");
-		break;
-	default:
-		break;
+		case (MCC_AST_IF_STMT):
+			print_dot_edge(out, stmt, stmt->if_stmt, "");
+			break;
+		case (MCC_AST_WHILE_STMT):
+			print_dot_edge(out, stmt, stmt->while_stmt, "");
+			break;
+		case (MCC_AST_RET_STMT):
+			print_dot_edge(out, stmt, stmt->ret_stmt, "");
+			break;
+		case (MCC_AST_DECL_STMT):
+			print_dot_edge(out, stmt, stmt->declaration, "");
+			break;
+		case (MCC_AST_ASS_STMT):
+			print_dot_edge(out, stmt, stmt->assignment, "");
+			break;
+		case (MCC_AST_EXPR_STMT):
+			print_dot_edge(out, stmt, stmt->expression, "");
+			break;
+		case (MCC_AST_COMPOUND_STMT):
+			print_dot_edge(out, stmt, stmt->compound_stmt, "");
+			break;
+		default:
+			break;
 	}
 }
 
@@ -479,7 +479,6 @@ static void print_dot_compound_stmt(struct mCc_ast_compound_stmt *c_stmt,
 
 	for (int i = 0; i < c_stmt->counter; i++) {
 		snprintf(label, sizeof(label), "%d", i);
-
 		print_dot_edge(out, c_stmt, &c_stmt->statements[i], label);
 	}
 }

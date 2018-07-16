@@ -777,12 +777,8 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac)
     case MCC_TAC_OPERATION_TYPE_AND:
     case MCC_TAC_OPERATION_TYPE_OR:
     case MCC_TAC_OPERATION_TYPE_FAC:
-		free(retval);
-        MALLOC(condition, sizeof(condition))
-        condition->op = op;
-        condition->lhs = tac->lhs;
-        condition->rhs = tac->rhs;
-        in_condition=true;
+        retval = mCc_assembly_condition(tac);
+
 		return NULL;
 	default:
 		printf("error");
@@ -796,6 +792,11 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac)
 		update_register(tac->lhs, tac->identifier1);
 	}
 	return retval;
+}
+
+struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac) {
+    NEW_SINGLE_LINE
+
 }
 
 bool is_float(char *identifier) {
@@ -885,6 +886,8 @@ struct condition_helper * new_cond()
 {
     struct condition_helper * retval = malloc(sizeof(struct condition_helper));
     retval->lhs=NULL;
+    retval->lcond=NULL;
+    retval->rcond=NULL;
     retval->rhs=NULL;
     retval->identifier = NULL;
 }

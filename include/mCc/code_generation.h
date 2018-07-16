@@ -67,10 +67,12 @@ struct regs *registers;
 
 
 struct condition_helper{
-	struct condition_helper *lhs;
-	struct condition_helper *rhs;
+	struct condition_helper *lcond;
+	struct condition_helper *rcond;
 	enum mCc_tac_operation_type op;
 	char * identifier;
+	char * lhs;
+	char * rhs;
 };
 
 struct condition_helper * condition;
@@ -157,6 +159,8 @@ struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac);
 struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac);
+
+struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac);
 
 /***************************************/
 /***************************************/

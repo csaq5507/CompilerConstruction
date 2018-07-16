@@ -422,16 +422,14 @@ ast_literal *mCc_ast_new_literal_bool(bool value);
 
 ast_literal *mCc_ast_new_literal_string(char *value);
 
-void mCc_ast_delete_literal_value(ast_literal *literal, void *data);
-void mCc_ast_delete_literal(ast_literal *literal, void *data);
+void mCc_ast_delete_literal_value(ast_literal *literal);
+void mCc_ast_delete_literal(ast_literal *literal);
 
 /* ------------------------------------------------------------- Expressions */
 ast_expr *mCc_ast_new_expression_single(ast_single_expr *single_expr);
 
 ast_expr *mCc_ast_new_expression_binary_op(enum mCc_ast_binary_op op,
 					   ast_single_expr *lhs, ast_expr *rhs);
-
-void mCc_ast_delete_expression(ast_expr *expression, void *data);
 
 /* Single Expression */
 ast_single_expr *mCc_ast_new_single_expression_literal(ast_literal *literal);
@@ -451,15 +449,11 @@ mCc_ast_new_single_expression_unary_op(enum mCc_ast_unary_op unary_op,
 
 ast_single_expr *mCc_ast_new_single_expression_parenth(ast_expr *expression);
 
-void mCc_ast_delete_single_expression(ast_single_expr *expression, void *data);
-
 /* Call Expression */
 ast_call_expr *mCc_ast_new_empty_call_expr(ast_identifier *identifier);
 
 ast_call_expr *mCc_ast_new_call_expr(ast_identifier *identifier,
 				     ast_argument *arguments);
-
-void mCc_ast_delete_call_expr(ast_call_expr *call_expr, void *data);
 
 /* ----------------------------------------------------------- Function Def  */
 ast_function_def *mCc_ast_new_void_function_def(ast_identifier *identifier,
@@ -479,8 +473,7 @@ ast_function_def_array *mCc_ast_new_function_def_array(ast_function_def *f);
 
 ast_function_def_array *mCc_ast_gen_func_def(ast_expr * expr);
 
-void mCc_ast_delete_function_def_array(ast_function_def_array *f, bool has_func_def);
-void mCc_ast_delete_function_def(ast_function_def *f, void *data);
+void mCc_ast_delete_pointer();
 
 /* ----------------------------------------------------------- Declaration */
 ast_declaration *
@@ -491,8 +484,6 @@ ast_declaration *
 mCc_ast_new_single_declaration(enum mCc_ast_literal_type literal,
 			       ast_identifier *identifier);
 
-void mCc_ast_delete_declaration(ast_declaration *decl, void *data);
-
 /* ----------------------------------------------------------- Statement */
 ast_stmt *mCc_ast_new_if_stmt(ast_if_stmt *if_stmt);
 
@@ -501,21 +492,15 @@ ast_if_stmt *mCc_ast_new_if(ast_expr *ex, ast_stmt *stmt);
 ast_if_stmt *mCc_ast_new_if_else(ast_expr *ex, ast_stmt *stmt,
 				 ast_stmt *elsestmt);
 
-void mCc_ast_delete_if_stmt(ast_if_stmt *if_stmt, void *data);
-
 ast_stmt *mCc_ast_new_while_stmt(ast_while_stmt *while_stmt);
 
 ast_while_stmt *mCc_ast_new_while(ast_expr *ex, ast_stmt *stmt);
-
-void mCc_ast_delete_while_stmt(ast_while_stmt *while_stmt, void *data);
 
 ast_stmt *mCc_ast_new_ret_stmt(ast_ret_stmt *ret_stmt);
 
 ast_ret_stmt *mCc_ast_new_ret(ast_expr *ex);
 
 ast_ret_stmt *mCc_ast_new_empty_ret();
-
-void mCc_ast_delete_ret_stmt(ast_ret_stmt *ret_stmt, void *data);
 
 ast_stmt *mCc_ast_new_declaration(ast_declaration *decl_stmt);
 
@@ -532,10 +517,6 @@ ast_compound_stmt *mCc_ast_new_single_compound(ast_stmt *stmt);
 ast_compound_stmt *mCc_ast_new_compound_array(ast_compound_stmt *stmts,
 					      ast_stmt *stmt);
 
-void mCc_ast_delete_compound_stmt(ast_compound_stmt *compound_stmt, void *data);
-
-void mCc_ast_delete_stmt(ast_stmt *stmt, void *data);
-
 /* ----------------------------------------------------------- Assignment */
 ast_assignment *mCc_ast_new_single_assignment(ast_identifier *identifier,
 					      ast_expr *ex);
@@ -543,14 +524,10 @@ ast_assignment *mCc_ast_new_single_assignment(ast_identifier *identifier,
 ast_assignment *mCc_ast_new_array_assignment(ast_identifier *identifier,
 					     ast_expr *ex, ast_expr *ex2);
 
-void mCc_ast_delete_assignment(ast_assignment *assignment, void *data);
-
 /* ------------------------------------------------------------- Argument */
 ast_argument *mCc_ast_new_single_argument(ast_expr *ex);
 
 ast_argument *mCc_ast_new_argument_array(ast_argument *arguments, ast_expr *ex);
-
-void mCc_ast_delete_argument(ast_argument *argument, void *data);
 
 
 /* ------------------------------------------------------------- Parameter */
@@ -561,12 +538,10 @@ ast_parameter *mCc_ast_new_empty_parameter_array();
 
 ast_parameter *mCc_ast_new_single_parameter(ast_declaration *decl);
 
-void mCc_ast_delete_parameter(ast_parameter *params, void *data);
-
 
 /* ---------------------------------------------------------------- VISITOR */
 
-void mCc_ast_delete_identifier(ast_identifier *identifier, void *data);
+void mCc_ast_delete_identifier(ast_identifier *identifier);
 
 
 #ifdef __cplusplus

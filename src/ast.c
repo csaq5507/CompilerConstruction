@@ -1115,7 +1115,6 @@ ast_parameter *mCc_ast_new_parameter_array(ast_parameter *params,
     memcpy(&(params->declaration[params->counter]), decl, sizeof(ast_declaration));
     for (int i = 0; i < stack_counter; i++) {
         if (p_stack[i].type == POINTER_DECLARATION) {
-            pointer_stack a = p_stack[i];
             p_stack[i].declaration_pointer = NULL;
         }
     }

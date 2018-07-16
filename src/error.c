@@ -43,6 +43,3 @@ const char *ERROR_WRONG_ASSIGNMENT_TYPE =
 	"assignment types not compatible: %s = %s";
 const char *ERROR_CONDITION_NOT_BOOLEAN =
 	"condition of type %s, expected boolean";
-
-// SYNTAX LEXER
-const char *ERROR_SYNTAX = "unknown symbol %s";

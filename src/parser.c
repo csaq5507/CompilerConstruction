@@ -33,7 +33,6 @@ add_parse_error(struct mCc_parser_error_array *array,
 			realloc(array->errors, sizeof(struct mCc_parser_error)
 						       * (array->counter + 1));
 		if (temp == NULL) {
-			// TODO throw error
 			return NULL;
 		}
 		array->errors = temp;

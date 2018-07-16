@@ -32,8 +32,6 @@ extern const char *ERROR_WRONG_ASSIGNMENT_TYPE;
 extern const char *ERROR_WRONG_ASSIGNMENT_SIZE;
 extern const char *ERROR_CONDITION_NOT_BOOLEAN;
 
-// SYNTAX LEXER
-extern const char *ERROR_SYNTAX;
 
 
 void mCc_add_error(const char *error_msg, int error_line,

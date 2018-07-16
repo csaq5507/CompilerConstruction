@@ -30,6 +30,7 @@ typedef struct mCc_ast_argument ast_argument;
 /* ###################### POINTER STACK ###################### */
 
 enum pointer_type {
+    POINTER_NULL,
     POINTER_IDENTIFIER,
     POINTER_LITERAL,
     POINTER_SLITERAL,

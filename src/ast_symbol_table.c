@@ -418,10 +418,12 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 		if (has_main == true) {
 			snprintf(error_msg, sizeof(error_msg),
 				 ERROR_DUBLICATE_FUNCTION, f->identifier->name);
-			mCc_add_error(new_string(ERROR_DUBLICATE_FUNCTION,
-						 f->identifier->name),
+			char *tmp = new_string(ERROR_DUBLICATE_FUNCTION,
+								   f->identifier->name);
+			mCc_add_error(tmp,
 				      f->identifier->node.sloc.start_line,
 				      h_result);
+			free(tmp);
 		}
 	}
 
@@ -505,21 +507,28 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 	}
 
 	if (strcmp(f->identifier->name, "main") == 0) {
-		if (has_main == true)
-			mCc_add_error(new_string(ERROR_DUBLICATE_FUNCTION,
-						 f->identifier->name),
-				      f->identifier->node.sloc.start_line,
-				      h_result);
+		if (has_main == true) {
+
+			char *tmp = new_string(ERROR_DUBLICATE_FUNCTION,
+								   f->identifier->name);
+			mCc_add_error(tmp,
+						  f->identifier->node.sloc.start_line,
+						  h_result);
+			free(tmp);
+		}
 		free(f->identifier->renamed);
 		f->identifier->renamed = copy_string(f->identifier->name);
 
 		has_main = true;
 	} else {
-		if (find_element_symbols(table, f->identifier->name) != NULL)
-			mCc_add_error(new_string(ERROR_DUBLICATE_FUNCTION,
-						 f->identifier->name),
-				      f->identifier->node.sloc.start_line,
-				      h_result);
+		if (find_element_symbols(table, f->identifier->name) != NULL) {
+			char *tmp = new_string(ERROR_DUBLICATE_FUNCTION,
+								   f->identifier->name);
+			mCc_add_error(tmp,
+						  f->identifier->node.sloc.start_line,
+						  h_result);
+			free(tmp);
+		}
 		else {
 			free(f->identifier->renamed);
 			f->identifier->renamed = new_string(

@@ -89,7 +89,7 @@ if(temp == NULL)     					\
         default:                                        	\
             break;                                      	\
     }                                                   	\
-    (ptr)[counter++].type = p_type;
+    (ptr)[(counter)++].type = p_type;
 
 
 static struct pointer_stack *p_stack = NULL;
@@ -647,6 +647,7 @@ void mCc_ast_delete_function_def_array(ast_function_def_array *f, bool has_func_
 
         free(f->function_def);
         free(f);
+
     } else {
         for (int i = 0; i < stack_counter; i++) {
             if (p_stack[i].type == POINTER_IDENTIFIER) {
@@ -691,6 +692,8 @@ void mCc_ast_delete_function_def_array(ast_function_def_array *f, bool has_func_
             }
         }
     }
+
+    stack_counter = 0;
     if (p_stack != NULL)
         free(p_stack);
     p_stack = NULL;
@@ -1111,8 +1114,10 @@ ast_parameter *mCc_ast_new_parameter_array(ast_parameter *params,
 
     memcpy(&(params->declaration[params->counter]), decl, sizeof(ast_declaration));
     for (int i = 0; i < stack_counter; i++) {
-        if (p_stack[i].type == POINTER_DECLARATION)
+        if (p_stack[i].type == POINTER_DECLARATION) {
+            pointer_stack a = p_stack[i];
             p_stack[i].declaration_pointer = NULL;
+        }
     }
 	free(decl);
 	params->counter++;
@@ -1190,8 +1195,6 @@ ast_argument *mCc_ast_new_argument_array(ast_argument *arguments, ast_expr *ex)
 
 	arguments->counter++;
 	free(ex);
-    /*if (tmp != -1)
-        p_stack[tmp].expr_pointer = arguments->expression;*/
 
     ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_EXPRESSION, stack_counter, arguments->expression);
 	return arguments;

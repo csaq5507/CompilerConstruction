@@ -7,12 +7,8 @@
 #include <mCc/tac.h>
 #include <mCc/utils.h>
 #include <mCc/cfg.h>
-
-#include <zconf.h>
 #include <mCc/code_generation.h>
 
-#include "mCc/ast.h"
-#include "mCc/parser.h"
 
 #define VERSION 0.2
 
@@ -53,7 +49,7 @@ void clean_up(FILE *error, FILE *graph, FILE *tac, FILE *file_std_err,
     fclose(file_std_err);
     fclose(output);
     fclose(cfg);
-    if (strcmp(outputFileName, "a.out"))
+    if (strcmp(outputFileName, "a.out") != 0)
         free(outputFileName);
 }
 

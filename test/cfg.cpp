@@ -543,7 +543,6 @@ TEST(cfg, NestedIfClause)
 
     ASSERT_EQ(MCC_PARSER_STATUS_OK, result.status);
 
-    mCc_delete_result(&result);
 
     cfg_list *cfg_head = mCc_cfg_generate(tac);
 
@@ -580,6 +579,7 @@ TEST(cfg, NestedIfClause)
     mCc_cfg_delete(cfg_head);
 
     mCc_tac_delete(tac);
+    mCc_delete_result(&result);
 }
 
 /*

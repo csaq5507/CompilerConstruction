@@ -139,8 +139,6 @@ TEST(symbol_table, no_return1)
 
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
-
-
 	char error_msg[1024] = {0};
 	snprintf(error_msg, sizeof(error_msg), ERROR_NO_RETURN, "func1");
 

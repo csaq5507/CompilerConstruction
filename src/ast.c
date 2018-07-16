@@ -27,6 +27,74 @@ if(temp == NULL)     					\
 }                                       \
 (ptr) = temp;
 
+#define ADD_POINTER(ptr, size, p_type, counter, elem)   	\
+    if ((ptr) == NULL) {                                	\
+        MALLOC(ptr,size)                                	\
+    }                                                   	\
+    else {                                             		\
+        REALLOC(ptr,size)                               	\
+}                                                       	\
+    switch (p_type) {                                   	\
+        case POINTER_IDENTIFIER:                        	\
+            (ptr)[counter].i_pointer = (ast_identifier *) (elem);            	\
+            break;                                      	\
+        case POINTER_LITERAL:                           	\
+            (ptr)[counter].l_pointer = (ast_literal *) (elem);            	\
+            break;                                      	\
+        case POINTER_SLITERAL:                          	\
+            (ptr)[counter].sl_pointer = (ast_literal *) (elem);           	\
+            break;                                      	\
+        case POINTER_EXPRESSION:                        	\
+            (ptr)[counter].expr_pointer = (ast_expr *) (elem);         	\
+            break;                                      	\
+        case POINTER_SINGLE_EXPRESSION:                   	\
+            (ptr)[counter].single_expr_pointer = (ast_single_expr *) (elem);    	\
+            break;                                      	\
+        case POINTER_CALL_EXPRESSION:                    	\
+            (ptr)[counter].call_expr_pointer = (ast_call_expr *) (elem);      	\
+            break;                                      	\
+        case POINTER_FUNC_DEF:                        		\
+            (ptr)[counter].func_def_pointer = (ast_function_def *) (elem);         \
+            break;                                      	\
+        case POINTER_FUNC_DEF_ARRAY:                        \
+            (ptr)[counter].func_def_array_pointer = (ast_function_def_array *) (elem);	\
+            break;                                      	\
+        case POINTER_DECLARATION:                        	\
+            (ptr)[counter].declaration_pointer = (ast_declaration *) (elem);   	\
+            break;                                      	\
+        case POINTER_STMT:                       	 		\
+            (ptr)[counter].stmt_pointer = (ast_stmt *) (elem);         	\
+            break;                                      	\
+        case POINTER_IF_STMT:                        		\
+            (ptr)[counter].if_stmt_pointer = (ast_if_stmt *) (elem);         	\
+            break;                                      	\
+        case POINTER_WHILE_STMT:                        	\
+            (ptr)[counter].while_stmt_pointer = (ast_while_stmt *) (elem);      	\
+            break;                                      	\
+        case POINTER_RET_STMT:                        		\
+            (ptr)[counter].ret_stmt_pointer = (ast_ret_stmt *) (elem);         \
+            break;                                      	\
+        case POINTER_COMPOUND_STMT:                        	\
+            (ptr)[counter].compound_stmt_pointer = (ast_compound_stmt *) (elem); 	\
+            break;                                      	\
+        case POINTER_ASSIGNMENT:                        	\
+            (ptr)[counter].assignment_pointer = (ast_assignment *) (elem);    	\
+            break;                                      	\
+        case POINTER_PARAMETER:                        		\
+            (ptr)[counter].parameter_pointer = (ast_parameter *) (elem);     	\
+            break;                                      	\
+        case POINTER_ARGUMENT:                        		\
+            (ptr)[counter].argument_pointer = (ast_argument *) (elem);         \
+            break;                                      	\
+        default:                                        	\
+            break;                                      	\
+    }                                                   	\
+    (ptr)[counter++].type = p_type;
+
+
+static struct pointer_stack *p_stack = NULL;
+static int stack_counter = 0;
+
 /* --------------------------------------------------------------VISITOR */
 static struct mCc_ast_visitor ast_delete_visitor(void *data)
 {
@@ -58,6 +126,8 @@ static struct mCc_ast_visitor ast_delete_visitor(void *data)
 	};
 }
 
+/* ---------------------------------------------------------------- Identifier */
+
 void mCc_ast_delete_identifier(ast_identifier *identifier, void *data)
 {
 	assert(identifier);
@@ -73,7 +143,6 @@ void mCc_ast_delete_identifier(ast_identifier *identifier, void *data)
 	free(identifier);
 }
 
-/* ---------------------------------------------------------------- Literals */
 ast_identifier *mCc_ast_new_identifier(char *name, int line)
 {
 	assert(name);
@@ -89,7 +158,10 @@ ast_identifier *mCc_ast_new_identifier(char *name, int line)
 	identifier->d_type = MCC_AST_TYPE_VOID;
 	identifier->param_types = NULL;
 	identifier->size = 0;
-	return identifier;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_IDENTIFIER, stack_counter, identifier);
+
+    return identifier;
 }
 
 /* ---------------------------------------------------------------- Literals */
@@ -100,6 +172,9 @@ ast_literal *mCc_ast_new_literal_int(long value)
 
 	lit->type = MCC_AST_LITERAL_TYPE_INT;
 	lit->i_value = value;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_LITERAL, stack_counter, lit);
+
 	return lit;
 }
 
@@ -110,6 +185,9 @@ ast_literal *mCc_ast_new_literal_float(double value)
 
 	lit->type = MCC_AST_LITERAL_TYPE_FLOAT;
 	lit->f_value = value;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_LITERAL, stack_counter, lit);
+
 	return lit;
 }
 
@@ -120,6 +198,9 @@ ast_literal *mCc_ast_new_literal_bool(bool value)
 
     lit->type = MCC_AST_LITERAL_TYPE_BOOL;
 	lit->b_value = value;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_LITERAL, stack_counter, lit);
+
 	return lit;
 }
 
@@ -180,6 +261,9 @@ ast_literal *mCc_ast_new_literal_string(char *value)
 	lit->type = MCC_AST_LITERAL_TYPE_STRING;
 	lit->s_value = copy_string(temp);
     free(temp);
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_SLITERAL, stack_counter, lit);
+
 	return lit;
 }
 
@@ -211,6 +295,9 @@ ast_expr *mCc_ast_new_expression_single(ast_single_expr *single_expr)
 	expr->type = MCC_AST_EXPRESSION_TYPE_SINGLE;
 	expr->single_expr = single_expr;
 	expr->d_type = MCC_AST_TYPE_VOID;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_EXPRESSION, stack_counter, expr);
+
 	return expr;
 }
 
@@ -228,6 +315,9 @@ ast_expr *mCc_ast_new_expression_binary_op(enum mCc_ast_binary_op op,
 	expr->lhs = lhs;
 	expr->rhs = rhs;
 	expr->d_type = MCC_AST_TYPE_VOID;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_EXPRESSION, stack_counter, expr);
+
 	return expr;
 }
 
@@ -255,6 +345,9 @@ ast_single_expr *mCc_ast_new_single_expression_literal(ast_literal *literal)
 	expr->type = MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL;
 	expr->literal = literal;
 	expr->d_type = MCC_AST_TYPE_VOID;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_SINGLE_EXPRESSION, stack_counter, expr);
+
 	return expr;
 }
 
@@ -269,7 +362,9 @@ mCc_ast_new_single_expression_identifier(ast_identifier *identifier)
 	expr->type = MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER;
 	expr->only_identifier = identifier;
 
-	return expr;
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_SINGLE_EXPRESSION, stack_counter, expr);
+
+    return expr;
 }
 
 ast_single_expr *
@@ -285,7 +380,10 @@ mCc_ast_new_single_expression_identifier_ex(ast_identifier *identifier,
 	expr->type = MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX;
 	expr->identifier = identifier;
 	expr->identifier_expression = identifier_expression;
-	return expr;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_SINGLE_EXPRESSION, stack_counter, expr);
+
+    return expr;
 }
 
 ast_single_expr *
@@ -298,7 +396,10 @@ mCc_ast_new_single_expression_call_expr(ast_call_expr *call_expr)
 
 	expr->type = MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR;
 	expr->call_expr = call_expr;
-	return expr;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_SINGLE_EXPRESSION, stack_counter, expr);
+
+    return expr;
 }
 
 ast_single_expr *
@@ -313,7 +414,10 @@ mCc_ast_new_single_expression_unary_op(enum mCc_ast_unary_op unary_op,
 	expr->type = MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP;
 	expr->unary_operator = unary_op;
 	expr->unary_expression = unary_expression;
-	return expr;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_SINGLE_EXPRESSION, stack_counter, expr);
+
+    return expr;
 }
 
 ast_single_expr *mCc_ast_new_single_expression_parenth(ast_expr *expression)
@@ -325,7 +429,10 @@ ast_single_expr *mCc_ast_new_single_expression_parenth(ast_expr *expression)
 
 	expr->type = MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH;
 	expr->expression = expression;
-	return expr;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_SINGLE_EXPRESSION, stack_counter, expr);
+
+    return expr;
 }
 
 void mCc_ast_delete_single_expression(ast_single_expr *expression, void *data)
@@ -361,7 +468,10 @@ ast_call_expr *mCc_ast_new_empty_call_expr(ast_identifier *identifier)
 
     call_expr->identifier = identifier;
 	call_expr->arguments = NULL;
-	return call_expr;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_CALL_EXPRESSION, stack_counter, call_expr);
+
+    return call_expr;
 }
 
 ast_call_expr *mCc_ast_new_call_expr(ast_identifier *identifier,
@@ -374,7 +484,10 @@ ast_call_expr *mCc_ast_new_call_expr(ast_identifier *identifier,
     call_expr->identifier = identifier;
 	call_expr->arguments = arguments;
 	call_expr->d_type = MCC_AST_TYPE_VOID;
-	return call_expr;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_CALL_EXPRESSION, stack_counter, call_expr);
+
+    return call_expr;
 }
 
 void mCc_ast_delete_call_expr(ast_call_expr *call_expr, void *data)
@@ -404,7 +517,10 @@ ast_function_def *mCc_ast_new_void_function_def(ast_identifier *identifier,
 	f->identifier->d_type = MCC_AST_TYPE_VOID;
 	f->params = params;
 	f->c_stmt = c_stmt;
-	return f;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_FUNC_DEF, stack_counter, f);
+
+    return f;
 }
 
 ast_function_def *mCc_ast_new_type_function_def(enum mCc_ast_literal_type type,
@@ -439,7 +555,10 @@ ast_function_def *mCc_ast_new_type_function_def(enum mCc_ast_literal_type type,
 	}
 	f->params = params;
 	f->c_stmt = c_stmt;
-	return f;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_FUNC_DEF, stack_counter, f);
+
+    return f;
 }
 
 ast_function_def_array *
@@ -449,12 +568,21 @@ mCc_ast_add_function_def_to_array(ast_function_def_array *f,
 	assert(f);
 	assert(f2);
 
+
     REALLOC(f->function_def, sizeof(ast_function_def) * (f->counter + 1))
 
 	memcpy(&(f->function_def[f->counter]), f2, sizeof(ast_function_def));
+    for (int i = 0; i < stack_counter; i++) {
+        if (p_stack[i].type == POINTER_FUNC_DEF) {
+            p_stack[i].func_def_pointer = NULL;
+        }
+    }
 	free(f2);
 	f->counter++;
-	return f;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_FUNC_DEF, stack_counter, f->function_def);
+
+    return f;
 }
 
 ast_function_def_array *mCc_ast_new_function_def_array(ast_function_def *f)
@@ -466,6 +594,8 @@ ast_function_def_array *mCc_ast_new_function_def_array(ast_function_def *f)
 
 	function_array->counter = 1;
 	function_array->function_def = f;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_FUNC_DEF_ARRAY, stack_counter, function_array);
 
 	return function_array;
 }
@@ -491,6 +621,9 @@ ast_function_def_array *mCc_ast_gen_func_def(ast_expr * expr)
     function_array->counter = 1;
     function_array->function_def = f;
 
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_FUNC_DEF, stack_counter, f);
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_FUNC_DEF_ARRAY, stack_counter, function_array);
+
     return function_array;
 }
 
@@ -514,7 +647,53 @@ void mCc_ast_delete_function_def_array(ast_function_def_array *f, bool has_func_
 
         free(f->function_def);
         free(f);
+    } else {
+        for (int i = 0; i < stack_counter; i++) {
+            if (p_stack[i].type == POINTER_IDENTIFIER) {
+                mCc_ast_delete_identifier(p_stack[i].i_pointer, p_stack[i].i_pointer);
+            } else if (p_stack[i].type == POINTER_LITERAL) {
+                mCc_ast_delete_literal(p_stack[i].l_pointer, p_stack[i].l_pointer);
+            } else if (p_stack[i].type == POINTER_SLITERAL) {
+                mCc_ast_delete_literal_value(p_stack[i].sl_pointer, p_stack[i].sl_pointer);
+               mCc_ast_delete_literal(p_stack[i].sl_pointer, p_stack[i].sl_pointer);
+            } else if (p_stack[i].type == POINTER_EXPRESSION) {
+                if (p_stack[i].expr_pointer != NULL)
+                    free(p_stack[i].expr_pointer);
+            } else if (p_stack[i].type == POINTER_SINGLE_EXPRESSION) {
+                free(p_stack[i].single_expr_pointer);
+            } else if (p_stack[i].type == POINTER_CALL_EXPRESSION) {
+                free(p_stack[i].call_expr_pointer);
+            } else if (p_stack[i].type == POINTER_FUNC_DEF) {
+                if (p_stack[i].func_def_pointer != NULL)
+                    free(p_stack[i].func_def_pointer);
+            } else if (p_stack[i].type == POINTER_FUNC_DEF_ARRAY) {
+                free(p_stack[i].func_def_array_pointer);
+            } else if (p_stack[i].type == POINTER_DECLARATION) {
+                if (p_stack[i].declaration_pointer != NULL)
+                    free(p_stack[i].declaration_pointer);
+            } else if (p_stack[i].type == POINTER_STMT) {
+                if (p_stack[i].stmt_pointer != NULL)
+                    free(p_stack[i].stmt_pointer);
+            } else if (p_stack[i].type == POINTER_IF_STMT) {
+                free(p_stack[i].if_stmt_pointer);
+            } else if (p_stack[i].type == POINTER_WHILE_STMT) {
+                free(p_stack[i].while_stmt_pointer);
+            } else if (p_stack[i].type == POINTER_RET_STMT) {
+                free(p_stack[i].ret_stmt_pointer);
+            } else if (p_stack[i].type == POINTER_COMPOUND_STMT) {
+                free(p_stack[i].compound_stmt_pointer);
+            } else if (p_stack[i].type == POINTER_ASSIGNMENT) {
+                free(p_stack[i].assignment_pointer);
+            } else if (p_stack[i].type == POINTER_PARAMETER) {
+                free(p_stack[i].parameter_pointer);
+            } else if (p_stack[i].type == POINTER_ARGUMENT) {
+                free(p_stack[i].argument_pointer);
+            }
+        }
     }
+    if (p_stack != NULL)
+        free(p_stack);
+    p_stack = NULL;
 }
 
 
@@ -531,7 +710,10 @@ mCc_ast_new_array_declaration(enum mCc_ast_literal_type literal, int numerator,
 	decl->literal = literal;
 	decl->numerator = numerator;
 	decl->array_identifier = identifier;
-	return decl;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_DECLARATION, stack_counter, decl);
+
+    return decl;
 }
 
 ast_declaration *
@@ -545,7 +727,10 @@ mCc_ast_new_single_declaration(enum mCc_ast_literal_type literal,
 	decl->type = MCC_AST_DECLARATION_TYPE_SINGLE;
 	decl->literal = literal;
 	decl->identifier = identifier;
-	return decl;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_DECLARATION, stack_counter, decl);
+
+    return decl;
 }
 
 void mCc_ast_delete_declaration(ast_declaration *decl, void *data)
@@ -566,7 +751,10 @@ ast_stmt *mCc_ast_new_if_stmt(ast_if_stmt *if_stmt)
 
 	stmt->type = MCC_AST_IF_STMT;
 	stmt->if_stmt = if_stmt;
-	return stmt;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_STMT, stack_counter, stmt);
+
+    return stmt;
 }
 
 ast_if_stmt *mCc_ast_new_if(ast_expr *ex, ast_stmt *stmt)
@@ -580,6 +768,8 @@ ast_if_stmt *mCc_ast_new_if(ast_expr *ex, ast_stmt *stmt)
 	if_stmt->expression = ex;
 	if_stmt->statement = stmt;
 	if_stmt->else_statement = NULL;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_IF_STMT, stack_counter, if_stmt);
 
 	return if_stmt;
 }
@@ -596,6 +786,8 @@ ast_if_stmt *mCc_ast_new_if_else(ast_expr *ex, ast_stmt *stmt,
 	if_stmt->expression = ex;
 	if_stmt->statement = stmt;
 	if_stmt->else_statement = elsestmt;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_IF_STMT, stack_counter, if_stmt);
 
 	return if_stmt;
 }
@@ -622,7 +814,10 @@ ast_stmt *mCc_ast_new_while_stmt(ast_while_stmt *while_stmt)
 
 	stmt->type = MCC_AST_WHILE_STMT;
 	stmt->while_stmt = while_stmt;
-	return stmt;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_STMT, stack_counter, stmt);
+
+    return stmt;
 }
 
 ast_while_stmt *mCc_ast_new_while(ast_expr *ex, ast_stmt *stmt)
@@ -635,6 +830,8 @@ ast_while_stmt *mCc_ast_new_while(ast_expr *ex, ast_stmt *stmt)
 
     while_stmt->expression = ex;
 	while_stmt->statement = stmt;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_WHILE_STMT, stack_counter, while_stmt);
 
 	return while_stmt;
 }
@@ -660,7 +857,10 @@ ast_stmt *mCc_ast_new_ret_stmt(ast_ret_stmt *ret_stmt)
 	stmt->type = MCC_AST_RET_STMT;
 	ret_stmt->d_type = MCC_AST_TYPE_VOID;
 	stmt->ret_stmt = ret_stmt;
-	return stmt;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_STMT, stack_counter, stmt);
+
+    return stmt;
 }
 
 ast_ret_stmt *mCc_ast_new_empty_ret()
@@ -669,6 +869,8 @@ ast_ret_stmt *mCc_ast_new_empty_ret()
     MALLOC(ret_stmt,sizeof(ast_ret_stmt))
 
     ret_stmt->expression = NULL;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_RET_STMT, stack_counter, ret_stmt);
 
 	return ret_stmt;
 }
@@ -681,6 +883,9 @@ ast_ret_stmt *mCc_ast_new_ret(ast_expr *ex)
     MALLOC(ret_stmt,sizeof(ast_ret_stmt))
 
     ret_stmt->expression = ex;
+
+
+	ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_RET_STMT, stack_counter, ret_stmt);
 
 	return ret_stmt;
 }
@@ -703,6 +908,9 @@ ast_stmt *mCc_ast_new_declaration(ast_declaration *decl_stmt)
 
 	stmt->type = MCC_AST_DECL_STMT;
 	stmt->declaration = decl_stmt;
+
+	ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_STMT, stack_counter, stmt);
+
 	return stmt;
 }
 
@@ -716,6 +924,9 @@ ast_stmt *mCc_ast_new_assignment(ast_assignment *ass_stmt)
 
 	stmt->type = MCC_AST_ASS_STMT;
 	stmt->assignment = ass_stmt;
+
+	ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_STMT, stack_counter, stmt);
+
 	return stmt;
 }
 
@@ -729,6 +940,9 @@ ast_stmt *mCc_ast_new_expression(ast_expr *expr_stmt)
 
 	stmt->type = MCC_AST_EXPR_STMT;
 	stmt->expression = expr_stmt;
+
+	ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_STMT, stack_counter, stmt);
+
 	return stmt;
 }
 
@@ -742,6 +956,9 @@ ast_stmt *mCc_ast_new_compound_stmt(ast_compound_stmt *compound_stmt)
 
 	stmt->type = MCC_AST_COMPOUND_STMT;
 	stmt->compound_stmt = compound_stmt;
+
+	ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_STMT, stack_counter, stmt);
+
 	return stmt;
 }
 
@@ -752,6 +969,9 @@ ast_compound_stmt *mCc_ast_new_empty_compound()
 
 	new_stmts->statements = NULL;
 	new_stmts->counter = 0;
+
+	ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_COMPOUND_STMT, stack_counter, new_stmts);
+
 	return new_stmts;
 }
 
@@ -764,6 +984,9 @@ ast_compound_stmt *mCc_ast_new_single_compound(ast_stmt *stmt)
 
     new_stmts->statements = stmt;
 	new_stmts->counter = 1;
+
+	ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_COMPOUND_STMT, stack_counter, new_stmts);
+
 	return new_stmts;
 }
 
@@ -773,12 +996,18 @@ ast_compound_stmt *mCc_ast_new_compound_array(ast_compound_stmt *stmts,
 	assert(stmts);
 	assert(stmt);
 
+
     REALLOC(stmts->statements, sizeof(ast_stmt) * (stmts->counter + 1))
 
+
     memcpy(&(stmts->statements[stmts->counter]), stmt, sizeof(ast_stmt));
+    for (int i = 0; i < stack_counter; i++) {
+        if (p_stack[i].type == POINTER_STMT)
+            p_stack[i].stmt_pointer = NULL;
+    }
 	free(stmt);
 	stmts->counter++;
-
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_STMT, stack_counter, stmts->statements);
 	return stmts;
 }
 
@@ -834,6 +1063,9 @@ ast_assignment *mCc_ast_new_single_assignment(ast_identifier *identifier,
 	ass->identifier = identifier;
 	ass->expression = ex;
 	ass->numerator = NULL;
+
+	ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_ASSIGNMENT, stack_counter, ass);
+
 	return ass;
 }
 
@@ -849,6 +1081,9 @@ ast_assignment *mCc_ast_new_array_assignment(ast_identifier *identifier,
     ass->identifier = identifier;
 	ass->expression = ex2;
 	ass->numerator = ex;
+
+	ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_ASSIGNMENT, stack_counter, ass);
+
 	return ass;
 }
 
@@ -870,11 +1105,19 @@ ast_parameter *mCc_ast_new_parameter_array(ast_parameter *params,
 	assert(params);
 	assert(decl);
 
-	REALLOC(params->declaration, sizeof(ast_declaration) * (params->counter +1));
+
+    REALLOC(params->declaration, sizeof(ast_declaration) * (params->counter +1));
+
 
     memcpy(&(params->declaration[params->counter]), decl, sizeof(ast_declaration));
+    for (int i = 0; i < stack_counter; i++) {
+        if (p_stack[i].type == POINTER_DECLARATION)
+            p_stack[i].declaration_pointer = NULL;
+    }
 	free(decl);
 	params->counter++;
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_DECLARATION, stack_counter, params->declaration);
 
 	return params;
 }
@@ -886,6 +1129,9 @@ ast_parameter *mCc_ast_new_empty_parameter_array()
 
 	new_params->declaration = NULL;
 	new_params->counter = 0;
+
+	ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_PARAMETER, stack_counter, new_params);
+
 	return new_params;
 }
 
@@ -897,6 +1143,9 @@ ast_parameter *mCc_ast_new_single_parameter(ast_declaration *decl)
 
 	new_params->declaration = decl;
 	new_params->counter = 1;
+
+	ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_PARAMETER, stack_counter, new_params);
+
 	return new_params;
 }
 
@@ -918,6 +1167,9 @@ ast_argument *mCc_ast_new_single_argument(ast_expr *ex)
 
 	argument->expression = ex;
 	argument->counter = 1;
+
+	ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_ARGUMENT, stack_counter, argument);
+
 	return argument;
 }
 
@@ -928,10 +1180,20 @@ ast_argument *mCc_ast_new_argument_array(ast_argument *arguments, ast_expr *ex)
 
     REALLOC(arguments->expression,sizeof(ast_expr) * (arguments->counter + 1))
 
+
 	memcpy(&(arguments->expression[arguments->counter]), ex, sizeof(ast_expr));
+    int tmp = -1;
+    for (int i = 0; i < stack_counter; i++) {
+        if (p_stack[i].type == POINTER_EXPRESSION)
+            p_stack[tmp].expr_pointer = NULL;
+    }
 
 	arguments->counter++;
 	free(ex);
+    /*if (tmp != -1)
+        p_stack[tmp].expr_pointer = arguments->expression;*/
+
+    ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_EXPRESSION, stack_counter, arguments->expression);
 	return arguments;
 }
 

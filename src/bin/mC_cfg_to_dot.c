@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
     /* parsing phase */
     struct mCc_parser_result result = mCc_parser_parse_file(inputFile);
     fclose(inputFile);
-    if (result.status == MCC_PARSER_STATUS_ERROR) {+
+    if (result.status == MCC_PARSER_STATUS_ERROR) {
         printf("Parse Error\n");
         mCc_delete_result(&result);
         return EXIT_FAILURE;
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 
     result = *(mCc_ast_symbol_table(&result));
 
-    if (result.status == MCC_PARSER_STATUS_ERROR) {+
+    if (result.status == MCC_PARSER_STATUS_ERROR) {
         printf("Semantic Error\n");
         mCc_delete_result(&result);
         return EXIT_FAILURE;
@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
 
     result = *(mCc_ast_semantic_check(&result));
 
-    if (result.status == MCC_PARSER_STATUS_ERROR) {+
+    if (result.status == MCC_PARSER_STATUS_ERROR) {
         printf("Semantic Error\n");
         mCc_delete_result(&result);
         return EXIT_FAILURE;

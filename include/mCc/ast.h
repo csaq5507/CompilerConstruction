@@ -26,8 +26,54 @@ typedef struct mCc_ast_ret_stmt ast_ret_stmt;
 typedef struct mCc_ast_compound_stmt ast_compound_stmt;
 typedef struct mCc_ast_argument ast_argument;
 
-/* ###################### STRUCTS/ENUMS ###################### */
 
+/* ###################### POINTER STACK ###################### */
+
+enum pointer_type {
+    POINTER_IDENTIFIER,
+    POINTER_LITERAL,
+    POINTER_SLITERAL,
+    POINTER_EXPRESSION,
+    POINTER_SINGLE_EXPRESSION,
+    POINTER_CALL_EXPRESSION,
+    POINTER_FUNC_DEF,
+    POINTER_FUNC_DEF_ARRAY,
+    POINTER_DECLARATION,
+    POINTER_STMT,
+    POINTER_IF_STMT,
+    POINTER_WHILE_STMT,
+    POINTER_RET_STMT,
+    POINTER_COMPOUND_STMT,
+    POINTER_ASSIGNMENT,
+    POINTER_PARAMETER,
+    POINTER_ARGUMENT
+};
+
+typedef struct pointer_stack {
+    union {
+        ast_identifier *i_pointer;
+        ast_literal *l_pointer;
+        ast_literal *sl_pointer;
+        ast_expr *expr_pointer;
+        ast_single_expr *single_expr_pointer;
+        ast_call_expr *call_expr_pointer;
+        ast_function_def *func_def_pointer;
+        ast_function_def_array *func_def_array_pointer;
+        ast_declaration *declaration_pointer;
+        ast_stmt *stmt_pointer;
+        ast_if_stmt *if_stmt_pointer;
+        ast_while_stmt *while_stmt_pointer;
+        ast_ret_stmt *ret_stmt_pointer;
+        ast_compound_stmt *compound_stmt_pointer;
+        ast_assignment *assignment_pointer;
+        ast_parameter *parameter_pointer;
+        ast_argument *argument_pointer;
+    };
+    enum pointer_type type;
+} pointer_stack;
+
+
+/* ###################### STRUCTS/ENUMS ###################### */
 
 enum mCc_ast_type {
 	MCC_AST_TYPE_INT,	  // 0

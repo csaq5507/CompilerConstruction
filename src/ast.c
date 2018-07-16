@@ -5,7 +5,6 @@
 #include <memory.h>
 
 #include "mCc/ast.h"
-#include <mCc/ast_visit.h>
 #include <mCc/utils.h>
 
 #define MALLOC(ptr,size) 				\
@@ -95,43 +94,12 @@ if(temp == NULL)     					\
 static struct pointer_stack *p_stack = NULL;
 static int stack_counter = 0;
 
-/* --------------------------------------------------------------VISITOR */
-static struct mCc_ast_visitor ast_delete_visitor(void *data)
-{
-	return (struct mCc_ast_visitor){
-		.traversal = MCC_AST_VISIT_DEPTH_FIRST,
-		.order = MCC_AST_VISIT_POST_ORDER,
-
-		.userdata = data,
-
-		.identifier = mCc_ast_delete_identifier,
-		.expression = mCc_ast_delete_expression,
-		.argument = mCc_ast_delete_argument,
-		.statement = mCc_ast_delete_stmt,
-		.literal = mCc_ast_delete_literal,
-		.s_literal = mCc_ast_delete_literal_value,
-
-		.parameter = mCc_ast_delete_parameter,
-		.ass_stmt = mCc_ast_delete_assignment,
-		.single_expression = mCc_ast_delete_single_expression,
-		.decl_stmt = mCc_ast_delete_declaration,
-		.if_stmt = mCc_ast_delete_if_stmt,
-		.ret_stmt = mCc_ast_delete_ret_stmt,
-		.c_stmt = mCc_ast_delete_compound_stmt,
-		.while_stmt = mCc_ast_delete_while_stmt,
-		.call_expression = mCc_ast_delete_call_expr,
-		.function_def_type = mCc_ast_delete_function_def,
-		.function_def_void = mCc_ast_delete_function_def,
-
-	};
-}
 
 /* ---------------------------------------------------------------- Identifier */
 
-void mCc_ast_delete_identifier(ast_identifier *identifier, void *data)
+void mCc_ast_delete_identifier(ast_identifier *identifier)
 {
 	assert(identifier);
-	assert(data);
 
     free(identifier->name);
     free(identifier->renamed);
@@ -267,18 +235,16 @@ ast_literal *mCc_ast_new_literal_string(char *value)
 	return lit;
 }
 
-void mCc_ast_delete_literal_value(ast_literal *literal, void *data)
+void mCc_ast_delete_literal_value(ast_literal *literal)
 {
 	assert(literal);
-	assert(data);
 
 	free(literal->s_value);
 }
 
-void mCc_ast_delete_literal(ast_literal *literal, void *data)
+void mCc_ast_delete_literal(ast_literal *literal)
 {
 	assert(literal);
-	assert(data);
 
 	free(literal);
 }
@@ -319,19 +285,6 @@ ast_expr *mCc_ast_new_expression_binary_op(enum mCc_ast_binary_op op,
     ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_EXPRESSION, stack_counter, expr);
 
 	return expr;
-}
-
-void mCc_ast_delete_expression(ast_expr *expression, void *data)
-{
-	assert(expression);
-	assert(data);
-
-    if (expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE)
-        free(expression->single_expr);
-    else {
-        free(expression->lhs);
-        free(expression->rhs);
-    }
 }
 
 /* Single Expression */
@@ -435,30 +388,6 @@ ast_single_expr *mCc_ast_new_single_expression_parenth(ast_expr *expression)
     return expr;
 }
 
-void mCc_ast_delete_single_expression(ast_single_expr *expression, void *data)
-{
-	assert(expression);
-	assert(data);
-
-	switch (expression->type) {
-	case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX:
-		free(expression->identifier_expression);
-		break;
-	case MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP:
-		free(expression->unary_expression);
-		break;
-	case MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH:
-		free(expression->expression);
-		break;
-	case MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR:
-		free(expression->call_expr);
-		break;
-	case MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL:
-	case MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER:
-		break;
-	}
-}
-
 /* Call Expression */
 ast_call_expr *mCc_ast_new_empty_call_expr(ast_identifier *identifier)
 {
@@ -488,14 +417,6 @@ ast_call_expr *mCc_ast_new_call_expr(ast_identifier *identifier,
     ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_CALL_EXPRESSION, stack_counter, call_expr);
 
     return call_expr;
-}
-
-void mCc_ast_delete_call_expr(ast_call_expr *call_expr, void *data)
-{
-	assert(call_expr);
-	assert(data);
-
-	free(call_expr->arguments);
 }
 
 
@@ -569,14 +490,18 @@ mCc_ast_add_function_def_to_array(ast_function_def_array *f,
 	assert(f2);
 
 
-    REALLOC(f->function_def, sizeof(ast_function_def) * (f->counter + 1))
-
-	memcpy(&(f->function_def[f->counter]), f2, sizeof(ast_function_def));
     for (int i = 0; i < stack_counter; i++) {
-        if (p_stack[i].type == POINTER_FUNC_DEF) {
+        if (p_stack[i].type == POINTER_FUNC_DEF &&
+                (p_stack[i].func_def_pointer == f2 ||
+                        p_stack[i].func_def_pointer == f->function_def)) {
+            p_stack[i].type = POINTER_NULL;
             p_stack[i].func_def_pointer = NULL;
         }
     }
+
+    REALLOC(f->function_def, sizeof(ast_function_def) * (f->counter + 1))
+
+    memcpy(&(f->function_def[f->counter]), f2, sizeof(ast_function_def));
 	free(f2);
 	f->counter++;
 
@@ -627,70 +552,63 @@ ast_function_def_array *mCc_ast_gen_func_def(ast_expr * expr)
     return function_array;
 }
 
-void mCc_ast_delete_function_def(ast_function_def *f, void *data)
+void mCc_ast_delete_pointer()
 {
-	assert(f);
-	assert(data);
-
-	free(f->params);
-	free(f->c_stmt);
-}
-
-void mCc_ast_delete_function_def_array(ast_function_def_array *f, bool has_func_def)
-{
-    if(has_func_def)
-    {
-        assert(f);
-
-        struct mCc_ast_visitor visitor = ast_delete_visitor(f);
-        mCc_ast_visit_function_def_array(f, &visitor);
-
-        free(f->function_def);
-        free(f);
-
-    } else {
-        for (int i = 0; i < stack_counter; i++) {
-            if (p_stack[i].type == POINTER_IDENTIFIER) {
-                mCc_ast_delete_identifier(p_stack[i].i_pointer, p_stack[i].i_pointer);
-            } else if (p_stack[i].type == POINTER_LITERAL) {
-                mCc_ast_delete_literal(p_stack[i].l_pointer, p_stack[i].l_pointer);
-            } else if (p_stack[i].type == POINTER_SLITERAL) {
-                mCc_ast_delete_literal_value(p_stack[i].sl_pointer, p_stack[i].sl_pointer);
-               mCc_ast_delete_literal(p_stack[i].sl_pointer, p_stack[i].sl_pointer);
-            } else if (p_stack[i].type == POINTER_EXPRESSION) {
-                if (p_stack[i].expr_pointer != NULL)
-                    free(p_stack[i].expr_pointer);
-            } else if (p_stack[i].type == POINTER_SINGLE_EXPRESSION) {
-                free(p_stack[i].single_expr_pointer);
-            } else if (p_stack[i].type == POINTER_CALL_EXPRESSION) {
-                free(p_stack[i].call_expr_pointer);
-            } else if (p_stack[i].type == POINTER_FUNC_DEF) {
-                if (p_stack[i].func_def_pointer != NULL)
-                    free(p_stack[i].func_def_pointer);
-            } else if (p_stack[i].type == POINTER_FUNC_DEF_ARRAY) {
-                free(p_stack[i].func_def_array_pointer);
-            } else if (p_stack[i].type == POINTER_DECLARATION) {
-                if (p_stack[i].declaration_pointer != NULL)
-                    free(p_stack[i].declaration_pointer);
-            } else if (p_stack[i].type == POINTER_STMT) {
-                if (p_stack[i].stmt_pointer != NULL)
-                    free(p_stack[i].stmt_pointer);
-            } else if (p_stack[i].type == POINTER_IF_STMT) {
-                free(p_stack[i].if_stmt_pointer);
-            } else if (p_stack[i].type == POINTER_WHILE_STMT) {
-                free(p_stack[i].while_stmt_pointer);
-            } else if (p_stack[i].type == POINTER_RET_STMT) {
-                free(p_stack[i].ret_stmt_pointer);
-            } else if (p_stack[i].type == POINTER_COMPOUND_STMT) {
-                free(p_stack[i].compound_stmt_pointer);
-            } else if (p_stack[i].type == POINTER_ASSIGNMENT) {
-                free(p_stack[i].assignment_pointer);
-            } else if (p_stack[i].type == POINTER_PARAMETER) {
-                free(p_stack[i].parameter_pointer);
-            } else if (p_stack[i].type == POINTER_ARGUMENT) {
-                free(p_stack[i].argument_pointer);
-            }
+    for (int i = 0; i < stack_counter; i++) {
+        if (p_stack[i].type == POINTER_IDENTIFIER) {
+            mCc_ast_delete_identifier(p_stack[i].i_pointer);
+            p_stack[i].i_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_LITERAL) {
+            mCc_ast_delete_literal(p_stack[i].l_pointer);
+            p_stack[i].l_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_SLITERAL) {
+            mCc_ast_delete_literal_value(p_stack[i].sl_pointer);
+            mCc_ast_delete_literal(p_stack[i].sl_pointer);
+            p_stack[i].sl_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_EXPRESSION) {
+                free(p_stack[i].expr_pointer);
+            p_stack[i].expr_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_SINGLE_EXPRESSION) {
+            free(p_stack[i].single_expr_pointer);
+            p_stack[i].single_expr_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_CALL_EXPRESSION) {
+            free(p_stack[i].call_expr_pointer);
+            p_stack[i].call_expr_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_FUNC_DEF) {
+                free(p_stack[i].func_def_pointer);
+            p_stack[i].func_def_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_FUNC_DEF_ARRAY) {
+            free(p_stack[i].func_def_array_pointer);
+            p_stack[i].func_def_array_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_DECLARATION) {
+                free(p_stack[i].declaration_pointer);
+            p_stack[i].declaration_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_STMT) {
+                free(p_stack[i].stmt_pointer);
+            p_stack[i].stmt_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_IF_STMT) {
+            free(p_stack[i].if_stmt_pointer);
+            p_stack[i].if_stmt_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_WHILE_STMT) {
+            free(p_stack[i].while_stmt_pointer);
+            p_stack[i].while_stmt_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_RET_STMT) {
+            free(p_stack[i].ret_stmt_pointer);
+            p_stack[i].ret_stmt_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_COMPOUND_STMT) {
+            free(p_stack[i].compound_stmt_pointer);
+            p_stack[i].compound_stmt_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_ASSIGNMENT) {
+            free(p_stack[i].assignment_pointer);
+            p_stack[i].assignment_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_PARAMETER) {
+            free(p_stack[i].parameter_pointer);
+            p_stack[i].parameter_pointer = NULL;
+        } else if (p_stack[i].type == POINTER_ARGUMENT) {
+            free(p_stack[i].argument_pointer);
+            p_stack[i].argument_pointer = NULL;
         }
+        p_stack[i].type = POINTER_NULL;
     }
 
     stack_counter = 0;
@@ -734,12 +652,6 @@ mCc_ast_new_single_declaration(enum mCc_ast_literal_type literal,
     ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_DECLARATION, stack_counter, decl);
 
     return decl;
-}
-
-void mCc_ast_delete_declaration(ast_declaration *decl, void *data)
-{
-	assert(decl);
-	assert(data);
 }
 
 
@@ -795,18 +707,6 @@ ast_if_stmt *mCc_ast_new_if_else(ast_expr *ex, ast_stmt *stmt,
 	return if_stmt;
 }
 
-void mCc_ast_delete_if_stmt(ast_if_stmt *if_stmt, void *data)
-{
-	assert(if_stmt);
-	assert(data);
-
-	free(if_stmt->expression);
-	free(if_stmt->statement);
-	if (if_stmt->else_statement != NULL)
-		free(if_stmt->else_statement);
-
-}
-
 // WHILE
 ast_stmt *mCc_ast_new_while_stmt(ast_while_stmt *while_stmt)
 {
@@ -837,15 +737,6 @@ ast_while_stmt *mCc_ast_new_while(ast_expr *ex, ast_stmt *stmt)
     ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_WHILE_STMT, stack_counter, while_stmt);
 
 	return while_stmt;
-}
-
-void mCc_ast_delete_while_stmt(ast_while_stmt *while_stmt, void *data)
-{
-	assert(while_stmt);
-	assert(data);
-
-	free(while_stmt->expression);
-	free(while_stmt->statement);
 }
 
 
@@ -891,14 +782,6 @@ ast_ret_stmt *mCc_ast_new_ret(ast_expr *ex)
 	ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_RET_STMT, stack_counter, ret_stmt);
 
 	return ret_stmt;
-}
-
-void mCc_ast_delete_ret_stmt(ast_ret_stmt *ret_stmt, void *data)
-{
-	assert(ret_stmt);
-	assert(data);
-	if (ret_stmt->expression != NULL)
-		free(ret_stmt->expression);
 }
 
 // DECLARATION
@@ -1000,57 +883,23 @@ ast_compound_stmt *mCc_ast_new_compound_array(ast_compound_stmt *stmts,
 	assert(stmt);
 
 
+    for (int i = 0; i < stack_counter; i++) {
+        if (p_stack[i].type == POINTER_STMT &&
+                (p_stack[i].stmt_pointer == stmt ||
+                        p_stack[i].stmt_pointer == stmts->statements))
+        {
+                p_stack[i].type = POINTER_NULL;
+                p_stack[i].stmt_pointer = NULL;
+        }
+    }
+
     REALLOC(stmts->statements, sizeof(ast_stmt) * (stmts->counter + 1))
 
-
     memcpy(&(stmts->statements[stmts->counter]), stmt, sizeof(ast_stmt));
-    for (int i = 0; i < stack_counter; i++) {
-        if (p_stack[i].type == POINTER_STMT)
-            p_stack[i].stmt_pointer = NULL;
-    }
 	free(stmt);
 	stmts->counter++;
     ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_STMT, stack_counter, stmts->statements);
 	return stmts;
-}
-
-void mCc_ast_delete_compound_stmt(ast_compound_stmt *compound_stmt, void *data)
-{
-	assert(compound_stmt);
-	assert(data);
-
-	free(compound_stmt->statements);
-}
-
-// DELETE
-void mCc_ast_delete_stmt(ast_stmt *stmt, void *data)
-{
-	assert(stmt);
-	assert(data);
-
-	switch (stmt->type) {
-	case MCC_AST_COMPOUND_STMT:
-		free(stmt->compound_stmt);
-		break;
-	case MCC_AST_IF_STMT:
-		free(stmt->if_stmt);
-		break;
-	case MCC_AST_WHILE_STMT:
-		free(stmt->while_stmt);
-		break;
-	case MCC_AST_RET_STMT:
-		free(stmt->ret_stmt);
-		break;
-	case MCC_AST_DECL_STMT:
-		free(stmt->declaration);
-		break;
-	case MCC_AST_ASS_STMT:
-		free(stmt->assignment);
-		break;
-	case MCC_AST_EXPR_STMT:
-		free(stmt->expression);
-		break;
-	}
 }
 
 /* ----------------------------------------------------------- Assignment */
@@ -1090,17 +939,6 @@ ast_assignment *mCc_ast_new_array_assignment(ast_identifier *identifier,
 	return ass;
 }
 
-void mCc_ast_delete_assignment(ast_assignment *assignment, void *data)
-{
-	assert(assignment);
-	assert(data);
-
-	free(assignment->expression);
-	if (assignment->numerator != NULL) {
-		free(assignment->numerator);
-	}
-}
-
 /* ------------------------------------------------------------- Parameter */
 ast_parameter *mCc_ast_new_parameter_array(ast_parameter *params,
 					   ast_declaration *decl)
@@ -1109,15 +947,19 @@ ast_parameter *mCc_ast_new_parameter_array(ast_parameter *params,
 	assert(decl);
 
 
-    REALLOC(params->declaration, sizeof(ast_declaration) * (params->counter +1));
 
-
-    memcpy(&(params->declaration[params->counter]), decl, sizeof(ast_declaration));
     for (int i = 0; i < stack_counter; i++) {
-        if (p_stack[i].type == POINTER_DECLARATION) {
+        if (p_stack[i].type == POINTER_DECLARATION &&
+                (p_stack[i].declaration_pointer == decl ||
+                        p_stack[i].declaration_pointer == params->declaration)) {
+            p_stack[i].type = POINTER_NULL;
             p_stack[i].declaration_pointer = NULL;
         }
     }
+
+    REALLOC(params->declaration, sizeof(ast_declaration) * (params->counter +1));
+
+    memcpy(&(params->declaration[params->counter]), decl, sizeof(ast_declaration));
 	free(decl);
 	params->counter++;
 
@@ -1153,14 +995,6 @@ ast_parameter *mCc_ast_new_single_parameter(ast_declaration *decl)
 	return new_params;
 }
 
-void mCc_ast_delete_parameter(ast_parameter *params, void *data)
-{
-	assert(params);
-	assert(data);
-
-	free(params->declaration);
-}
-
 /* ------------------------------------------------------------- Argument */
 ast_argument *mCc_ast_new_single_argument(ast_expr *ex)
 {
@@ -1182,27 +1016,21 @@ ast_argument *mCc_ast_new_argument_array(ast_argument *arguments, ast_expr *ex)
 	assert(arguments);
 	assert(ex);
 
-    REALLOC(arguments->expression,sizeof(ast_expr) * (arguments->counter + 1))
-
-
-	memcpy(&(arguments->expression[arguments->counter]), ex, sizeof(ast_expr));
-    int tmp = -1;
     for (int i = 0; i < stack_counter; i++) {
-        if (p_stack[i].type == POINTER_EXPRESSION)
-            p_stack[tmp].expr_pointer = NULL;
+        if (p_stack[i].type == POINTER_EXPRESSION &&
+                (p_stack[i].expr_pointer == ex ||
+                        p_stack[i].expr_pointer == arguments->expression)) {
+                p_stack[i].type = POINTER_NULL;
+                p_stack[i].expr_pointer = NULL;
+            }
     }
 
+    REALLOC(arguments->expression,sizeof(ast_expr) * (arguments->counter + 1))
+
+    memcpy(&(arguments->expression[arguments->counter]), ex, sizeof(ast_expr));
 	arguments->counter++;
 	free(ex);
 
     ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_EXPRESSION, stack_counter, arguments->expression);
 	return arguments;
-}
-
-void mCc_ast_delete_argument(ast_argument *argument, void *data)
-{
-	assert(argument);
-	assert(data);
-	if (argument->expression != NULL)
-		free(argument->expression);
 }

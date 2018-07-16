@@ -29,7 +29,7 @@ extern const char *ERROR_BINARY_EX_TYPE_MISSMATCH;
 extern const char *ERROR_WRONG_PARAMETER_TYPE;
 extern const char *ERROR_WRONG_RETURN_TYPE;
 extern const char *ERROR_WRONG_ASSIGNMENT_TYPE;
-extern const char *ERROR_WRONG_ASSIGNMENT_SIZE;
+extern const char *NOT_ALLOWED_ASSIGNMENT;
 extern const char *ERROR_CONDITION_NOT_BOOLEAN;
 
 

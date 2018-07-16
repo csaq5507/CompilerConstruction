@@ -80,14 +80,16 @@
 	temp2->next = NULL;
 
 
+
 struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
-										   char *filename)
+                                           char *filename)
 {
 	// init vars
 	struct mCc_assembly *assembly;
 	string_label_idx = 0;
 	float_label_idx = 0;
 	label_idx = 0;
+    move_registers_at_end=false;
 	MALLOC(label, sizeof(struct labels))
 	label->counter = 0;
 	label->l = NULL;
@@ -101,6 +103,16 @@ struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
 	do {
 		while (current->next != NULL)
 			current = current->next;
+
+        if(move_registers_at_end)
+        {
+            move_line_to_end(current,tac,registers->ebx);
+            move_line_to_end(current,tac,registers->ecx);
+            move_line_to_end(current,tac,registers->edx);
+            move_registers_at_end=false;
+            while (current->next != NULL)
+                current = current->next;
+        }
 		struct mCc_assembly_line *temp = NULL;
 		switch (tac->type) {
 		case MCC_TAC_ELEMENT_TYPE_COPY_LITERAL:
@@ -161,6 +173,7 @@ struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
 	return assembly;
 }
 
+
 struct mCc_assembly_line *mCc_assembly_create_label(struct mCc_tac_list *tac) {
 	NEW_SINGLE_LINE
 	retval->type = MCC_ASSEMBLY_LABEL;
@@ -176,7 +189,7 @@ struct mCc_assembly_line *mCc_assembly_store(struct mCc_tac_list *tac) {
 	retval->type = MCC_ASSEMBLY_MOV;
 	retval->next = NULL;
 	retval->instruction = new_string(
-			"\tmovl\t%s, -%d(%s,%s,4)",
+			"\tmovl\t%s, %d(%s,%s,4)",
 			get_register(tac->identifier3),
 			get_var(tac->identifier1)->stack_diff,
 			"%ebp", get_register(tac->identifier2));
@@ -256,7 +269,7 @@ struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac)
 			struct mCc_tac_list * current=tac->prev;
 			while(current->identifier1 != NULL && strcmp(current->identifier1,tac->identifier1) != NULL)
 				current = current->prev;
-			retval->instruction = new_string("\tpushl\t-%d(%s)",get_var(current->copy_identifier)->stack_diff,"%ebp");
+			retval->instruction = new_string("\tpushl\t%d(%s)",get_var(current->copy_identifier)->stack_diff,"%ebp");
 		} else
 		{
 			retval->instruction = new_string("\tpushl\t%s",get_register(tac->identifier1));
@@ -276,7 +289,7 @@ struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac)
 	NEW_SINGLE_LINE
 	retval->type = MCC_ASSEMBLY_PUSH;
 	retval->instruction =
-		new_string("\tpushl\t-%d(%s,%s,4)",
+		new_string("\tpushl\t%d(%s,%s,4)",
 			   get_var(tac->identifier2)->stack_diff,
 			   "%ebp", get_register(tac->identifier3));
 	free_register(tac->identifier3);
@@ -290,7 +303,7 @@ void mCc_assembly_delete(struct mCc_assembly *assembly)
 		if (current->type != MCC_ASSEMBLY_BUILTIN)
 			free(current->instruction);
 
-		if (current->next)
+		if (current->next != NULL)
 			current = current->next;
 		else {
 			free(current);
@@ -350,7 +363,7 @@ struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac)
 
 		temp->instruction =
 			new_string("\tfstps\t-%d(%s)", v->stack_diff, "%ebp");
-		temp1->instruction = new_string("\tmovl\t-%d(%s), %s",
+		temp1->instruction = new_string("\tmovl\t%d(%s), %s",
 						v->stack_diff, "%ebp", "%eax");
 		retval->type = MCC_ASSEMBLY_CALL;
 		retval->instruction =
@@ -360,14 +373,14 @@ struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac)
 
 	if (strcmp(tac->prev->identifier1, "result") == 0) {
 		if (registers->eax != NULL) {
-			char *old = registers->eax;
-			NEW_DOUBLE_LINE
-			retval->type = MCC_ASSEMBLY_MOV;
-			free_register(old);
-			get_register(tac->identifier1);
-			retval->instruction = new_string("\tmovl\t%s, %s", "%eax", get_register(old));
-			temp->type = MCC_ASSEMBLY_CALL;
-			temp->instruction = new_string("\tcall\t%s", tac->identifier1);
+			NEW_SINGLE_LINE
+            move_registers_at_end = true;
+            registers->edx = registers->eax;
+            free_register(registers->eax);
+            get_register(tac->identifier1);
+		    retval->type = MCC_ASSEMBLY_CALL;
+			retval->instruction = new_string("\tcall\t%s", tac->identifier1);
+
 			return retval;
 		}
 	}
@@ -615,6 +628,7 @@ struct mCc_assembly_line *mCc_assembly_function_end(struct mCc_tac_list *tac)
 struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac)
 {
 	NEW_QUADRUPLE_LINE
+    int num_params = tac->num_function_param;
 	struct mCc_assembly_line *temp3;
 	struct mCc_assembly_line *temp4;
 	MALLOC(temp4, sizeof(struct mCc_assembly_line))
@@ -637,11 +651,20 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac)
 	temp3->instruction = new_string("\tmovl\t%s, %s", "%esp", "%ebp");
 	struct mCc_tac_list *temp_tac = tac;
 	new_stack();
+    set_param_var(4,"ebp");
 	while (temp_tac->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END) {
 		if (temp_tac->type == MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP) {
-			set_var(get_literal_size(temp_tac->decl_lit_type)
-					* temp_tac->param_size,
-				temp_tac->identifier1);
+            if(num_params>0)
+            {
+                set_param_var(get_literal_size(temp_tac->decl_lit_type)
+                              * temp_tac->param_size,
+                              temp_tac->identifier1);
+                num_params--;
+            } else {
+                set_var(get_literal_size(temp_tac->decl_lit_type)
+                        * temp_tac->param_size,
+                        temp_tac->identifier1);
+            }
 		}
 		temp_tac = temp_tac->next;
 	}
@@ -751,17 +774,16 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac)
 	case MCC_TAC_OPERATION_TYPE_GT:
 	case MCC_TAC_OPERATION_TYPE_LE:
 	case MCC_TAC_OPERATION_TYPE_GE:
+    case MCC_TAC_OPERATION_TYPE_AND:
+    case MCC_TAC_OPERATION_TYPE_OR:
+    case MCC_TAC_OPERATION_TYPE_FAC:
 		free(retval);
-		retval = mCc_assembly_condition(tac);
-		break;
-	case MCC_TAC_OPERATION_TYPE_AND:
-	case MCC_TAC_OPERATION_TYPE_OR:
-		free(retval);
-		retval = NULL;
-		break;
-	case MCC_TAC_OPERATION_TYPE_FAC:
-		free(retval);
-		return mCc_assembly_factorial(tac);
+        MALLOC(condition, sizeof(condition))
+        condition->op = op;
+        condition->lhs = tac->lhs;
+        condition->rhs = tac->rhs;
+        in_condition=true;
+		return NULL;
 	default:
 		printf("error");
 		break;
@@ -778,150 +800,6 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac)
 
 bool is_float(char *identifier) {
 	return strncmp(get_register(identifier), "%s", 2) == 0;
-}
-
-struct mCc_assembly_line *mCc_assembly_factorial(struct mCc_tac_list *tac)
-{
-	NEW_TRIPLE_LINE
-	retval->type = MCC_ASSEMBLY_PUSH;
-	retval->instruction =
-		new_string("\tpushl\t%s", get_register(tac->identifier3));
-
-	if (registers->eax != NULL) {
-		char *old = registers->eax;
-		struct mCc_assembly_line* temp2;
-		MALLOC(temp2,sizeof(struct mCc_assembly_line))
-		temp2->next=retval;
-		temp2->prev=NULL;
-		retval->prev=temp2;
-		temp2->type = MCC_ASSEMBLY_MOV;
-		free_register(old);
-		get_register(tac->identifier1);
-
-		temp2->instruction=new_string("\tmovl\t%s, %s", "%eax", get_register(old));
-
-		temp->type = MCC_ASSEMBLY_CALL;
-		temp->instruction = new_string("\tcall\t%s", "factorial_builtin");
-		temp1->type = MCC_ASSEMBLY_MOV;
-		temp1->instruction = new_string("\tmovl\t%s, %s", "%eax",
-										get_register(tac->identifier1));
-		return temp2;
-	}
-	free_register(tac->identifier3);
-	temp->type = MCC_ASSEMBLY_CALL;
-	temp->instruction = new_string("\tcall\t%s", "factorial_builtin");
-	temp1->type = MCC_ASSEMBLY_MOV;
-	temp1->instruction = new_string("\tmovl\t%s, %s", "%eax",
-					get_register(tac->identifier1));
-	return retval;
-}
-
-struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac)
-{
-	NEW_SINGLE_LINE
-
-	retval->type = MCC_ASSEMBLY_CMP;
-	if (tac->next->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {
-		jump_cond = tac->binary_op_type;
-		retval->instruction =
-			new_string("\tcmpl\t%s, %s", get_register(tac->rhs),
-				   get_register(tac->lhs));
-		free_register(tac->lhs);
-		free_register(tac->rhs);
-	} else {
-		free(retval);
-		retval = mCc_assembly_nested_condition(tac);
-		free_register(tac->lhs);
-		free_register(tac->rhs);
-	}
-	return retval;
-}
-
-struct mCc_assembly_line *
-mCc_assembly_nested_condition(struct mCc_tac_list *tac)
-{
-	NEW_DOUBLE_LINE
-	retval->type == MCC_ASSEMBLY_CMP;
-	retval->instruction =
-		new_string("\tcmpl\t%s, %s", get_register(tac->rhs),
-			   get_register(tac->lhs));
-	struct mCc_tac_list *current = tac;
-	int and_or = 0;
-	while (current->type != MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {
-		if (current->type == MCC_TAC_ELEMENT_TYPE_BINARY)
-			and_or = current->binary_op_type;
-		current = current->next;
-	}
-	if (and_or == MCC_TAC_OPERATION_TYPE_AND) {
-		jump_cond = tac->binary_op_type;
-		if (current == tac->next->next) {
-			retval->next = NULL;
-			free(temp);
-			return retval;
-		}
-		struct mCc_assembly_line *t =
-			mCc_assembly_conditional_jump(current);
-		temp->type = t->type;
-		temp->instruction = t->instruction;
-		free(t);
-	} else {
-		jump_cond = negate_binary_op_type(tac->binary_op_type);
-		if (current == tac->next->next) {
-			jump_cond = tac->binary_op_type;
-			retval->next = NULL;
-			free(temp);
-			return retval;
-		}
-		struct mCc_assembly_line *t =
-			mCc_assembly_conditional_jump(current->next);
-		temp->type = t->type;
-		temp->instruction = t->instruction;
-		free(t);
-	}
-	return retval;
-}
-
-struct mCc_assembly_line *
-mCc_assembly_conditional_jump(struct mCc_tac_list *tac)
-{
-	NEW_SINGLE_LINE
-	char *identifier;
-	if (tac->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP)
-		identifier = tac->jump->identifier1;
-	else
-		identifier = tac->identifier1;
-	retval->type = MCC_ASSEMBLY_JMP;
-	switch (jump_cond) {
-	case MCC_TAC_OPERATION_TYPE_EQ:
-		retval->instruction =
-			new_string("\tjne\t%s", get_label(identifier));
-		break;
-	case MCC_TAC_OPERATION_TYPE_NE:
-		retval->instruction =
-			new_string("\tje\t%s", get_label(identifier));
-		break;
-	case MCC_TAC_OPERATION_TYPE_LT:
-		retval->instruction =
-			new_string("\tjge\t%s", get_label(identifier));
-		break;
-	case MCC_TAC_OPERATION_TYPE_GT:
-		retval->instruction =
-			new_string("\tjle\t%s", get_label(identifier));
-		break;
-	case MCC_TAC_OPERATION_TYPE_LE:
-		retval->instruction =
-			new_string("\tjg\t%s", get_label(identifier));
-		break;
-	case MCC_TAC_OPERATION_TYPE_GE:
-		retval->instruction =
-			new_string("\tjl\t%s", get_label(identifier));
-		break;
-	default:
-		printf("error");
-		break;
-	}
-	jump_cond = -1;
-	return retval;
 }
 
 struct mCc_assembly_line *mCc_assembly_jump(struct mCc_tac_list *tac)
@@ -942,14 +820,14 @@ struct mCc_assembly_line *mCc_assembly_copy_identifier(struct mCc_tac_list *tac)
 		//FLOAT
 		if (get_var(tac->copy_identifier)->size == 8) {
 			retval->instruction =
-				new_string("\tflds\t-%d(%s)",
+				new_string("\tflds\t%d(%s)",
 					   get_var(tac->copy_identifier)
 						   ->stack_diff,
 					   "%ebp");
 			set_float_register(tac->identifier1);
 		} else //OTHER
 			retval->instruction = new_string(
-				"\tmovl\t-%d(%s), %s",
+				"\tmovl\t%d(%s), %s",
 				get_var(tac->copy_identifier)
 					->stack_diff,
 				"%ebp", get_register(tac->identifier1));
@@ -957,11 +835,11 @@ struct mCc_assembly_line *mCc_assembly_copy_identifier(struct mCc_tac_list *tac)
 
 		if (is_float(tac->copy_identifier))
 			retval->instruction = new_string(
-				"\tfstps\t-%d(%s)",
+				"\tfstps\t%d(%s)",
 				get_var(tac->identifier1)->stack_diff, "%ebp");
 		else
 			retval->instruction = new_string(
-				"\tmovl\t%s,-%d(%s)",
+				"\tmovl\t%s,%d(%s)",
 				get_register(tac->copy_identifier),
 				get_var(tac->identifier1)->stack_diff, "%ebp");
 		free_register(tac->copy_identifier);
@@ -1002,6 +880,14 @@ struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac)
 
 /****************************************************************/
 /****************************************************************/
+
+struct condition_helper * new_cond()
+{
+    struct condition_helper * retval = malloc(sizeof(struct condition_helper));
+    retval->lhs=NULL;
+    retval->rhs=NULL;
+    retval->identifier = NULL;
+}
 
 bool is_register(char *identifier)
 {
@@ -1078,17 +964,40 @@ void set_var(int size, char *identifier)
 	}
 	if (stack->counter == 0) {
 		MALLOC_((stack->variables), (sizeof(struct variable)))
-		stack->variables[stack->counter].stack_diff = size;
+		stack->variables[stack->counter].stack_diff = -size;
 		stack->variables[stack->counter].size = size;
 	} else {
 		REALLOC_((stack->variables),
 			 ((stack->counter + 1) * sizeof(struct variable)))
-		stack->variables[stack->counter].stack_diff =
-			stack->variables[stack->counter - 1].stack_diff + size;
+		stack->variables[stack->counter].stack_diff = (
+			stack->variables[stack->counter - 1].stack_diff - size);
 		stack->variables[stack->counter].size = size;
 	}
 	stack->variables[stack->counter].identifier = identifier;
 	stack->counter++;
+}
+
+void set_param_var(int size, char *identifier)
+{
+    for (int i = 0; i < param_stack->counter; ++i) {
+        if (param_stack->variables[i].identifier == NULL)
+            continue;
+        if (strcmp(param_stack->variables[i].identifier, identifier) == 0)
+            return;
+    }
+    if (param_stack->counter == 0) {
+        MALLOC_((param_stack->variables), (sizeof(struct variable)))
+        param_stack->variables[param_stack->counter].stack_diff = size;
+        param_stack->variables[param_stack->counter].size = size;
+    } else {
+        REALLOC_((param_stack->variables),
+                 ((param_stack->counter + 1) * sizeof(struct variable)))
+        param_stack->variables[param_stack->counter].stack_diff =
+                param_stack->variables[param_stack->counter - 1].stack_diff + size;
+        param_stack->variables[param_stack->counter].size = size;
+    }
+    param_stack->variables[param_stack->counter].identifier = identifier;
+    param_stack->counter++;
 }
 
 struct variable *get_var(char *identifier)
@@ -1097,6 +1006,10 @@ struct variable *get_var(char *identifier)
 		if (strcmp(stack->variables[i].identifier, identifier) == 0)
 			return &stack->variables[i];
 	}
+    for (int i = 0; i < param_stack->counter; ++i) {
+        if (strcmp(param_stack->variables[i].identifier, identifier) == 0)
+            return &param_stack->variables[i];
+    }
 	return NULL;
 }
 
@@ -1105,19 +1018,35 @@ void new_stack()
 	MALLOC_(stack, sizeof(struct stack_helper))
 	stack->counter = 0;
 	stack->variables = NULL;
+
+    MALLOC_(param_stack, sizeof(struct stack_helper))
+    param_stack->counter = 0;
+    param_stack->variables = NULL;
 }
 
 void delete_stack()
 {
 	free(stack->variables);
 	free(stack);
+
+    free(param_stack->variables);
+    free(param_stack);
 }
 
 int get_stack_size()
 {
 	if (stack->counter == 0)
-		return 0;
-	return stack->variables[stack->counter - 1].stack_diff;
+        if(param_stack->counter == 0)
+            return 0;
+        else
+            return param_stack->variables[param_stack->counter -1].stack_diff;
+
+    struct stack_helper * a=stack;
+    struct variable a1=a->variables[0];
+    struct variable a2=a->variables[1];
+    if(param_stack->counter == 0)
+        return -(stack->variables[stack->counter - 1].stack_diff);
+    return (-(stack->variables[stack->counter - 1].stack_diff)) + param_stack->variables[param_stack->counter -1].stack_diff;
 }
 
 void free_register(char *identifier)
@@ -1204,7 +1133,6 @@ char *get_register(char *identifier)
 		registers->edx = identifier;
 		return "%edx";
 	}
-	struct regs *f = registers;
 	return "temp";
 }
 
@@ -1223,7 +1151,6 @@ bool has_register(char *identifier)
 
 void set_float_register(char *identifier)
 {
-	struct regs *t = registers;
 	if (registers->st0 == NULL) {
 		registers->st0 = identifier;
 		return;
@@ -1270,13 +1197,52 @@ void update_register(char *old_identifier, char *new_identifier)
 		registers->st3 = new_identifier;
 }
 
+
+void move_line_to_end(struct mCc_assembly_line *current, struct mCc_tac_list *tac, char *identifier) {
+    if(identifier == NULL)
+        return;
+    free_register(identifier);
+    while(tac != NULL)
+    {
+        switch(tac->type)
+        {
+            case MCC_TAC_ELEMENT_TYPE_COPY_LITERAL:
+                if(tac->identifier1 == identifier)
+                {
+                    current->next = mCc_assembly_copy_literal(tac);
+                    return;
+                }
+                break;
+            case MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER:
+                if(tac->identifier1 == identifier || tac->copy_identifier == identifier)
+                {
+                    current->next = mCc_assembly_copy_identifier(tac);
+                    return;
+                }
+                break;
+            case MCC_TAC_ELEMENT_TYPE_BINARY:
+            case MCC_TAC_ELEMENT_TYPE_UNARY:
+                if(tac->identifier1 == identifier)
+                {
+                    current->next = mCc_assembly_operation(tac);
+                    return;
+                }
+                break;
+            default:
+                break;
+
+        }
+        tac = tac->prev;
+    }
+}
+
 struct mCc_assembly_line *reorder_registers(struct mCc_tac_list *tac,
 					    struct mCc_assembly_line *current)
 {
 	NEW_DOUBLE_LINE
 
 	free_all_registers();
-	temp->instruction = new_string("\tmovl\t%s, -%d(%s,%s,4)",
+	temp->instruction = new_string("\tmovl\t%s, %d(%s,%s,4)",
 				       get_register(tac->identifier3),
 				       get_var(tac->identifier1)->stack_diff,
 				       "%ebp", get_register(tac->identifier2));

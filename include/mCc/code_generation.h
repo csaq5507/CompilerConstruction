@@ -18,11 +18,13 @@ extern "C" {
 
 /**********************************************STRUCT/VARS*/
 
-int jump_cond;
+bool in_condition;
 int string_label_idx;
 int float_label_idx;
 int label_idx;
 int builtin;
+bool move_registers_at_end;
+
 struct label_identification {
 	char *key;
 	char *value;
@@ -47,6 +49,7 @@ struct stack_helper {
 };
 
 struct stack_helper *stack;
+struct stack_helper *param_stack;
 
 struct regs {
 	char *eax;
@@ -60,6 +63,19 @@ struct regs {
 };
 
 struct regs *registers;
+
+
+
+struct condition_helper{
+	struct condition_helper *lhs;
+	struct condition_helper *rhs;
+	enum mCc_tac_operation_type op;
+	char * identifier;
+};
+
+struct condition_helper * condition;
+
+struct condition_helper * new_cond();
 
 enum instruction {
 	MCC_ASSEMBLY_LABEL,
@@ -140,14 +156,6 @@ struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac);
 
-struct mCc_assembly_line *
-mCc_assembly_conditional_jump(struct mCc_tac_list *tac);
-
-struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac);
-
-struct mCc_assembly_line *
-mCc_assembly_nested_condition(struct mCc_tac_list *tac);
-
 struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac);
 
 /***************************************/
@@ -163,6 +171,8 @@ void set_label(char *key, char *value);
 char *get_label(char *key);
 
 void set_var(int size, char *identifier);
+
+void set_param_var(int size, char *identifier);
 
 struct variable *get_var(char *identifier);
 
@@ -183,6 +193,8 @@ void set_float_register(char *identifier);
 void update_register(char *old_identifier, char *new_identifier);
 
 bool is_float(char *identifier);
+
+void move_line_to_end(struct mCc_assembly_line *current, struct mCc_tac_list * tac, char *identifier);
 
 
 struct mCc_assembly_line *reorder_registers(struct mCc_tac_list *tac,

@@ -327,7 +327,7 @@ static void tac_function_def(struct mCc_ast_function_def *f, void *data)
 	tac_list *end = tac_new_list();
 
 	start->type = MCC_TAC_ELEMENT_TYPE_FUNCTION_START;
-
+    start->num_function_param = f->params->counter;
 	start->identifier1 = copy_string(f->identifier->renamed);
 
 	end->type = MCC_TAC_ELEMENT_TYPE_FUNCTION_END;

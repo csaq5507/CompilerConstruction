@@ -282,6 +282,7 @@ int main(int argc, char *argv[])
 
     free(assemblyFileName);
 
+    mCc_assembly_delete(ass);
 
     mCc_tac_delete(_tac);
 

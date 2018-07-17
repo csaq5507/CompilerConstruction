@@ -18,12 +18,11 @@ extern "C" {
 
 /**********************************************STRUCT/VARS*/
 
-bool in_condition;
+int jump_cond;
 int string_label_idx;
 int float_label_idx;
 int label_idx;
 int builtin;
-bool move_registers_at_end;
 
 struct label_identification {
 	char *key;
@@ -51,6 +50,17 @@ struct stack_helper {
 struct stack_helper *stack;
 struct stack_helper *param_stack;
 
+struct my_reg{
+char * identifier;
+};
+
+struct lost_regs {
+    int counter;
+    struct my_reg* reg;
+};
+
+struct lost_regs* lost_registers;
+
 struct regs {
 	char *eax;
 	char *ebx;
@@ -63,21 +73,6 @@ struct regs {
 };
 
 struct regs *registers;
-
-
-
-struct condition_helper{
-	struct condition_helper *lcond;
-	struct condition_helper *rcond;
-	enum mCc_tac_operation_type op;
-	char * identifier;
-	char * lhs;
-	char * rhs;
-};
-
-struct condition_helper * condition;
-
-struct condition_helper * new_cond();
 
 enum instruction {
 	MCC_ASSEMBLY_LABEL,
@@ -158,9 +153,15 @@ struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac);
 
-struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac);
+struct mCc_assembly_line *
+mCc_assembly_conditional_jump(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac);
+
+struct mCc_assembly_line *
+mCc_assembly_nested_condition(struct mCc_tac_list *tac);
+
+struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac);
 
 /***************************************/
 /***************************************/
@@ -200,6 +201,7 @@ bool is_float(char *identifier);
 
 void move_line_to_end(struct mCc_assembly_line *current, struct mCc_tac_list * tac, char *identifier);
 
+void add_lost_register(char* identifier);
 
 struct mCc_assembly_line *reorder_registers(struct mCc_tac_list *tac,
 					    struct mCc_assembly_line *current);

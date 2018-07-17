@@ -1,14 +1,14 @@
-void main(){
-int a;
-int b;
-int c;
-a = 1;
-b = 5;
-if (!((a > 10) && ((a+1) < 10))) {
-a = 15;
-}
-else {
-a = 10;
-}
-a = 5;
+void main()
+{
+    int a;
+    int b;
+    a = 5;
+    b  = 10;
+    if(( (!(a < 10)) || (b > 40) ) && (a < b))
+        print_int(a);
+
+    print_nl();
+
+
+
 }

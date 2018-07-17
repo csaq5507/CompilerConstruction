@@ -3,24 +3,19 @@
 */
 
 int ackermann(int m, int n){
+    print("m: ");
+    print_int(m);
+    print(", n: ");
+    print_int(n);
+    print_nl();
+    int a;
+    a=read_int();
         if ( (m == 0) && (n != 1000) ) return n + 1;
         if (n == 0) return ackermann(m - 1, 1);
         return ackermann(m - 1, ackermann(m, n - 1));
 }
 
 void main() {
-    int times;
-    print("number of float multiplications: ");
-    times = read_int();
-    print_nl();
-    int i;
-    float result;
-    result = 1.6;
-    i = 0;
-    while (i < times) {
-       result = result * result;
-       i = i+1;
-    }
     int m;
     int n;
     print("m: ");

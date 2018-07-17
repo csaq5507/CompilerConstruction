@@ -38,7 +38,7 @@ const char *ERROR_WRONG_PARAMETER_TYPE =
 const char *ERROR_WRONG_RETURN_TYPE =
 	"wrong return of type %s for function, expected %s";
 const char *NOT_ALLOWED_ASSIGNMENT =
-	"array on left of assignment not allowed";
+	"array on left of assignment %s not allowed";
 const char *ERROR_WRONG_ASSIGNMENT_TYPE =
 	"assignment types not compatible: %s = %s";
 const char *ERROR_CONDITION_NOT_BOOLEAN =

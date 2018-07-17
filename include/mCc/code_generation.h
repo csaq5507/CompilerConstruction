@@ -203,9 +203,6 @@ void move_line_to_end(struct mCc_assembly_line *current, struct mCc_tac_list * t
 
 void add_lost_register(char* identifier);
 
-struct mCc_assembly_line *reorder_registers(struct mCc_tac_list *tac,
-					    struct mCc_assembly_line *current);
-
 bool has_register(char *identifier);
 
 int negate_binary_op_type(enum mCc_tac_operation_type type);

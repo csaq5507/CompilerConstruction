@@ -178,8 +178,14 @@ cfg_list *generate_block(tac_list *head, tac_list *last_head)
 	} else if (head->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {
 		ret->tac_end = head->prev;
 		cfg_list *help = cfg_new_list();
-		help->tac_start = head->next->next;
-		help->tac_end = head->jump->prev;
+        if (head->next->type == MCC_TAC_ELEMENT_TYPE_LABEL)
+		    help->tac_start = head->next->next;
+        else
+            help->tac_start = head->next;
+        if (head->jump->prev->type == MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP)
+		    help->tac_end = head->jump->prev->prev;
+        else
+            help->tac_end = head->jump->prev;
 
         tac_list *left_side = head->jump->next;
         while (left_side->type == MCC_TAC_ELEMENT_TYPE_LABEL ||

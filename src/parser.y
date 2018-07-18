@@ -29,7 +29,8 @@ extern int line_counter;
 
 %token <long>       INT_LITERAL    "integer literal"
 %token <double>     FLOAT_LITERAL   "float literal"
-%token <bool>       BOOL_LITERAL    "boolean literal"
+%token <bool>       BOOL_LITERAL_TRUE    "boolean literal"
+%token <bool>       BOOL_LITERAL_FALSE    "boolean literal"
 %token <char*>      STRING_LITERAL  "string literal"
 
 %token <char*>      IDENTIFIER      "identifier"
@@ -134,7 +135,8 @@ type            : INT               { $$ = MCC_AST_LITERAL_TYPE_INT; }
 
 literal         : INT_LITERAL       { $$ = mCc_ast_new_literal_int($1);    }
                 | FLOAT_LITERAL     { $$ = mCc_ast_new_literal_float($1);  }
-                | BOOL_LITERAL      { $$ = mCc_ast_new_literal_bool($1);   }
+                | BOOL_LITERAL_TRUE      { $$ = mCc_ast_new_literal_bool(true);   }
+                | BOOL_LITERAL_FALSE      { $$ = mCc_ast_new_literal_bool(false);   }
                 | STRING_LITERAL    { $$ = mCc_ast_new_literal_string($1); }
                 ;
 

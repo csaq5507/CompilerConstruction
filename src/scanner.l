@@ -47,8 +47,8 @@ comment_linebreak_r	[ \t]*[\r][ \t]*
 
 {float_literal}   { yylval->TK_FLOAT_LITERAL = atof(yytext); return TK_FLOAT_LITERAL; }
 
-"true"   			{ yylval->TK_BOOL_LITERAL = atof(yytext); return TK_BOOL_LITERAL; }
-"false"    			{ yylval->TK_BOOL_LITERAL = atof(yytext); return TK_BOOL_LITERAL; }
+"true"   			{ yylval->TK_BOOL_LITERAL_TRUE = atof(yytext); return TK_BOOL_LITERAL_TRUE; }
+"false"    			{ yylval->TK_BOOL_LITERAL_FALSE = atof(yytext); return TK_BOOL_LITERAL_FALSE; }
 
 {string_literal}    { yylval->TK_STRING_LITERAL = yytext; return TK_STRING_LITERAL; }
 

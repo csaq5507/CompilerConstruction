@@ -60,7 +60,7 @@ TEST(tac_generation, tac_generation_conditional_jump)
     struct mCc_tac_list *tac2 = get_at(tac,5);
     ASSERT_NE(tac2, nullptr);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP,tac2->type);
-    ASSERT_STREQ("L0",tac2->jump->identifier1);
+    ASSERT_STREQ("L1",tac2->jump->identifier1);
     tac2=get_at(tac,5);
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP,tac2->type);
     mCc_tac_delete(tac);
@@ -111,14 +111,13 @@ TEST(tac_generation, empty_if1)
 
     mCc_delete_result(&result);
 
-    struct mCc_tac_list *tac1 = get_at(tac,7);
-    struct mCc_tac_list *tac2 = get_at(tac,8);
+    struct mCc_tac_list *tac_temp = tac;
 
-    ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP,tac1->type);
-    ASSERT_STREQ("L0",tac1->jump->identifier1);
-
-    ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_LABEL,tac2->type);
-    ASSERT_STREQ("L0",tac2->identifier1);
+    while (tac_temp != NULL) {
+        ASSERT_NE(tac_temp->type, MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP);
+        ASSERT_NE(tac_temp->type, MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP);
+        tac_temp = tac_temp->next;
+    }
 
     mCc_tac_delete(tac);
 }
@@ -142,9 +141,7 @@ TEST(tac_generation, empty_if2)
     struct mCc_tac_list *tac0 = get_at(tac,6);
     struct mCc_tac_list *tac1 = get_at(tac,7);
 
-    struct mCc_tac_list *tac3 = get_at(tac,10);
-    struct mCc_tac_list *tac4 = get_at(tac,11);
-    struct mCc_tac_list *tac5 = get_at(tac,12);
+    struct mCc_tac_list *tac3 = get_at(tac,8);
 
 
     ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_BINARY,tac0->type);
@@ -154,14 +151,11 @@ TEST(tac_generation, empty_if2)
     ASSERT_STREQ("L0",tac1->jump->identifier1);
 
 
-    ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP,tac3->type);
-    ASSERT_STREQ("L1",tac3->jump->identifier1);
-
-    ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_LABEL,tac4->type);
-    ASSERT_STREQ("L0",tac4->identifier1);
-
-    ASSERT_EQ(MCC_TAC_ELEMENT_TYPE_LABEL,tac5->type);
-    ASSERT_STREQ("L1",tac5->identifier1);
+    while (tac3 != NULL) {
+        ASSERT_NE(tac3->type, MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP);
+        ASSERT_NE(tac3->type, MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP);
+        tac3 = tac3->next;
+    }
 
     mCc_tac_delete(tac);
 }

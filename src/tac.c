@@ -236,7 +236,6 @@ static void negate_tac (struct mCc_ast_expression *expression) {
             expression->rhs->tac_end = expression->tac_end;
         }
         add_jump(expression->lhs->tac_start, expression->lhs->tac_end, label);
-        tac_list *tmp = expression->tac_start;
     } else {
         tac_list *tmp = expression->tac_end;
         while (tmp->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP ||
@@ -269,7 +268,6 @@ static void negate_tac_single (struct mCc_ast_single_expression *expression) {
         negate_tac(expression->expression);
         expression->tac_end = expression->expression->tac_end;
     }
-    // TODO other types
 }
 
 static void tac_single_expression(struct mCc_ast_single_expression *expression,
@@ -410,7 +408,6 @@ static void generate_tac_operation_or(struct mCc_ast_expression *expression) {
         if (expression->lhs->type == MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH) {
             expression->lhs->expression->tac_end = expression->lhs->tac_end;
         }
-        // TODO other types
 
 		mCc_tac_delete(lhs_last);
 
@@ -436,7 +433,8 @@ static void generate_tac_operation_or(struct mCc_ast_expression *expression) {
     expression->lhs->tac_end = lhs_last;
     if (expression->lhs->type == MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH) {
         expression->lhs->expression->tac_end = expression->lhs->tac_end;
-        expression->lhs->expression->rhs->tac_end = expression->lhs->tac_end;
+        if (expression->lhs->expression->type == MCC_AST_EXPRESSION_TYPE_BINARY)
+            expression->lhs->expression->rhs->tac_end = expression->lhs->tac_end;
     }
 	negate_tac_single(expression->lhs);
 	add_jump(expression->lhs->tac_start, expression->lhs->tac_end,
@@ -481,6 +479,7 @@ static void generate_tac_operation_and(struct mCc_ast_expression *expression) {
 
     if (rhs_last->type == MCC_TAC_ELEMENT_TYPE_LABEL ||
             rhs_last->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {
+        free(jump_rhs);
         jump_rhs = rhs_last;
     } else {
         jump_rhs->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
@@ -490,6 +489,7 @@ static void generate_tac_operation_and(struct mCc_ast_expression *expression) {
 
     if (lhs_last->type == MCC_TAC_ELEMENT_TYPE_LABEL ||
             lhs_last->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {
+        free(jump_lhs);
         jump_lhs = lhs_last;
     } else {
         jump_lhs->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
@@ -736,11 +736,11 @@ static void tac_stmt(struct mCc_ast_stmt *stmt, void *data)
 static struct mCc_ast_compound_stmt *delete_stmt_from_list(struct mCc_ast_compound_stmt *c_stmt,
                                                                   int position) {
     assert(c_stmt);
-
-    for (int i = position; i < c_stmt->counter - 1; i++) {
+    int i;
+    for (i = position; i < c_stmt->counter - 1; i++) {
         c_stmt->statements[i] = c_stmt->statements[i + 1];
     }
-
+    c_stmt->counter = c_stmt->counter - 1;
     return c_stmt;
 }
 

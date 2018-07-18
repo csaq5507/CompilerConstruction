@@ -29,8 +29,8 @@ extern int line_counter;
 
 %token <long>       INT_LITERAL    "integer literal"
 %token <double>     FLOAT_LITERAL   "float literal"
-%token <bool>       BOOL_LITERAL_TRUE    "boolean literal"
-%token <bool>       BOOL_LITERAL_FALSE    "boolean literal"
+%token <bool>       BOOL_LITERAL_TRUE    "true literal"
+%token <bool>       BOOL_LITERAL_FALSE    "false literal"
 %token <char*>      STRING_LITERAL  "string literal"
 
 %token <char*>      IDENTIFIER      "identifier"

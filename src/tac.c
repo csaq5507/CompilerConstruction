@@ -1340,8 +1340,10 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
         label->next = temp_else_stmt_start;
         temp_else_stmt_start->prev = label;
 
-        temp_else_stmt_end->next = label_end;
-        label_end->prev = temp_else_stmt_end;
+        if (temp_else_stmt_end != label_end) {
+            temp_else_stmt_end->next = label_end;
+            label_end->prev = temp_else_stmt_end;
+        }
 
         stmt->tac_end = label_end;
 

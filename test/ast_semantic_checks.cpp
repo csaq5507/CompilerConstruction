@@ -133,7 +133,8 @@ TEST(semantic_check, wrong_assignment_type2)
 	ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
 	char error_msg[1024] = {0};
-	snprintf(error_msg, sizeof(error_msg), NOT_ALLOWED_ASSIGNMENT);
+	snprintf(error_msg, sizeof(error_msg), ERROR_WRONG_ASSIGNMENT_TYPE,
+			 "int", "int array");
 
 	ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 
@@ -153,7 +154,7 @@ TEST(semantic_check, wrong_assignment_type3)
     ASSERT_EQ(MCC_PARSER_STATUS_ERROR, result.status);
 
     char error_msg[1024] = {0};
-    snprintf(error_msg, sizeof(error_msg), NOT_ALLOWED_ASSIGNMENT);
+    snprintf(error_msg, sizeof(error_msg), NOT_ALLOWED_ASSIGNMENT, "a");
 
     ASSERT_STREQ(error_msg, result.errors->errors[0].error_msg);
 

@@ -58,6 +58,14 @@ const char *print_literal_type(enum mCc_ast_type type)
 		return "bool";
 	case MCC_AST_TYPE_VOID:
 		return "void";
+	case MCC_AST_TYPE_INT_ARRAY:
+		return "int array";
+	case MCC_AST_TYPE_STRING_ARRAY:
+		return "string array";
+	case MCC_AST_TYPE_FLOAT_ARRAY:
+		return "float array";
+	case MCC_AST_TYPE_BOOL_ARRAY:
+		return "bool array";
 	default:
 		return "unknown";
 	}
@@ -298,9 +306,7 @@ static void ast_semantic_check_ass_stmt(struct mCc_ast_assignment *stmt,
 				break;
 		}
 	}
-	if (stmt->expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE &&
-			stmt->expression->single_expr->type == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER)
-		if (stmt->expression->single_expr->identifier->size > 1) {
+		if (stmt->identifier->size > 1) {
 			char error_msg[1024] = {0};
 			snprintf(error_msg, sizeof(error_msg),
 					 NOT_ALLOWED_ASSIGNMENT,stmt->identifier->name);

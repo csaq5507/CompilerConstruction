@@ -1,3 +1,19 @@
+bool check_primes_(int n, int i)
+{
+    if (n == i) {
+        return true;
+    } else if (0 == modulo(n, i)) {
+        return false;
+    }
+    i = i + 1;
+    return check_primes_(n, i);
+}
+
+bool check_primes(int n)
+{
+	return check_primes_(n, 2);
+}
+
 int modulo(int a, int b)
 {
     int tmp;
@@ -5,22 +21,6 @@ int modulo(int a, int b)
     tmp = b * tmp;
     return a - tmp;
 
-}
-
-int check_primes_(int n, int i)
-{
-    if (n == i) {
-        return 1;
-    } else if (0 == modulo(n, i)) {
-        return 0;
-    }
-    i = i + 1;
-    return check_primes_(n, i);
-}
-
-int check_primes(int n)
-{
-	return check_primes_(n, 2);
 }
 
 void main()
@@ -31,10 +31,10 @@ void main()
 	n = read_int();
 	print_nl();
 
-	int result;
+	bool result;
 	result = check_primes(n);
 
-	if (result != 0) {
+	if (result) {
 	    print("Number was a prime!");
 	} else {
 	    print("Number was no prime!");

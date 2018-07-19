@@ -272,30 +272,27 @@ int main(int argc, char *argv[])
         mCc_cfg_print_complete(cfg, _cfg);
     }
 
-    //struct mCc_assembly *ass = mCc_assembly_generate(_tac, outputFileName);
+    struct mCc_assembly *ass = mCc_assembly_generate(_tac, outputFileName);
 
     mCc_delete_result(&result);
     mCc_cfg_delete(_cfg);
 
-    //mCc_assembly_print(assembly, ass);
+    mCc_assembly_print(assembly, ass);
     fclose(assembly);
+	char *command = new_string("gcc -m32 %s -o %s", assemblyFileName,outputFileName);
 
-/*
-	char *command = new_string("gcc %s", assemblyFileName);
-
-    printf("%s: %d", command, system(command));
-    system("chmod 777 a.out");*/
-    //system("./a.out");
-	//free(command);
+    system(command);
+    free(command);
+    command=new_string("chmod 777 %s",outputFileName);
+    system(command);
+	free(command);
 
     free(assemblyFileName);
 
-    //mCc_assembly_delete(ass);
+    mCc_assembly_delete(ass);
 
     mCc_tac_delete(_tac);
 
-
-     //mCc_assembly_delete(ass);
     /* cleanup */
     clean_up(error, graph, tac, file_std_err, output, cfg, outputFileName);
 

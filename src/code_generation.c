@@ -287,11 +287,11 @@ struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac)
 struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac)
 {
 	NEW_SINGLE_LINE
-	retval->type = MCC_ASSEMBLY_PUSH;
+	retval->type = MCC_ASSEMBLY_MOV;
 	retval->instruction =
-		new_string("\tpushl\t%d(%s,%s,4)",
+		new_string("\tmovl\t%d(%s,%s,4), %s",
 			   get_var(tac->identifier2)->stack_diff,
-			   "%ebp", get_register(tac->identifier3));
+			   "%ebp", get_register(tac->identifier3), get_register(tac->identifier1));
 	free_register(tac->identifier3);
 	return retval;
 }
@@ -1136,7 +1136,7 @@ void set_param_var(int size, char *identifier)
         REALLOC_((param_stack->variables),
                  ((param_stack->counter + 1) * sizeof(struct variable)))
         param_stack->variables[param_stack->counter].stack_diff =
-                param_stack->variables[param_stack->counter - 1].stack_diff + size;
+                param_stack->variables[param_stack->counter - 1].stack_diff + param_stack->variables[param_stack->counter - 1].size;
         param_stack->variables[param_stack->counter].size = size;
     }
     param_stack->variables[param_stack->counter].identifier = identifier;

@@ -21,7 +21,7 @@ void main()
 	print("n: ");
 	n = read_int();
 
-	if ((m < 0) || (n < 0)) {
+	if (m < 0 || n < 0) {
 		print("m and n must be greater or equal to 0");
 		print_nl();
 		return;

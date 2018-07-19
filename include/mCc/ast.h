@@ -418,7 +418,7 @@ ast_literal *mCc_ast_new_literal_int(long value);
 
 ast_literal *mCc_ast_new_literal_float(double value);
 
-ast_literal *mCc_ast_new_literal_bool(bool value);
+ast_literal *mCc_ast_new_literal_bool(char* value);
 
 ast_literal *mCc_ast_new_literal_string(char *value);
 

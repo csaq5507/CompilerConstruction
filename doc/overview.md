@@ -83,6 +83,19 @@ Note that for this very purpose a dedicated executable `mC_to_dot` is created.
 It is recommended to add other utility executables for debugging and scripting purposes.
 Prefer this method to adding additional flags to the main compiler executable `mCc`.
 
+## Doxygen
+
+Meson will generate a `doc` target, given `doxygen` was found on your system.
+You'll need to manually invoke it (`ninja doc`) to generate doxygen output.
+The resulting documentation will be placed inside `builddir/doc`.
+
+## Coverage
+
+If `lcov`, `gcovr`, and `genhtml` are available on your system, you can generate HTML coverage report directly via Meson.
+See [the respective documentation](http://mesonbuild.com/howtox.html#producing-a-coverage-report) for details.
+
+This will also generate an XML report which can be loaded in most IDEs (via a plugin).
+
 ## Current State
 
 Since this is only here to get you started, only a small portion of the grammar has been implemented.

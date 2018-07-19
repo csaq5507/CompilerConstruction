@@ -159,13 +159,13 @@ ast_literal *mCc_ast_new_literal_float(double value)
 	return lit;
 }
 
-ast_literal *mCc_ast_new_literal_bool(bool value)
+ast_literal *mCc_ast_new_literal_bool(char * value)
 {
 	ast_literal *lit;
     MALLOC(lit,sizeof(ast_literal))
 
     lit->type = MCC_AST_LITERAL_TYPE_BOOL;
-	lit->b_value = value;
+	lit->b_value = strcmp(value,"true")==0?true:false;
 
     ADD_POINTER(p_stack, sizeof(pointer_stack) * (stack_counter + 1), POINTER_LITERAL, stack_counter, lit);
 

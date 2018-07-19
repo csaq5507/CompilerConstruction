@@ -412,7 +412,7 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 		char error_msg[1024] = {0};
 		snprintf(error_msg, sizeof(error_msg), ERROR_MAIN_NOT_VOID,
 			 print_type(f->identifier->d_type));
-		mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
+		if(add_errors) mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
 			      h_result);
 
 		if (has_main == true) {
@@ -420,7 +420,7 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 				 ERROR_DUBLICATE_FUNCTION, f->identifier->name);
 			char *tmp = new_string(ERROR_DUBLICATE_FUNCTION,
 								   f->identifier->name);
-			mCc_add_error(tmp,
+			if(!add_errors) mCc_add_error(tmp,
 				      f->identifier->node.sloc.start_line,
 				      h_result);
 			free(tmp);
@@ -448,7 +448,7 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 		char error_msg[1024] = {0};
 		snprintf(error_msg, sizeof(error_msg), ERROR_DUBLICATE_FUNCTION,
 			 f->identifier->name);
-		mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
+		if(!add_errors) mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
 			      h_result);
 	} else {
 		free(f->identifier->renamed);
@@ -511,7 +511,7 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 
 			char *tmp = new_string(ERROR_DUBLICATE_FUNCTION,
 								   f->identifier->name);
-			mCc_add_error(tmp,
+			if(!add_errors) mCc_add_error(tmp,
 						  f->identifier->node.sloc.start_line,
 						  h_result);
 			free(tmp);
@@ -524,7 +524,7 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 		if (find_element_symbols(table, f->identifier->name) != NULL) {
 			char *tmp = new_string(ERROR_DUBLICATE_FUNCTION,
 								   f->identifier->name);
-			mCc_add_error(tmp,
+			if(!add_errors) mCc_add_error(tmp,
 						  f->identifier->node.sloc.start_line,
 						  h_result);
 			free(tmp);
@@ -572,7 +572,7 @@ static void ast_symbol_table_close_func(struct mCc_ast_function_def *f,
 		char error_msg[1024] = {0};
 		snprintf(error_msg, sizeof(error_msg), ERROR_NO_RETURN,
 			 f->identifier->name);
-		mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
+		if(add_errors) mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
 			      h_result);
 	}
 
@@ -680,7 +680,7 @@ static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt,
 		char error_msg[1024] = {0};
 		snprintf(error_msg, sizeof(error_msg),
 			 ERROR_MISSING_VARIABLE_DEF, stmt->identifier->name);
-		mCc_add_error(error_msg, stmt->identifier->node.sloc.start_line,
+		if(add_errors) mCc_add_error(error_msg, stmt->identifier->node.sloc.start_line,
 			      h_result);
 	} else {
 		free(stmt->identifier->renamed);
@@ -727,7 +727,7 @@ static void single_declaration(struct mCc_ast_declaration *stmt) {
 		snprintf(error_msg, sizeof(error_msg),
 				 ERROR_DUBLICATE_VARIABLE,
 				 stmt->identifier->name);
-		mCc_add_error(error_msg,
+		if(add_errors) mCc_add_error(error_msg,
 					  stmt->identifier->node.sloc.start_line,
 					  h_result);
 	} else {
@@ -776,7 +776,7 @@ static void array_declaration(struct mCc_ast_declaration *stmt) {
 		snprintf(error_msg, sizeof(error_msg),
 				 ERROR_DUBLICATE_VARIABLE,
 				 stmt->identifier->name);
-		mCc_add_error(error_msg,
+		if(add_errors) mCc_add_error(error_msg,
 					  stmt->identifier->node.sloc.start_line,
 					  h_result);
 	} else {
@@ -875,7 +875,7 @@ ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
 			snprintf(error_msg, sizeof(error_msg),
 				 ERROR_MISSING_VARIABLE_DEF,
 				 expression->identifier->name);
-			mCc_add_error(
+			if(add_errors) mCc_add_error(
 				error_msg,
 				expression->identifier->node.sloc.start_line,
 				h_result);
@@ -906,7 +906,7 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 				 ERROR_NUM_ARGUMENTS,
 				 expression->identifier->name, num_args,
 				 expression->arguments->counter);
-			mCc_add_error(
+			if(add_errors) mCc_add_error(
 				error_msg,
 				expression->identifier->node.sloc.start_line,
 				h_result);
@@ -926,7 +926,7 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 		char error_msg[1024] = {0};
 		snprintf(error_msg, sizeof(error_msg), ERROR_NUM_ARGUMENTS,
 			 expression->identifier->name, num_args, 0);
-		mCc_add_error(error_msg,
+		if(add_errors) mCc_add_error(error_msg,
 			      expression->identifier->node.sloc.start_line,
 			      h_result);
 	}
@@ -945,7 +945,7 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 		snprintf(error_msg, sizeof(error_msg),
 			 ERROR_MISSING_FUNCTION_DEF,
 			 expression->identifier->name);
-		mCc_add_error(error_msg,
+		if(add_errors) mCc_add_error(error_msg,
 			      expression->identifier->node.sloc.start_line,
 			      h_result);
 	} else {
@@ -957,6 +957,7 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 struct mCc_parser_result *mCc_ast_symbol_table(struct mCc_parser_result *result)
 {
 	assert(result);
+	add_errors = false;
 
 	h_result = result;
 	struct mCc_ast_function_def_array *f = result->func_def;
@@ -969,12 +970,15 @@ struct mCc_parser_result *mCc_ast_symbol_table(struct mCc_parser_result *result)
 
 	struct mCc_ast_visitor visitor = symbol_table_visitor(table);
 	mCc_ast_symbol_table_add_default_function_names();
-
 	mCc_ast_visit_function_def_array(f, &visitor);
+
+	add_errors = true;
+	mCc_ast_visit_function_def_array(f, &visitor);
+
 	delete_symbol_table_node(table);
 
 	if (!has_main) {
-		mCc_add_error(ERROR_NO_MAIN, 0, h_result);
+		if(add_errors) mCc_add_error(ERROR_NO_MAIN, 0, h_result);
 	}
 
 	delete_current_fun(current_fun);

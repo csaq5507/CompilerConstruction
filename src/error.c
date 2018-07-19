@@ -11,6 +11,8 @@
 void mCc_add_error(const char *error_msg, int error_line,
 		   struct mCc_parser_result *result)
 {
+
+
 	struct mCc_parser_error *error =
 		malloc(sizeof(struct mCc_parser_error));
 	strcpy(error->error_msg, error_msg);

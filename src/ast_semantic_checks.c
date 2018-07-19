@@ -307,11 +307,11 @@ static void ast_semantic_check_ass_stmt(struct mCc_ast_assignment *stmt,
 		}
 	}
 		if (stmt->identifier->size > 1) {
-			char error_msg[1024] = {0};
+			/*char error_msg[1024] = {0};
 			snprintf(error_msg, sizeof(error_msg),
 					 NOT_ALLOWED_ASSIGNMENT,stmt->identifier->name);
 			mCc_add_error(error_msg, stmt->identifier->node.sloc.start_line,
-						  g_result);
+						  g_result);*/
 		}
 	if (stmt->identifier->d_type != stmt->expression->d_type) {
 		char error_msg[1024] = {0};

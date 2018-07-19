@@ -28,6 +28,8 @@ int g_counter;
 struct mCc_parser_result *h_result;
 bool has_main;
 
+bool add_errors;
+
 /* ###################### STRUCTS ###################### */
 
 

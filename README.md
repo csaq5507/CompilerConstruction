@@ -53,6 +53,10 @@ Furthermore, a few micro-benchmarks are provided.
 
 ## Known Issues
 
+- ackermann1 doesn't compile because it contains an error (see ackermann1.error)
+
+
+
 - executing Parser-unit tests (./ut_parser) causes a valgrind error on the "check_syntax_error_msg" test. More information about it in the parser.cpp
 - int[4] = int[5] error is not recognized as wrong assignment
 - executing empty program results in a segmentation fault

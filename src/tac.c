@@ -785,7 +785,6 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
 	assert(data);
 
 
-    tac_list *expression_end = stmt->expression->tac_end;
 
     tac_list *elem_return = tac_new_list();
     elem_return->type = MCC_TAC_ELEMENT_TYPE_RETURN;
@@ -793,6 +792,7 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
 
 
 	if (stmt->expression != NULL) {
+        tac_list *expression_end = stmt->expression->tac_end;
 
         if (expression_end->type == MCC_TAC_ELEMENT_TYPE_BINARY ||
                 expression_end->type == MCC_TAC_ELEMENT_TYPE_UNARY) {

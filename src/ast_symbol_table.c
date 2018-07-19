@@ -409,22 +409,27 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 	assert(data);
 
 	if (strcmp(f->identifier->name, "main") == 0) {
-		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg), ERROR_MAIN_NOT_VOID,
-			 print_type(f->identifier->d_type));
-		if(add_errors) mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
-			      h_result);
-
-		if (has_main == true) {
-			snprintf(error_msg, sizeof(error_msg),
-				 ERROR_DUBLICATE_FUNCTION, f->identifier->name);
-			char *tmp = new_string(ERROR_DUBLICATE_FUNCTION,
-								   f->identifier->name);
-			if(!add_errors) mCc_add_error(tmp,
-				      f->identifier->node.sloc.start_line,
-				      h_result);
-			free(tmp);
+		if(add_errors) {
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg), ERROR_MAIN_NOT_VOID,
+					 print_type(f->identifier->d_type));
+			mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
+						  h_result);
 		}
+		if (has_main == true) {
+			if(!add_errors) {
+				char error_msg[1024] = {0};
+				snprintf(error_msg, sizeof(error_msg),
+						 ERROR_DUBLICATE_FUNCTION, f->identifier->name);
+				char *tmp = new_string(ERROR_DUBLICATE_FUNCTION,
+									   f->identifier->name);
+				mCc_add_error(tmp,
+							  f->identifier->node.sloc.start_line,
+							  h_result);
+				free(tmp);
+			}
+		}
+
 	}
 
 	if (f->params != NULL) {
@@ -445,11 +450,13 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 	}
 
 	if (find_element_symbols(table, f->identifier->name) != NULL) {
-		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg), ERROR_DUBLICATE_FUNCTION,
-			 f->identifier->name);
-		if(!add_errors) mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
-			      h_result);
+		if(!add_errors) {
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg), ERROR_DUBLICATE_FUNCTION,
+					 f->identifier->name);
+			mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
+						  h_result);
+		}
 	} else {
 		free(f->identifier->renamed);
 		f->identifier->renamed =
@@ -508,13 +515,14 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 
 	if (strcmp(f->identifier->name, "main") == 0) {
 		if (has_main == true) {
-
-			char *tmp = new_string(ERROR_DUBLICATE_FUNCTION,
-								   f->identifier->name);
-			if(!add_errors) mCc_add_error(tmp,
-						  f->identifier->node.sloc.start_line,
-						  h_result);
-			free(tmp);
+			if(!add_errors) {
+				char *tmp = new_string(ERROR_DUBLICATE_FUNCTION,
+									   f->identifier->name);
+				mCc_add_error(tmp,
+							  f->identifier->node.sloc.start_line,
+							  h_result);
+				free(tmp);
+			}
 		}
 		free(f->identifier->renamed);
 		f->identifier->renamed = copy_string(f->identifier->name);
@@ -522,12 +530,14 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 		has_main = true;
 	} else {
 		if (find_element_symbols(table, f->identifier->name) != NULL) {
-			char *tmp = new_string(ERROR_DUBLICATE_FUNCTION,
-								   f->identifier->name);
-			if(!add_errors) mCc_add_error(tmp,
-						  f->identifier->node.sloc.start_line,
-						  h_result);
-			free(tmp);
+			if(!add_errors) {
+				char *tmp = new_string(ERROR_DUBLICATE_FUNCTION,
+									   f->identifier->name);
+				mCc_add_error(tmp,
+							  f->identifier->node.sloc.start_line,
+							  h_result);
+				free(tmp);
+			}
 		}
 		else {
 			free(f->identifier->renamed);
@@ -569,11 +579,14 @@ static void ast_symbol_table_close_func(struct mCc_ast_function_def *f,
 
 	if (f->type != MCC_AST_FUNCTION_DEF_TYPE_VOID
 	    && !current_fun->has_ret) {
-		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg), ERROR_NO_RETURN,
-			 f->identifier->name);
-		if(add_errors) mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
-			      h_result);
+		if(add_errors) {
+			char error_msg[1024] = {0};
+
+			snprintf(error_msg, sizeof(error_msg), ERROR_NO_RETURN,
+					 f->identifier->name);
+			mCc_add_error(error_msg, f->identifier->node.sloc.start_line,
+						  h_result);
+		}
 	}
 
 	if (current_fun->prev != NULL) {
@@ -677,11 +690,13 @@ static void ast_symbol_table_ass_stmt(struct mCc_ast_assignment *stmt,
 		new_name = find_element_symbols(temp, stmt->identifier->name);
 	}
 	if (new_name == NULL) {
-		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg),
-			 ERROR_MISSING_VARIABLE_DEF, stmt->identifier->name);
-		if(add_errors) mCc_add_error(error_msg, stmt->identifier->node.sloc.start_line,
-			      h_result);
+		if(add_errors) {
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg),
+					 ERROR_MISSING_VARIABLE_DEF, stmt->identifier->name);
+			mCc_add_error(error_msg, stmt->identifier->node.sloc.start_line,
+						  h_result);
+		}
 	} else {
 		free(stmt->identifier->renamed);
 		stmt->identifier->renamed = copy_string(new_name);
@@ -723,13 +738,15 @@ static void single_declaration(struct mCc_ast_declaration *stmt) {
 	sprintf(help, "%s%d", stmt->identifier->name, g_counter++);
 	if (find_element_symbols(table, stmt->identifier->name)
 		!= NULL) {
-		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg),
-				 ERROR_DUBLICATE_VARIABLE,
-				 stmt->identifier->name);
-		if(add_errors) mCc_add_error(error_msg,
-					  stmt->identifier->node.sloc.start_line,
-					  h_result);
+		if(add_errors) {
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg),
+					 ERROR_DUBLICATE_VARIABLE,
+					 stmt->identifier->name);
+			mCc_add_error(error_msg,
+						  stmt->identifier->node.sloc.start_line,
+						  h_result);
+		}
 	} else {
 		free(stmt->identifier->renamed);
 		stmt->identifier->renamed = copy_string(help);
@@ -772,13 +789,15 @@ static void array_declaration(struct mCc_ast_declaration *stmt) {
 			g_counter++);
 	if (find_element_symbols(table, stmt->array_identifier->name)
 		!= NULL) {
-		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg),
-				 ERROR_DUBLICATE_VARIABLE,
-				 stmt->identifier->name);
-		if(add_errors) mCc_add_error(error_msg,
-					  stmt->identifier->node.sloc.start_line,
-					  h_result);
+		if(add_errors) {
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg),
+					 ERROR_DUBLICATE_VARIABLE,
+					 stmt->identifier->name);
+			mCc_add_error(error_msg,
+						  stmt->identifier->node.sloc.start_line,
+						  h_result);
+		}
 	} else {
 		free(stmt->array_identifier->renamed);
 		stmt->array_identifier->renamed = copy_string(help);
@@ -871,14 +890,16 @@ ast_symbol_table_expression_single(struct mCc_ast_single_expression *expression,
 				temp, expression->identifier->name);
 		}
 		if (new_name == NULL) {
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 ERROR_MISSING_VARIABLE_DEF,
-				 expression->identifier->name);
-			if(add_errors) mCc_add_error(
-				error_msg,
-				expression->identifier->node.sloc.start_line,
-				h_result);
+			if(add_errors) {
+				char error_msg[1024] = {0};
+				snprintf(error_msg, sizeof(error_msg),
+						 ERROR_MISSING_VARIABLE_DEF,
+						 expression->identifier->name);
+				mCc_add_error(
+						error_msg,
+						expression->identifier->node.sloc.start_line,
+						h_result);
+			}
 		} else {
 			free(expression->identifier->renamed);
 			expression->identifier->renamed = copy_string(new_name);
@@ -901,15 +922,17 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 		find_element_param_num(table, expression->identifier->name);
 	if (expression->arguments != NULL) {
 		if (expression->arguments->counter != num_args) {
-			char error_msg[1024] = {0};
-			snprintf(error_msg, sizeof(error_msg),
-				 ERROR_NUM_ARGUMENTS,
-				 expression->identifier->name, num_args,
-				 expression->arguments->counter);
-			if(add_errors) mCc_add_error(
-				error_msg,
-				expression->identifier->node.sloc.start_line,
-				h_result);
+			if(add_errors) {
+				char error_msg[1024] = {0};
+				snprintf(error_msg, sizeof(error_msg),
+						 ERROR_NUM_ARGUMENTS,
+						 expression->identifier->name, num_args,
+						 expression->arguments->counter);
+				mCc_add_error(
+						error_msg,
+						expression->identifier->node.sloc.start_line,
+						h_result);
+			}
 		}
 		enum mCc_ast_type *t_type = find_element_param_types(
 			table, expression->identifier->name);
@@ -923,12 +946,14 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 		}
 
 	} else if (num_args != 0) {
-		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg), ERROR_NUM_ARGUMENTS,
-			 expression->identifier->name, num_args, 0);
-		if(add_errors) mCc_add_error(error_msg,
-			      expression->identifier->node.sloc.start_line,
-			      h_result);
+		if(add_errors) {
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg), ERROR_NUM_ARGUMENTS,
+					 expression->identifier->name, num_args, 0);
+			mCc_add_error(error_msg,
+						  expression->identifier->node.sloc.start_line,
+						  h_result);
+		}
 	}
 
 	char *new_name =
@@ -941,13 +966,15 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 						expression->identifier->name);
 	}
 	if (new_name == NULL) {
-		char error_msg[1024] = {0};
-		snprintf(error_msg, sizeof(error_msg),
-			 ERROR_MISSING_FUNCTION_DEF,
-			 expression->identifier->name);
-		if(add_errors) mCc_add_error(error_msg,
-			      expression->identifier->node.sloc.start_line,
-			      h_result);
+		if(add_errors) {
+			char error_msg[1024] = {0};
+			snprintf(error_msg, sizeof(error_msg),
+					 ERROR_MISSING_FUNCTION_DEF,
+					 expression->identifier->name);
+			mCc_add_error(error_msg,
+						  expression->identifier->node.sloc.start_line,
+						  h_result);
+		}
 	} else {
 		free(expression->identifier->renamed);
 		expression->identifier->renamed = copy_string(new_name);
@@ -978,7 +1005,7 @@ struct mCc_parser_result *mCc_ast_symbol_table(struct mCc_parser_result *result)
 	delete_symbol_table_node(table);
 
 	if (!has_main) {
-		if(add_errors) mCc_add_error(ERROR_NO_MAIN, 0, h_result);
+		mCc_add_error(ERROR_NO_MAIN, 0, h_result);
 	}
 
 	delete_current_fun(current_fun);

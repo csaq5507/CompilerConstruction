@@ -571,10 +571,11 @@ TEST(cfg, NestedIfClause)
     ASSERT_EQ(cfg_4->num_prev_nodes, 2);
     ASSERT_EQ(cfg_4->node_num, 4);
 
-    cfg_list *cfg_5 = &cfg_2->next_nodes[1];
+    cfg_list *cfg_5 = &cfg_1->next_nodes[0];
 
-    ASSERT_EQ(cfg_5->num_next_nodes, 0);
-    ASSERT_EQ(cfg_5->num_prev_nodes, 3);
+    ASSERT_EQ(cfg_5->num_next_nodes, 1);
+    ASSERT_EQ(cfg_5->num_prev_nodes, 2);
+    ASSERT_EQ(cfg_5->node_num, 3);
 
     mCc_cfg_delete(cfg_head);
 

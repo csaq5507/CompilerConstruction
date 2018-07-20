@@ -497,6 +497,8 @@ static void ast_symbol_table_func_void(struct mCc_ast_function_def *f,
 	assert(data);
 
 	if (f->params != NULL) {
+        if (f->identifier->param_types!= NULL)
+            free(f->identifier->param_types);
 		f->identifier->param_types =
 			malloc(sizeof(enum mCc_ast_type) * f->params->counter);
 		enum mCc_ast_type h_param[f->params->counter];

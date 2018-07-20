@@ -33,7 +33,7 @@ TEST(symbol_table, correct_symbol_table)
 
 	auto result2 = mCc_ast_symbol_table(&result);
 	func_def_arr = result2->func_def;
-	ASSERT_STREQ("a1", func_def[func_def_arr->counter - 1]
+	ASSERT_STREQ("a3", func_def[func_def_arr->counter - 1]
 				   .c_stmt[0]
 				   .statements[0]
 				   .declaration->identifier->renamed);

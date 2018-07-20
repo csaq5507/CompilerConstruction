@@ -355,14 +355,18 @@ struct mCc_assembly_line *mCc_assembly_function_return(struct mCc_tac_list *tac)
 
 struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac)
 {
-    if(registers->eax != NULL)
-        add_lost_register(registers->eax);
-    if(registers->ebx != NULL)
-        add_lost_register(registers->ebx);
-    if(registers->ecx != NULL)
-        add_lost_register(registers->ecx);
-    if(registers->edx != NULL)
-        add_lost_register(registers->edx);
+    if(registers->eax != NULL) {
+		add_lost_register(registers->eax);
+	}
+    if(registers->ebx != NULL) {
+		add_lost_register(registers->ebx);
+	}
+    if(registers->ecx != NULL) {
+		add_lost_register(registers->ecx);
+	}
+    if(registers->edx != NULL) {
+		add_lost_register(registers->edx);
+	}
 
 	if (!strcmp(tac->identifier1, "read_float")) {
 		NEW_TRIPLE_LINE
@@ -873,7 +877,7 @@ mCc_assembly_nested_condition(struct mCc_tac_list *tac)
 	retval->instruction =
 		new_string("\tcmpl\t%s, %s", get_register(tac->rhs),
 			   get_register(tac->lhs));
-    retval->type == MCC_ASSEMBLY_CMP;
+    retval->type = MCC_ASSEMBLY_CMP;
 	struct mCc_tac_list *current = tac;
 	int and_or = 0;
 	while (current->type != MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {

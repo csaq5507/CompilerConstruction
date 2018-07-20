@@ -44,7 +44,8 @@ TEST(parser_lexer, literal)
 {
 	mCc_ast_literal *i_literal = mCc_ast_new_literal_int(10);
 	mCc_ast_literal *f_literal = mCc_ast_new_literal_float(22.5);
-	mCc_ast_literal *b_literal = mCc_ast_new_literal_bool("true");
+    char bool_lit[] = "true";
+	mCc_ast_literal *b_literal = mCc_ast_new_literal_bool(bool_lit);
     char test[] = "String";
 	mCc_ast_literal *s_literal = mCc_ast_new_literal_string(test);
 

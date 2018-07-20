@@ -795,8 +795,8 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
         tac_list *expression_end = stmt->expression->tac_end;
 
         if (stmt->d_type == MCC_AST_TYPE_BOOL &&
-                    expression_end->type == MCC_TAC_ELEMENT_TYPE_BINARY ||
-                expression_end->type == MCC_TAC_ELEMENT_TYPE_UNARY) {
+                (expression_end->type == MCC_TAC_ELEMENT_TYPE_BINARY ||
+                expression_end->type == MCC_TAC_ELEMENT_TYPE_UNARY)) {
 
             tac_list *label_false = tac_new_list();
             label_false->type = MCC_TAC_ELEMENT_TYPE_LABEL;

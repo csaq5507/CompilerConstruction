@@ -298,10 +298,11 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 		   == MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX) {
 		elem->type = MCC_TAC_ELEMENT_TYPE_LOAD;
 
+        tac_list *temp = expression->identifier_expression->tac_end;
+
 		elem->identifier2 =
 			copy_string(expression->identifier->renamed);
 
-		tac_list *temp = expression->identifier_expression->tac_end;
 
 		elem->identifier3 = copy_string(temp->identifier1);
 
@@ -548,21 +549,32 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data)
 
 			tac_list *temp_lhs_end = expression->lhs->tac_end;
 			tac_list *temp_lhs_star = expression->lhs->tac_start;
+            tac_list *temp_rhs_end = expression->rhs->tac_end;
+            tac_list *temp_rhs_start = expression->rhs->tac_start;
 
-			elem->lhs = copy_string(temp_lhs_end->identifier1);
+            elem->lhs = copy_string(temp_lhs_end->identifier1);
+            elem->rhs = copy_string(temp_rhs_end->identifier1);
+            elem->binary_op_type = op_type;
 
-			tac_list *temp_rhs_end = expression->rhs->tac_end;
-			tac_list *temp_rhs_start = expression->rhs->tac_start;
+            if (temp_rhs_end->type == MCC_TAC_ELEMENT_TYPE_BINARY) {
+                temp_rhs_end->next = temp_lhs_star;
+                temp_lhs_star->prev = temp_rhs_end;
+                temp_lhs_end->next = elem;
+                elem->prev = temp_lhs_end;
 
-			elem->rhs = copy_string(temp_rhs_end->identifier1);
-			elem->binary_op_type = op_type;
+                expression->tac_start = temp_rhs_start;
+                expression->tac_end = elem;
+            } else {
 
-			temp_lhs_end->next = temp_rhs_start;
-			temp_rhs_start->prev = temp_lhs_end;
-			temp_rhs_end->next = elem;
-			elem->prev = temp_rhs_end;
-			expression->tac_start = temp_lhs_star;
-			expression->tac_end = elem;
+                temp_lhs_end->next = temp_rhs_start;
+                temp_rhs_start->prev = temp_lhs_end;
+                temp_rhs_end->next = elem;
+                elem->prev = temp_rhs_end;
+                expression->tac_start = temp_lhs_star;
+                expression->tac_end = elem;
+            }
+
+
 		}
 
 	}

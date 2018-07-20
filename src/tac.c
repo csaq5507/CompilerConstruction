@@ -552,11 +552,13 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data)
             tac_list *temp_rhs_end = expression->rhs->tac_end;
             tac_list *temp_rhs_start = expression->rhs->tac_start;
 
-            elem->rhs = copy_string(temp_lhs_end->identifier1);
-            elem->lhs = copy_string(temp_rhs_end->identifier1);
+            elem->lhs = copy_string(temp_lhs_end->identifier1);
+            elem->rhs = copy_string(temp_rhs_end->identifier1);
             elem->binary_op_type = op_type;
 
             if (temp_rhs_end->type == MCC_TAC_ELEMENT_TYPE_BINARY) {
+                if (elem->binary_op_type == MCC_TAC_OPERATION_TYPE_MINUS)
+                    temp_rhs_end->binary_op_type= MCC_TAC_OPERATION_TYPE_PLUS;
                 temp_rhs_end->next = temp_lhs_star;
                 temp_lhs_star->prev = temp_rhs_end;
                 temp_lhs_end->next = elem;

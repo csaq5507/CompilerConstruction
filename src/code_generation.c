@@ -101,7 +101,7 @@ struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
 	// generate labels, builtins, first line etc.
 	assembly->head = mcc_assembly_generate_labels(tac,filename);
 	struct mCc_assembly_line * current = assembly->head;
-	// generate code
+    // generate code
 	do {
 		while (current->next != NULL)
 			current = current->next;
@@ -151,7 +151,6 @@ struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
 			break;
 		case MCC_TAC_ELEMENT_TYPE_FUNCTION_END:
 			temp = mCc_assembly_function_end(tac);
-			delete_stack();
 			break;
 		case MCC_TAC_ELEMENT_TYPE_RETURN:
 			temp = mCc_assembly_function_return(tac);
@@ -173,8 +172,8 @@ struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
 	return assembly;
 }
 
-
-struct mCc_assembly_line *mCc_assembly_create_label(struct mCc_tac_list *tac) {
+struct mCc_assembly_line *mCc_assembly_create_label(struct mCc_tac_list *tac)
+{
 	NEW_SINGLE_LINE
 	retval->type = MCC_ASSEMBLY_LABEL;
 	retval->next = NULL;
@@ -183,15 +182,31 @@ struct mCc_assembly_line *mCc_assembly_create_label(struct mCc_tac_list *tac) {
 	return retval;
 }
 
-struct mCc_assembly_line *mCc_assembly_store(struct mCc_tac_list *tac) {
+struct mCc_assembly_line *mCc_assembly_store(struct mCc_tac_list *tac)
+{
 	NEW_SINGLE_LINE
 
 	retval->type = MCC_ASSEMBLY_MOV;
-	retval->next = NULL;
-	retval->instruction = new_string(
+    if(get_pos( tac->identifier1) > 0)
+    {
+        free(retval);
+        NEW_QUADRUPLE_LINE
+        retval->type = MCC_ASSEMBLY_MOV;
+        retval->instruction=new_string("\tmovl\t%d(%s), %s",
+                                       get_pos(tac->identifier1),
+                                       "%ebp", get_register("temp"));
+        temp->type = MCC_ASSEMBLY_MUL;
+        temp->instruction = new_string("\timull\t$4, %s",get_register(tac->identifier2));
+        temp1->type = MCC_ASSEMBLY_ADD;
+        temp1->instruction = new_string("\taddl\t%s, %s",get_register(tac->identifier2),get_register("temp"));
+        temp2->type = MCC_ASSEMBLY_MOV;
+        temp2->instruction = new_string("\tmovl\t%s, (%s)",get_register(tac->identifier3),get_register("temp"));
+        free_register("temp");
+    } else
+	    retval->instruction = new_string(
 			"\tmovl\t%s, %d(%s,%s,4)",
 			get_register(tac->identifier3),
-			get_var(tac->identifier1)->stack_diff,
+			get_pos(tac->identifier1),
 			"%ebp", get_register(tac->identifier2));
 
 	free_register(tac->identifier2);
@@ -199,7 +214,37 @@ struct mCc_assembly_line *mCc_assembly_store(struct mCc_tac_list *tac) {
 	return retval;
 }
 
-struct mCc_assembly_line *mcc_assembly_generate_labels(struct mCc_tac_list *temp_tac, char * filename) {
+
+struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac)
+{
+    if(get_pos(tac->identifier2)>0)
+    {
+        NEW_QUADRUPLE_LINE
+        retval->type = MCC_ASSEMBLY_MOV;
+        retval->instruction=new_string("\tmovl\t%d(%s), %s",
+                                       get_pos(tac->identifier2),
+                                       "%ebp", get_register(tac->identifier1));
+        temp->type = MCC_ASSEMBLY_MUL;
+        temp->instruction = new_string("\timull\t$4, %s",get_register(tac->identifier3));
+        temp1->type = MCC_ASSEMBLY_ADD;
+        temp1->instruction = new_string("\taddl\t%s, %s",get_register(tac->identifier3),get_register(tac->identifier1));
+        temp2->type = MCC_ASSEMBLY_MOV;
+        temp2->instruction = new_string("\tmovl\t(%s), %s",get_register(tac->identifier1),get_register(tac->identifier1));
+        free_register(tac->identifier3);
+        return retval;
+    } else {
+        NEW_SINGLE_LINE
+        retval->instruction =
+                new_string("\tmovl\t%d(%s,%s,4), %s",
+                           get_pos(tac->identifier2),
+                           "%ebp", get_register(tac->identifier3), get_register(tac->identifier1));
+        free_register(tac->identifier3);
+        return retval;
+    }
+}
+
+struct mCc_assembly_line *mcc_assembly_generate_labels(struct mCc_tac_list *temp_tac, char * filename)
+{
 	builtin = 0;
 	NEW_SINGLE_LINE
 
@@ -269,7 +314,8 @@ struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac)
 			struct mCc_tac_list * current=tac->prev;
 			while(current->identifier1 != NULL && strcmp(current->identifier1,tac->identifier1) != 0)
 				current = current->prev;
-			retval->instruction = new_string("\tpushl\t%d(%s)",get_var(current->copy_identifier)->stack_diff,"%ebp");
+
+            retval->instruction = new_string("\tpushl\t%d(%s)",get_pos(current->copy_identifier),"%ebp");
 		} else
 		{
 			retval->instruction = new_string("\tpushl\t%s",get_register(tac->identifier1));
@@ -280,19 +326,6 @@ struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac)
 		free(retval);
 		retval = NULL;
 	}
-	return retval;
-}
-
-
-struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac)
-{
-	NEW_SINGLE_LINE
-	retval->type = MCC_ASSEMBLY_MOV;
-	retval->instruction =
-		new_string("\tmovl\t%d(%s,%s,4), %s",
-			   get_var(tac->identifier2)->stack_diff,
-			   "%ebp", get_register(tac->identifier3), get_register(tac->identifier1));
-	free_register(tac->identifier3);
 	return retval;
 }
 
@@ -372,12 +405,10 @@ struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac)
 		NEW_TRIPLE_LINE
 		temp->type = MCC_ASSEMBLY_CONSTANT;
 		temp1->type = MCC_ASSEMBLY_MOV;
-		struct variable *v = get_var(tac->next->identifier1);
-
 		temp->instruction =
-			new_string("\tfstps\t-%d(%s)", v->stack_diff, "%ebp");
+			new_string("\tfstps\t-%d(%s)", get_pos(tac->next->identifier1), "%ebp");
 		temp1->instruction = new_string("\tmovl\t%d(%s), %s",
-						v->stack_diff, "%ebp", "%eax");
+                                        get_pos(tac->next->identifier1), "%ebp", "%eax");
 		retval->type = MCC_ASSEMBLY_CALL;
 		retval->instruction =
 			new_string("\tcall\t%s", tac->identifier1);
@@ -659,15 +690,14 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac)
 	temp2->instruction = new_string("\tpushl\t%s", "%ebp");
 	temp3->type = MCC_ASSEMBLY_MOV;
 	temp3->instruction = new_string("\tmovl\t%s, %s", "%esp", "%ebp");
-	struct mCc_tac_list *temp_tac = tac;
-	new_stack();
+    struct mCc_tac_list *temp_tac = tac;
+    new_stack();
     set_param_var(4,"ebp");
-	while (temp_tac->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END) {
-		if (temp_tac->type == MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP) {
+    while (temp_tac->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END) {
+        if (temp_tac->type == MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP) {
             if(num_params>0)
             {
-                set_param_var(get_literal_size(temp_tac->decl_lit_type)
-                              * temp_tac->param_size,
+                set_param_var(get_literal_size(temp_tac->decl_lit_type),
                               temp_tac->identifier1);
                 num_params--;
             } else {
@@ -675,9 +705,10 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac)
                         * temp_tac->param_size,
                         temp_tac->identifier1);
             }
-		}
-		temp_tac = temp_tac->next;
-	}
+        }
+        temp_tac = temp_tac->next;
+    }
+
 	temp4->type = MCC_ASSEMBLY_SUB;
 	temp4->instruction =
 		new_string("\tsubl\t$%d, %s", get_stack_size(), "%esp");
@@ -877,7 +908,6 @@ mCc_assembly_nested_condition(struct mCc_tac_list *tac)
 	retval->instruction =
 		new_string("\tcmpl\t%s, %s", get_register(tac->rhs),
 			   get_register(tac->lhs));
-    retval->type = MCC_ASSEMBLY_CMP;
 	struct mCc_tac_list *current = tac;
 	int and_or = 0;
 	while (current->type != MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {
@@ -976,27 +1006,35 @@ struct mCc_assembly_line *mCc_assembly_copy_identifier(struct mCc_tac_list *tac)
 		if (get_var(tac->copy_identifier)->size == 8) {
 			retval->instruction =
 				new_string("\tflds\t%d(%s)",
-					   get_var(tac->copy_identifier)
-						   ->stack_diff,
+					   get_pos(tac->copy_identifier)
+						   ,
 					   "%ebp");
 			set_float_register(tac->identifier1);
 		} else //OTHER
-			retval->instruction = new_string(
-				"\tmovl\t%d(%s), %s",
-				get_var(tac->copy_identifier)
-					->stack_diff,
-				"%ebp", get_register(tac->identifier1));
+        {
+            if(get_var(tac->copy_identifier) != NULL && get_var(tac->copy_identifier)->size>4)
+            {
+                retval->instruction = new_string("\tleal\t%d(%s), %s",
+                                                 get_pos( tac->copy_identifier),
+                                                 "%ebp", get_register(tac->identifier1));
+            }
+            else
+            retval->instruction = new_string(
+                    "\tmovl\t%d(%s), %s",
+                    get_pos(tac->copy_identifier),
+                    "%ebp", get_register(tac->identifier1));
+        }
 	} else {
 
 		if (is_float(tac->copy_identifier))
 			retval->instruction = new_string(
 				"\tfstps\t%d(%s)",
-				get_var(tac->identifier1)->stack_diff, "%ebp");
+				get_pos(tac->identifier1), "%ebp");
 		else
 			retval->instruction = new_string(
-				"\tmovl\t%s,%d(%s)",
+				"\tmovl\t%s, %d(%s)",
 				get_register(tac->copy_identifier),
-				get_var(tac->identifier1)->stack_diff, "%ebp");
+				get_pos(tac->identifier1), "%ebp");
 		free_register(tac->copy_identifier);
 	}
 	return retval;
@@ -1101,27 +1139,28 @@ char *get_label(char *key)
 	return NULL;
 }
 
+
 void set_var(int size, char *identifier)
 {
-	for (int i = 0; i < stack->counter; ++i) {
-		if (stack->variables[i].identifier == NULL)
-			continue;
-		if (strcmp(stack->variables[i].identifier, identifier) == 0)
-			return;
-	}
-	if (stack->counter == 0) {
-		MALLOC_((stack->variables), (sizeof(struct variable)))
-		stack->variables[stack->counter].stack_diff = -size;
-		stack->variables[stack->counter].size = size;
-	} else {
-		REALLOC_((stack->variables),
-			 ((stack->counter + 1) * sizeof(struct variable)))
-		stack->variables[stack->counter].stack_diff = (
-			stack->variables[stack->counter - 1].stack_diff - size);
-		stack->variables[stack->counter].size = size;
-	}
-	stack->variables[stack->counter].identifier = identifier;
-	stack->counter++;
+    for (int i = 0; i < stack->counter; ++i) {
+        if (stack->variables[i].identifier == NULL)
+            continue;
+        if (strcmp(stack->variables[i].identifier, identifier) == 0)
+            return;
+    }
+    if (stack->counter == 0) {
+        MALLOC_((stack->variables), (sizeof(struct variable)))
+        stack->variables[stack->counter].stack_diff = -size;
+        stack->variables[stack->counter].size = size;
+    } else {
+        REALLOC_((stack->variables),
+                 ((stack->counter + 1) * sizeof(struct variable)))
+        stack->variables[stack->counter].stack_diff = (
+                stack->variables[stack->counter - 1].stack_diff - size);
+        stack->variables[stack->counter].size = size;
+    }
+    stack->variables[stack->counter].identifier = identifier;
+    stack->counter++;
 }
 
 void set_param_var(int size, char *identifier)
@@ -1134,7 +1173,7 @@ void set_param_var(int size, char *identifier)
     }
     if (param_stack->counter == 0) {
         MALLOC_((param_stack->variables), (sizeof(struct variable)))
-        param_stack->variables[param_stack->counter].stack_diff = size;
+        param_stack->variables[param_stack->counter].stack_diff = 0;
         param_stack->variables[param_stack->counter].size = size;
     } else {
         REALLOC_((param_stack->variables),
@@ -1147,24 +1186,29 @@ void set_param_var(int size, char *identifier)
     param_stack->counter++;
 }
 
+int get_pos(char*identifier)
+{
+    return get_var(identifier)->stack_diff;
+}
+
 struct variable *get_var(char *identifier)
 {
-	for (int i = 0; i < stack->counter; ++i) {
-		if (strcmp(stack->variables[i].identifier, identifier) == 0)
-			return &stack->variables[i];
-	}
+    for (int i = 0; i < stack->counter; ++i) {
+        if (strcmp(stack->variables[i].identifier, identifier) == 0)
+            return &stack->variables[i];
+    }
     for (int i = 0; i < param_stack->counter; ++i) {
         if (strcmp(param_stack->variables[i].identifier, identifier) == 0)
             return &param_stack->variables[i];
     }
-	return NULL;
+    return NULL;
 }
 
 void new_stack()
 {
-	MALLOC_(stack, sizeof(struct stack_helper))
-	stack->counter = 0;
-	stack->variables = NULL;
+    MALLOC_(stack, sizeof(struct stack_helper))
+    stack->counter = 0;
+    stack->variables = NULL;
 
     MALLOC_(param_stack, sizeof(struct stack_helper))
     param_stack->counter = 0;
@@ -1173,26 +1217,25 @@ void new_stack()
 
 void delete_stack()
 {
-	free(stack->variables);
-	free(stack);
+    free(stack->variables);
+    free(stack);
 
     free(param_stack->variables);
     free(param_stack);
 }
 
-int get_stack_size()
-{
-	if (stack->counter == 0)
-    {
-        if(param_stack->counter == 0)
+int get_stack_size() {
+    if (stack->counter == 0) {
+        if (param_stack->counter == 0)
             return 0;
         else
-            return param_stack->variables[param_stack->counter -1].stack_diff;
+            return param_stack->variables[param_stack->counter - 1].stack_diff;
     }
 
-    if(param_stack->counter == 0)
+    if (param_stack->counter == 0)
         return -(stack->variables[stack->counter - 1].stack_diff);
-    return (-(stack->variables[stack->counter - 1].stack_diff)) + param_stack->variables[param_stack->counter -1].stack_diff;
+    return (-(stack->variables[stack->counter - 1].stack_diff)) +
+           param_stack->variables[param_stack->counter - 1].stack_diff;
 }
 
 void free_register(char *identifier)

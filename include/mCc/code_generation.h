@@ -36,15 +36,16 @@ struct labels {
 
 struct labels *label;
 
+
 struct variable {
-	int stack_diff;
-	int size;
-	char *identifier;
+    int stack_diff;
+    int size;
+    char *identifier;
 };
 
 struct stack_helper {
-	int counter;
-	struct variable *variables;
+    int counter;
+    struct variable *variables;
 };
 
 struct stack_helper *stack;
@@ -178,6 +179,8 @@ char *get_label(char *key);
 void set_var(int size, char *identifier);
 
 void set_param_var(int size, char *identifier);
+
+int get_pos(char * identifier);
 
 struct variable *get_var(char *identifier);
 

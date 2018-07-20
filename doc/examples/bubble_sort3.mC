@@ -7,7 +7,7 @@ void bubbleSort(int[3] arr, int n)
   while (i<n-1)
     {
        j=0;
-       while ( j < n-i-1)
+       while ( j < (n-i)-1)
        {
            if (arr[j] > arr[j+1])
            {

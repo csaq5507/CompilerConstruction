@@ -53,7 +53,7 @@ Furthermore, a few micro-benchmarks are provided.
 
 ## Known Issues
 
-- ackermann1 doesn't compile because it contains an error (see ackermann1.error)
+- expressions are evaluated the wrong direction(right to left) so we need parenthesis on some examples to execute them correctly
 
 
 

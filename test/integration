@@ -188,8 +188,9 @@ print_header
                 flawless=false
                 stats="- - 1"
                 echo "no match output"
-                echo "$("$BUILD_DIR/./integration.out" < "$EXAMPLES_DIR/$example.stdin")"
-                echo "$(cat $EXAMPLES_DIR/$example.stdout)"
+          #      echo "$("$BUILD_DIR/./integration.out" < "$EXAMPLES_DIR/$example.stdin")"
+          #      echo "$(cat $EXAMPLES_DIR/$example.stdout)"
+          #      echo "$(cat $BUILD_DIR/./integration.out.error)"
             fi
         else
             flawless=false

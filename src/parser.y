@@ -211,7 +211,7 @@ assignment      : identifier LBRACKET expression RBRACKET "=" expression
                 ;
 
 
-expression      : single_expr binary_op expression  { $$ = mCc_ast_new_expression_binary_op($2, $1, $3); }
+expression      : single_expr binary_op expression { $$ = mCc_ast_new_expression_binary_op($2, $1, $3); }
                 | single_expr                       { $$ = mCc_ast_new_expression_single($1); }
                 ;
 

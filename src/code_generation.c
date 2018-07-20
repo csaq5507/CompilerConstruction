@@ -80,7 +80,6 @@
 	temp2->next = NULL;
 
 
-
 struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
                                            char *filename)
 {
@@ -89,6 +88,7 @@ struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
 	string_label_idx = 0;
 	float_label_idx = 0;
 	label_idx = 0;
+    skip=0;
     MALLOC(lost_registers, sizeof(struct lost_regs))
     lost_registers->counter = 0;
     lost_registers->reg = NULL;
@@ -102,7 +102,13 @@ struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
 	assembly->head = mcc_assembly_generate_labels(tac,filename);
 	struct mCc_assembly_line * current = assembly->head;
     // generate code
+
 	do {
+        while(skip>0)
+        {
+            tac=tac->next;
+            skip--;
+        }
 		while (current->next != NULL)
 			current = current->next;
 
@@ -171,6 +177,7 @@ struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
 	} while (tac != NULL);
 	return assembly;
 }
+
 
 struct mCc_assembly_line *mCc_assembly_create_label(struct mCc_tac_list *tac)
 {
@@ -281,16 +288,7 @@ struct mCc_assembly_line *mcc_assembly_generate_labels(struct mCc_tac_list *temp
 				else
 					current->next->prev = current;
 			}
-		} else if (temp_tac->type == MCC_TAC_ELEMENT_TYPE_UNARY
-				   && temp_tac->unary_op_type
-					  == MCC_TAC_OPERATION_TYPE_FAC) {
-			current->next =
-					mCc_assembly_create_builtin_func(temp_tac);
-			if (current->next == NULL)
-				current = current->prev;
-			else
-				current->next->prev = current;
-		} else if (temp_tac->type == MCC_TAC_ELEMENT_TYPE_LABEL)
+		}  else if (temp_tac->type == MCC_TAC_ELEMENT_TYPE_LABEL)
 			set_label(temp_tac->identifier1,
 					  new_string(".L%d", label_idx++));
 		else if (temp_tac->type == MCC_TAC_ELEMENT_TYPE_FUNCTION_START)
@@ -314,8 +312,13 @@ struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac)
 			struct mCc_tac_list * current=tac->prev;
 			while(current->identifier1 != NULL && strcmp(current->identifier1,tac->identifier1) != 0)
 				current = current->prev;
-
-            retval->instruction = new_string("\tpushl\t%d(%s)",get_pos(current->copy_identifier),"%ebp");
+            free_register(tac->identifier1);
+            if(current->type == MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL)
+            {
+                set_var(4,"new_temp_var");
+                retval->instruction = new_string("\tsubl\t$4, %s\n\tfstps\t%d(%s)\n\tpushl\t%d(%s)", "%esp", get_pos("new_temp_var"), "%ebp", get_pos("new_temp_var"), "%ebp");
+            } else
+                retval->instruction = new_string("\tpushl\t%d(%s)",get_pos(current->copy_identifier),"%ebp");
 		} else
 		{
 			retval->instruction = new_string("\tpushl\t%s",get_register(tac->identifier1));
@@ -369,17 +372,36 @@ struct mCc_assembly_line *mCc_assembly_function_return(struct mCc_tac_list *tac)
 		func_end = func_end->next;
 	retval->type = MCC_ASSEMBLY_MOV;
 
-	if (tac->identifier1 == NULL) {
+    if (tac->identifier1 == NULL) {
 		retval->instruction = new_string("\tnop\t");
 		if (strcmp(func_end->identifier1, "main") == 0) {
 			retval->instruction =
 				new_string("\tmovl\t$0, %s", "%eax");
 		}
 	} else {
-		retval->instruction =
-			new_string("\tmovl\t%s, %s",
-				   get_register(tac->identifier1), "%eax");
-		free_register(tac->identifier1);
+        if(is_float(tac->identifier1))
+        {
+            if(strcmp(get_register(tac->identifier1),"%st") == 0)
+            {
+                free_register(tac->identifier1);
+                free(retval);
+                temp->prev=NULL;
+
+                temp->type = MCC_ASSEMBLY_JMP;
+                temp->instruction = new_string("\tjmp\t.RET%s", func_end->identifier1);
+                return retval;
+            }
+            retval->instruction =
+                    new_string("\tfxch\t%s",
+                               get_register(tac->identifier1));
+            free_register(tac->identifier1);
+        } else
+        {
+            retval->instruction =
+                    new_string("\tmovl\t%s, %s",
+                               get_register(tac->identifier1), "%eax");
+            free_register(tac->identifier1);
+        }
 	}
 	temp->type = MCC_ASSEMBLY_JMP;
 	temp->instruction = new_string("\tjmp\t.RET%s", func_end->identifier1);
@@ -400,13 +422,24 @@ struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac)
     if(registers->edx != NULL) {
 		add_lost_register(registers->edx);
 	}
-
+    if(registers->st0 != NULL) {
+        add_lost_register(registers->st0);
+    }
+    if(registers->st1 != NULL) {
+        add_lost_register(registers->st1);
+    }
+    if(registers->st2 != NULL) {
+        add_lost_register(registers->st2);
+    }
+    if(registers->st3 != NULL) {
+        add_lost_register(registers->st3);
+    }
 	if (!strcmp(tac->identifier1, "read_float")) {
 		NEW_TRIPLE_LINE
 		temp->type = MCC_ASSEMBLY_CONSTANT;
 		temp1->type = MCC_ASSEMBLY_MOV;
 		temp->instruction =
-			new_string("\tfstps\t-%d(%s)", get_pos(tac->next->identifier1), "%ebp");
+			new_string("\tfstps\t%d(%s)", get_pos(tac->next->identifier1), "%ebp");
 		temp1->instruction = new_string("\tmovl\t%d(%s), %s",
                                         get_pos(tac->next->identifier1), "%ebp", "%eax");
 		retval->type = MCC_ASSEMBLY_CALL;
@@ -414,18 +447,29 @@ struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac)
 			new_string("\tcall\t%s", tac->identifier1);
 		return retval;
 	}
+    free_all_registers();
 
-	if (strcmp(tac->prev->identifier1, "result") == 0  && registers->eax != NULL) {
-			NEW_SINGLE_LINE
-            free_all_registers();
-        get_register(tac->identifier1);
-		    retval->type = MCC_ASSEMBLY_CALL;
-			retval->instruction = new_string("\tcall\t%s", tac->identifier1);
-			return retval;
-	} else
-        free_all_registers();
+	if (strcmp(tac->prev->identifier1, "result") == 0) {
+        if(tac->ret_type == MCC_AST_TYPE_FLOAT)
+        {
+            NEW_SINGLE_LINE
+            set_float_register(tac->identifier1);
+            retval->type = MCC_ASSEMBLY_CALL;
+            retval->instruction = new_string("\tcall\t%s", tac->identifier1);
 
-
+            return retval;
+        }else if(tac->ret_type > MCC_AST_TYPE_BOOL)
+        {
+            //ARRAY //TODO
+        } else
+        {
+            NEW_SINGLE_LINE
+            get_register(tac->identifier1);
+            retval->type = MCC_ASSEMBLY_CALL;
+            retval->instruction = new_string("\tcall\t%s", tac->identifier1);
+            return retval;
+        }
+    }
     NEW_SINGLE_LINE
 	retval->type = MCC_ASSEMBLY_CALL;
 	retval->instruction = new_string("\tcall\t%s", tac->identifier1);
@@ -518,7 +562,7 @@ mCc_assembly_create_builtin_func(struct mCc_tac_list *tac)
 			"\tflds\t8(%ebp)\n"
 			"\tsubl\t$4, %esp\n"
 			"\tleal\t-8(%esp), %esp\n"
-			"\tfstpl\t(%esp)\n"
+			"\tfstps\t(%esp)\n"
 			"\tpushl\t$.LCPRINTFLOAT\n"
 			"\tcall\tprintf\n"
 			"\taddl\t$16, %esp\n"
@@ -552,58 +596,31 @@ mCc_assembly_create_builtin_func(struct mCc_tac_list *tac)
 			"\t.size\tread_int, .-read_int";
 	} else if (strcmp(tac->identifier1, "read_float") == 0
 		   && !CHECK_BIT(builtin, 5)) {
-		builtin += 32;
-		retval->instruction =
-			"\t.section\t.rodata\n"
-			".LCREADFLOAT:\n"
-			"\t.string\t\"%f\"\n"
-			"\t.text\n"
-			"\t.globl\tread_float\n"
-			"\t.type\tread_float, @function\n"
-			"read_float:\n"
-			"\tpushl\t%ebp\n"
-			"\tmovl\t%esp, %ebp\n"
-			"\tsubl\t$24, %esp\n"
-			"\tfldz\n"
-			"\tfstps\t-12(%ebp)\n"
-			"\tsubl\t$8, %esp\n"
-			"\tleal\t-12(%ebp), %eax\n"
-			"\tpushl\t%eax\n"
-			"\tpushl\t$.LCREADFLOAT\n"
-			"\tcall\t__isoc99_scanf\n"
-			"\taddl\t$16, %esp\n"
-			"\tflds\t-12(%ebp)\n"
-			"\tleave\n"
-			"\tret\n"
-			"\t.size\tread_float, .-read_float";
-	} else if (tac->type == MCC_TAC_ELEMENT_TYPE_UNARY
-		   && tac->unary_op_type == MCC_TAC_OPERATION_TYPE_FAC
-		   && !CHECK_BIT(builtin, 6)) {
-		builtin += 64;
-		retval->instruction =
-			"\t.globl\tfactorial_builtin\n"
-			"\t.type\tfactorial_builtin, @function\n"
-			"factorial_builtin:\n"
-			"\tpushl\t%ebp\n"
-			"\tmovl\t%esp, %ebp\n"
-			"\tsubl\t$8, %esp\n"
-			"\tcmpl\t$1, 8(%ebp)\n"
-			"\tjle\t.LFAC2\n"
-			"\tmovl\t8(%ebp), %eax\n"
-			"\tsubl\t$1, %eax\n"
-			"\tsubl\t$12, %esp\n"
-			"\tpushl\t%eax\n"
-			"\tcall\tfactorial_builtin\n"
-			"\taddl\t$20, %esp\n"
-			"\timull\t8(%ebp), %eax\n"
-			"\tjmp\t.LFAC3\n"
-			".LFAC2:\n"
-			"\tmovl\t8(%ebp), %eax\n"
-			".LFAC3:\n"
-			"\tleave\n"
-			"\tret\n"
-			"\t.size\tfactorial_builtin, .-factorial_builtin";
-	} else {
+        builtin += 32;
+        retval->instruction =
+                "\t.section\t.rodata\n"
+                        ".LCREADFLOAT:\n"
+                        "\t.string\t\"%f\"\n"
+                        "\t.text\n"
+                        "\t.globl\tread_float\n"
+                        "\t.type\tread_float, @function\n"
+                        "read_float:\n"
+                        "\tpushl\t%ebp\n"
+                        "\tmovl\t%esp, %ebp\n"
+                        "\tsubl\t$24, %esp\n"
+                        "\tfldz\n"
+                        "\tfstps\t-12(%ebp)\n"
+                        "\tsubl\t$8, %esp\n"
+                        "\tleal\t-12(%ebp), %eax\n"
+                        "\tpushl\t%eax\n"
+                        "\tpushl\t$.LCREADFLOAT\n"
+                        "\tcall\t__isoc99_scanf\n"
+                        "\taddl\t$16, %esp\n"
+                        "\tflds\t-12(%ebp)\n"
+                        "\tleave\n"
+                        "\tret\n"
+                        "\t.size\tread_float, .-read_float";
+    } else {
 		free(retval);
 		return NULL;
 	}
@@ -641,8 +658,8 @@ mCc_assembly_create_float_label(struct mCc_tac_list *tac)
 
 struct mCc_assembly_line *mCc_assembly_function_end(struct mCc_tac_list *tac)
 {
-	NEW_QUADRUPLE_LINE
-
+    NEW_QUADRUPLE_LINE
+//TODO some really strange memory errors here on example menu_loop_pi_check
 	retval->type = MCC_ASSEMBLY_LABEL;
 	retval->instruction = new_string(".RET%s:", tac->identifier1);
 	temp->type = MCC_ASSEMBLY_LEAVE;
@@ -693,12 +710,20 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac)
     struct mCc_tac_list *temp_tac = tac;
     new_stack();
     set_param_var(4,"ebp");
-    while (temp_tac->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END) {
+    for (int i = 0; i < num_params; ++i) {
+        temp_tac=temp_tac->next;
+    }
+    while (temp_tac->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_START) {
+        set_param_var(get_literal_size(temp_tac->decl_lit_type),
+                      temp_tac->identifier1);
+        temp_tac=temp_tac->prev;
+    }
+        while (temp_tac->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END) {
         if (temp_tac->type == MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP) {
             if(num_params>0)
             {
-                set_param_var(get_literal_size(temp_tac->decl_lit_type),
-                              temp_tac->identifier1);
+             //   set_param_var(get_literal_size(temp_tac->decl_lit_type),
+               //               temp_tac->identifier1);
                 num_params--;
             } else {
                 set_var(get_literal_size(temp_tac->decl_lit_type)
@@ -824,8 +849,14 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac)
 		retval = NULL;
 		break;
 	case MCC_TAC_OPERATION_TYPE_FAC:
-		free(retval);
-		return mCc_assembly_factorial(tac);
+        if(jump_cond==-1)
+        {
+            jump_cond=-2;
+            update_register(tac->unary_identifier,tac->identifier1);
+        }
+        free(retval);
+        retval = NULL;
+        break;
 	default:
 		printf("error");
 		break;
@@ -842,42 +873,6 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac)
 
 bool is_float(char *identifier) {
 	return strncmp(get_register(identifier), "%s", 2) == 0;
-}
-
-struct mCc_assembly_line *mCc_assembly_factorial(struct mCc_tac_list *tac)
-{
-	NEW_TRIPLE_LINE
-	retval->type = MCC_ASSEMBLY_PUSH;
-	retval->instruction =
-		new_string("\tpushl\t%s", get_register(tac->identifier3));
-
-	if (registers->eax != NULL) {
-		char *old = registers->eax;
-		struct mCc_assembly_line* temp2;
-		MALLOC(temp2,sizeof(struct mCc_assembly_line))
-		temp2->next=retval;
-		temp2->prev=NULL;
-		retval->prev=temp2;
-		temp2->type = MCC_ASSEMBLY_MOV;
-		free_register(old);
-		get_register(tac->identifier1);
-
-		temp2->instruction=new_string("\tmovl\t%s, %s", "%eax", get_register(old));
-
-		temp->type = MCC_ASSEMBLY_CALL;
-		temp->instruction = new_string("\tcall\t%s", "factorial_builtin");
-		temp1->type = MCC_ASSEMBLY_MOV;
-		temp1->instruction = new_string("\tmovl\t%s, %s", "%eax",
-										get_register(tac->identifier1));
-		return temp2;
-	}
-	free_register(tac->identifier3);
-	temp->type = MCC_ASSEMBLY_CALL;
-	temp->instruction = new_string("\tcall\t%s", "factorial_builtin");
-	temp1->type = MCC_ASSEMBLY_MOV;
-	temp1->instruction = new_string("\tmovl\t%s, %s", "%eax",
-					get_register(tac->identifier1));
-	return retval;
 }
 
 struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac)
@@ -954,6 +949,19 @@ mCc_assembly_conditional_jump(struct mCc_tac_list *tac)
 	else
 		identifier = tac->identifier1;
 	retval->type = MCC_ASSEMBLY_JMP;
+    if(jump_cond<0)
+    {
+        free(retval);
+        NEW_DOUBLE_LINE
+        retval->instruction = new_string("\tcmpl\t$0, %s", get_register(tac->identifier1));
+        if(jump_cond<-1)
+            temp->instruction = new_string("\tjne\t%s",get_label(identifier));
+        else
+            temp->instruction = new_string("\tje\t%s",get_label(identifier));
+        temp->type = MCC_ASSEMBLY_JMP;
+        retval->type = MCC_ASSEMBLY_CMP;
+        return retval;
+    }
 	switch (jump_cond) {
 	case MCC_TAC_OPERATION_TYPE_EQ:
 		retval->instruction =
@@ -983,6 +991,7 @@ mCc_assembly_conditional_jump(struct mCc_tac_list *tac)
 		printf("error");
 		break;
 	}
+
 	jump_cond = -1;
 	return retval;
 }
@@ -1043,7 +1052,6 @@ struct mCc_assembly_line *mCc_assembly_copy_identifier(struct mCc_tac_list *tac)
 struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac)
 {
 	NEW_SINGLE_LINE
-
 	switch (tac->literal_type) {
 	case (MCC_TAC_LITERAL_TYPE_INT):
 			retval->instruction =
@@ -1173,7 +1181,7 @@ void set_param_var(int size, char *identifier)
     }
     if (param_stack->counter == 0) {
         MALLOC_((param_stack->variables), (sizeof(struct variable)))
-        param_stack->variables[param_stack->counter].stack_diff = 0;
+        param_stack->variables[param_stack->counter].stack_diff = 4;
         param_stack->variables[param_stack->counter].size = size;
     } else {
         REALLOC_((param_stack->variables),
@@ -1319,10 +1327,10 @@ char *get_register(char *identifier)
 		return "%ecx";
 	}
 	if (registers->edx == NULL) {
-		registers->edx = identifier;
-		return "%edx";
-	}
-	return "temp";
+        registers->edx = identifier;
+        return "%edx";
+    }
+    return "temp";
 }
 
 bool has_register(char *identifier)
@@ -1421,10 +1429,20 @@ void move_line_to_end(struct mCc_assembly_line *current, struct mCc_tac_list *ta
                     while(current->next != NULL)
                         current=current->next;
                     current->next = mCc_assembly_operation(tac);
-					current->next->prev = current;
+                    if(current->next!= NULL)
+					    current->next->prev = current;
 					return;
                 }
                 break;
+            case MCC_TAC_ELEMENT_TYPE_LOAD:
+                if(strcmp(tac->identifier1,identifier) == 0)
+                {
+                    move_line_to_end(current,tac->prev,tac->identifier2);
+                    while(current->next != NULL)
+                        current=current->next;
+                    current->next = mCc_assembly_load(tac);
+                    current->next->prev=current;
+                }
             default:
                 break;
 

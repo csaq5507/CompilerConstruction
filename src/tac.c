@@ -593,7 +593,7 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 	elem->type = MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL;
 
 	elem->identifier1 = copy_string(expression->identifier->renamed);
-
+    elem->ret_type = expression->d_type;
 	if (expression->d_type != MCC_AST_TYPE_VOID) {
 		tac_list *ret_elem = tac_new_list();
 		ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP_CALL;
@@ -601,7 +601,6 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 		ret_elem->identifier1 = copy_string("result");
 		ret_elem->param_size =
 			1; // default only arrays have another size
-
 		ret_elem->next = elem;
 		elem->prev = ret_elem;
 		if (expression->arguments == NULL)

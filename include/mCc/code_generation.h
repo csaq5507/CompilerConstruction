@@ -23,6 +23,7 @@ int string_label_idx;
 int float_label_idx;
 int label_idx;
 int builtin;
+int skip;
 
 struct label_identification {
 	char *key;
@@ -90,6 +91,7 @@ enum instruction {
 	MCC_ASSEMBLY_RET,
 	MCC_ASSEMBLY_CMP,
 	MCC_ASSEMBLY_JMP,
+	MCC_ASSEMBLY_FSTP,
 	MCC_ASSEMBLY_BUILTIN,
 	MCC_ASSEMBLY_CONSTANT
 
@@ -132,8 +134,6 @@ struct mCc_assembly_line *
 mCc_assembly_create_builtin_func(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac);
-
-struct mCc_assembly_line *mCc_assembly_factorial(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *
 mCc_assembly_copy_identifier(struct mCc_tac_list *tac);

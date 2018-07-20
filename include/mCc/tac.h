@@ -83,6 +83,7 @@ typedef struct mCc_tac_list {
             // ARRAY PARAM
             int param_size;
         };
+
         //COPY_LITERAL
         struct{
             enum mCc_tac_literal_type literal_type;
@@ -118,9 +119,10 @@ typedef struct mCc_tac_list {
         };
 
         //CALL
-        int num_function_param;
-
-
+        struct {
+			int num_function_param;
+			enum mCc_ast_type ret_type;
+		};
         //JUMP
         struct mCc_tac_list *jump;
 

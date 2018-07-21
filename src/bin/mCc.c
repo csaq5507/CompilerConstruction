@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
         mCc_cfg_delete(_cfg);
     }
 
-    struct mCc_assembly *ass = mCc_assembly_generate(_tac, outputFileName);
+   struct mCc_assembly *ass = mCc_assembly_generate(_tac, outputFileName);
 
     mCc_delete_result(&result);
 

@@ -64,10 +64,10 @@ enum mCc_tac_operation_type {
 };
 
 enum mCc_tac_literal_type {
-	MCC_TAC_LITERAL_TYPE_STRING,
 	MCC_TAC_LITERAL_TYPE_INT,
+	MCC_TAC_LITERAL_TYPE_FLOAT,
 	MCC_TAC_LITERAL_TYPE_BOOL,
-	MCC_TAC_LITERAL_TYPE_FLOAT
+	MCC_TAC_LITERAL_TYPE_STRING
 };
 typedef struct mCc_tac_list {
 	struct mCc_tac_list *prev;

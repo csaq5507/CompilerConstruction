@@ -24,6 +24,7 @@ int float_label_idx;
 int label_idx;
 int builtin;
 int skip;
+int push_vars;
 
 struct label_identification {
 	char *key;
@@ -41,6 +42,7 @@ struct labels *label;
 struct variable {
     int stack_diff;
     int size;
+    enum mCc_tac_literal_type type;
     char *identifier;
 };
 
@@ -142,7 +144,7 @@ struct mCc_assembly_line *mCc_assembly_store(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *mCc_assembly_create_label(struct mCc_tac_list *tac);
 
-struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac);
+struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac, struct mCc_assembly_line* current);
 
 struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac);
 
@@ -155,13 +157,13 @@ struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac);
 struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *
-mCc_assembly_conditional_jump(struct mCc_tac_list *tac);
+mCc_assembly_conditional_jump(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
 
-struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac);
-
+struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac, struct mCc_assembly_line* current);
+/*
 struct mCc_assembly_line *
-mCc_assembly_nested_condition(struct mCc_tac_list *tac);
-
+mCc_assembly_nested_condition(struct mCc_tac_list *tac,struct mCc_assembly_line * as);
+*/
 struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac);
 
 /***************************************/
@@ -209,6 +211,9 @@ void add_lost_register(char* identifier);
 bool has_register(char *identifier);
 
 int negate_binary_op_type(enum mCc_tac_operation_type type);
+
+void swap_register(char *identifier1);
+
 
 #ifdef __cplusplus
 }

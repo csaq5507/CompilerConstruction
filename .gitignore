@@ -2,5 +2,5 @@ subprojects/*
 build/*
 cmake-build-debug/*
 .idea/*
-doc/examples/test.mC
+doc/examples/test.*
 doc/examples_tmp/*

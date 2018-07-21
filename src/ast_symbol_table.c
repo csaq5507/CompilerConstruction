@@ -943,12 +943,16 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 		int t_type_length = find_element_param_num(
 			table, expression->identifier->name);
 		if (t_type != NULL) {
-			if (expression->identifier->param_types!= NULL)
-				free(expression->identifier->param_types);
-			expression->identifier->param_types =
-				malloc(sizeof(*t_type) * t_type_length);
-			memcpy(expression->identifier->param_types, t_type,
-			       sizeof(*t_type) * t_type_length);
+			//if (expression->identifier->param_types!= NULL)
+			//	free(expression->identifier->param_types);
+
+            if (expression->identifier->param_types== NULL) {
+                expression->identifier->param_types =
+                        malloc(sizeof(enum mCc_ast_type) * t_type_length);
+                memcpy(expression->identifier->param_types, t_type,
+                       sizeof(enum mCc_ast_type) * t_type_length);
+            }
+
 		}
 
 	} else if (num_args != 0) {

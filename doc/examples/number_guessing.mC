@@ -12,9 +12,9 @@ void guessNumber(int number, int max) {
         if(success) 
             print("you guessed correct");
         else {
-            if(guess < number) 
+            if(guess < number)
                 print("the number is bigger\n");
-            else 
+            else
                 print("the number is smaller\n");
         }
     }

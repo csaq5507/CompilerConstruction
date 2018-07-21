@@ -1,6 +1,8 @@
 void main() {
     int test;
-    while_function (3.3, true);
+    float tmp;
+    tmp = 3.3;
+    while_function (tmp, true);
     test = dangling_else_function();
     print_int(test);
     print_nl();

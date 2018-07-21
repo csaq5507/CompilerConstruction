@@ -1,6 +1,8 @@
 float calc_mean(float a, float b){
 	float c;
-	c = (a+b) / 2.0;
+	float add;
+	add = a+b;
+	c = add / 2.0;
 	return c;
 }
 

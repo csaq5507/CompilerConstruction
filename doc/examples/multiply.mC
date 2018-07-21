@@ -11,8 +11,12 @@ int multiply(int num, int multiplicator)
 	
 	while (i < 10)
 	{
+	    int a;
+	    a = num/10;
 		arr[i]=num/10;
 		i = i + 1;
+		print_int(arr[i]);
+		print_nl();
 	}
 	
 	i = 0;

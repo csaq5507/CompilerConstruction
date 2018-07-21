@@ -861,13 +861,18 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac)
 		printf("error");
 		break;
 	}
-	if (strncmp(get_register(tac->rhs), "%s", 2) == 0) {
-		free_register(tac->lhs);
-		update_register(tac->rhs, tac->identifier1);
-	} else {
-		free_register(tac->rhs);
+	if (tac->type == MCC_TAC_ELEMENT_TYPE_UNARY) {
 		update_register(tac->lhs, tac->identifier1);
+	} else {
+		if (strncmp(get_register(tac->rhs), "%s", 2) == 0) {
+			free_register(tac->lhs);
+			update_register(tac->rhs, tac->identifier1);
+		} else {
+			free_register(tac->rhs);
+			update_register(tac->lhs, tac->identifier1);
+		}
 	}
+
 	return retval;
 }
 

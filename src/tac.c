@@ -557,8 +557,10 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data)
             elem->binary_op_type = op_type;
 
             if (temp_rhs_end->type == MCC_TAC_ELEMENT_TYPE_BINARY) {
-                if (elem->binary_op_type == MCC_TAC_OPERATION_TYPE_MINUS)
+                if (elem->binary_op_type == MCC_TAC_OPERATION_TYPE_MINUS &&
+                        temp_rhs_end->binary_op_type==  MCC_TAC_OPERATION_TYPE_MINUS) {
                     temp_rhs_end->binary_op_type= MCC_TAC_OPERATION_TYPE_PLUS;
+                }
                 temp_rhs_end->next = temp_lhs_star;
                 temp_lhs_star->prev = temp_rhs_end;
                 temp_lhs_end->next = elem;
@@ -1321,8 +1323,10 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
         label->next = temp_else_stmt_start;
         temp_else_stmt_start->prev = label;
 
-        temp_else_stmt_end->next = label_end;
-        label_end->prev = temp_else_stmt_end;
+        if (temp_else_stmt_end != label_end) {
+            temp_else_stmt_end->next = label_end;
+            label_end->prev = temp_else_stmt_end;
+        }
 
         stmt->tac_end = label_end;
         add_jump(stmt->tac_start, stmt->tac_end,

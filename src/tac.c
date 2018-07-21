@@ -688,7 +688,7 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 				temp_end->prev = ret_elem;
 			}
 		} else {
-			for (int i = expression->arguments->counter -1; i >=0; i--) {
+			for (int i = 0; i < expression->arguments->counter; i++) {
 				tac_list *actual =
 						expression->arguments->expression[i].tac_end;
 				tac_list *ret_elem = tac_new_list();

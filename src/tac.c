@@ -22,6 +22,30 @@ static void tac_parameter(struct mCc_ast_parameter *parameter, void *data);
 static void tac_argument(struct mCc_ast_argument *argument, void *data);
 
 
+static void set_tac_literal (tac_list *elem, struct mCc_ast_single_expression *expression);
+static void add_jump(struct mCc_tac_list *start, struct mCc_tac_list *end,
+                     struct mCc_tac_list *jump);
+static enum mCc_tac_operation_type ast_to_tac_op_type(enum mCc_ast_binary_op op);
+enum mCc_tac_operation_type get_inverse_operator (enum mCc_tac_operation_type type);
+static void remove_jump(struct mCc_tac_list *start, struct mCc_tac_list *end,
+                        const char *label);
+static void negate_or(struct mCc_ast_expression *expression);
+static void negate_and(struct mCc_ast_expression *expression);
+static void negate_tac (struct mCc_ast_expression *expression);
+static void negate_tac_single (struct mCc_ast_single_expression *expression);
+static void tac_single_expression_unary(struct mCc_ast_single_expression *expression,
+                                        struct mCc_tac_list *elem);
+static void generate_tac_operation_or(struct mCc_ast_expression *expression);
+static void generate_tac_operation_and(struct mCc_ast_expression *expression);
+static struct mCc_ast_compound_stmt *delete_stmt_from_list(struct mCc_ast_compound_stmt *c_stmt,
+                                                           int position);
+static void bool_operation_assignment(struct mCc_ast_assignment *stmt);
+static void bool_and_or_assignment(struct mCc_ast_assignment *stmt);
+static void bool_assignment(struct mCc_ast_assignment *stmt);
+static bool handle_empty_if_stmt(struct mCc_ast_if_stmt *stmt);
+
+
+
 static struct mCc_ast_visitor tac_visitor(void *out)
 {
 	assert(out);
@@ -186,9 +210,6 @@ static void remove_jump(struct mCc_tac_list *start, struct mCc_tac_list *end,
         start = start->next;
     }
 }
-
-static void negate_tac_single (struct mCc_ast_single_expression *expression);
-static void negate_tac (struct mCc_ast_expression *expression);
 
 static void negate_or(struct mCc_ast_expression *expression) {
     assert(expression);

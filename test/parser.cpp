@@ -61,11 +61,7 @@ TEST(parser_lexer, literal)
 	ASSERT_EQ(s_literal->type, MCC_AST_LITERAL_TYPE_STRING);
 	ASSERT_STREQ(s_literal->s_value, "String");
 
-	free(i_literal);
-    free(f_literal);
-    free(b_literal);
-    free(s_literal->s_value);
-    free(s_literal);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, identifier)
@@ -83,7 +79,7 @@ TEST(parser_lexer, identifier)
 
     free(identifier->name);
     free(identifier->renamed);
-    free(identifier);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, array_declaration)
@@ -119,11 +115,7 @@ TEST(parser_lexer, array_declaration)
     ASSERT_EQ(declaration_bool->literal, MCC_AST_LITERAL_TYPE_BOOL);
     ASSERT_TRUE(declaration_bool->array_identifier == identifier);
 
-    free(identifier);
-    free(declaration_int);
-    free(declaration_bool);
-    free(declaration_float);
-    free(declaration_string);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, single_declaration)
@@ -156,10 +148,7 @@ TEST(parser_lexer, single_declaration)
     ASSERT_TRUE(declaration_bool->identifier == identifier);
 
     free(identifier);
-    free(declaration_int);
-    free(declaration_bool);
-    free(declaration_float);
-    free(declaration_string);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, array_assignment)
@@ -179,7 +168,7 @@ TEST(parser_lexer, array_assignment)
     free(identifier);
     free(ex_1);
     free(ex_2);
-    free(assignment);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, single_assignment)
@@ -198,7 +187,7 @@ TEST(parser_lexer, single_assignment)
 
     free(ex);
     free(identifier);
-    free(assignment);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, single_expression_literal)
@@ -212,7 +201,7 @@ TEST(parser_lexer, single_expression_literal)
     ASSERT_TRUE(single_expr->literal == literal);
 
     free(literal);
-    free(single_expr);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, single_expression_identifier_ex)
@@ -230,7 +219,7 @@ TEST(parser_lexer, single_expression_identifier_ex)
 
     free(identifier);
     free(exp);
-    free(single_expr);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, single_expression_identifier)
@@ -245,7 +234,7 @@ TEST(parser_lexer, single_expression_identifier)
     ASSERT_TRUE(single_expr->identifier == identifier);
 
     free(identifier);
-    free(single_expr);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, single_expression_call_expr)
@@ -260,7 +249,7 @@ TEST(parser_lexer, single_expression_call_expr)
     ASSERT_TRUE(single_expr->call_expr == call_expr);
 
     free(call_expr);
-    free(single_expr);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, single_expression_unary_op)
@@ -284,8 +273,7 @@ TEST(parser_lexer, single_expression_unary_op)
     ASSERT_EQ(single_expr_fac->unary_operator, MCC_AST_UNARY_OP_FAC);
 
     free(unary_expr);
-    free(single_expr_neg);
-    free(single_expr_fac);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, single_expression_parenth)
@@ -300,7 +288,7 @@ TEST(parser_lexer, single_expression_parenth)
     ASSERT_TRUE(single_expr->expression == expression);
 
     free(expression);
-    free(single_expr);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, single_argument)
@@ -314,7 +302,7 @@ TEST(parser_lexer, single_argument)
     ASSERT_EQ(argument->counter, 1);
 
     free(expression);
-    free(argument);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, empty_call_expr)
@@ -328,7 +316,7 @@ TEST(parser_lexer, empty_call_expr)
     ASSERT_TRUE(call_expr->identifier == identifier);
 
     free(identifier);
-    free(call_expr);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, call_expr)
@@ -344,7 +332,7 @@ TEST(parser_lexer, call_expr)
 
     free(identifier);
     free(arguments);
-    free(call_expr);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, expression_single)
@@ -358,7 +346,7 @@ TEST(parser_lexer, expression_single)
     ASSERT_TRUE(expr->single_expr == single_expr);
 
     free(single_expr);
-    free(expr);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, expression_binary_op)
@@ -379,7 +367,7 @@ TEST(parser_lexer, expression_binary_op)
 
     free(lhs);
     free(rhs);
-    free(expr);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, ret)
@@ -392,7 +380,7 @@ TEST(parser_lexer, ret)
     ASSERT_TRUE(ret->expression == ex);
 
     free(ex);
-    free(ret);
+    mCc_ast_delete_pointer();
 
 }
 
@@ -404,7 +392,7 @@ TEST(parser_lexer, empty_ret)
 
     ASSERT_TRUE(ret->expression == NULL);
 
-    free(ret);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, while_stmt)
@@ -418,7 +406,7 @@ TEST(parser_lexer, while_stmt)
     ASSERT_TRUE(while_stmt->while_stmt == while_st);
 
     free(while_st);
-    free(while_stmt);
+    mCc_ast_delete_pointer();
 
 }
 
@@ -435,7 +423,7 @@ TEST(parser_lexer, if_stmt)
 
     free(stmt);
     free(ex);
-    free(if_stmt);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, if_else)
@@ -454,7 +442,7 @@ TEST(parser_lexer, if_else)
     free(ex);
     free(stmt);
     free(else_stmt);
-    free(if_stmt);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, compound_stmt)
@@ -468,7 +456,7 @@ TEST(parser_lexer, compound_stmt)
     ASSERT_TRUE(cmp_stmt->compound_stmt == compound_stmt);
 
     free(compound_stmt);
-    free(cmp_stmt);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, declaration)
@@ -482,8 +470,7 @@ TEST(parser_lexer, declaration)
     ASSERT_TRUE(stmt->declaration == decl_stmt);
 
     free(decl_stmt);
-    free(stmt);
-
+    mCc_ast_delete_pointer();
 
 }
 
@@ -498,7 +485,7 @@ TEST(parser_lexer, assignment)
     ASSERT_TRUE(stmt->assignment == ass_stmt);
 
     free(ass_stmt);
-    free(stmt);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, empty_compound)
@@ -509,7 +496,7 @@ TEST(parser_lexer, empty_compound)
     ASSERT_TRUE(cmp_stmt->statements == NULL);
     ASSERT_EQ(cmp_stmt->counter, 0);
 
-    free(cmp_stmt);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, single_compound)
@@ -522,7 +509,7 @@ TEST(parser_lexer, single_compound)
     ASSERT_TRUE(cmp_stmt->statements == stmt);
 
     free(stmt);
-    free(cmp_stmt);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, parameter_array)
@@ -533,7 +520,7 @@ TEST(parser_lexer, parameter_array)
     ASSERT_EQ(params->counter, 0);
 
 
-    free(params);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, empty_parameter_array)
@@ -543,7 +530,7 @@ TEST(parser_lexer, empty_parameter_array)
 
     ASSERT_EQ(param->counter, 0);
 
-    free(param);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, single_parameter)
@@ -557,7 +544,7 @@ TEST(parser_lexer, single_parameter)
     ASSERT_TRUE(param->declaration == decl);
 
     free(decl);
-    free(param);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, type_function_def)
@@ -580,7 +567,7 @@ TEST(parser_lexer, type_function_def)
     free(identifier);
     free(params);
     free(c_stmt);
-    free(func);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, void_function_def)
@@ -602,7 +589,7 @@ TEST(parser_lexer, void_function_def)
     free(identifier);
     free(params);
     free(c_stmt);
-    free(func);
+    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, function_def_array)
@@ -616,5 +603,5 @@ TEST(parser_lexer, function_def_array)
     ASSERT_TRUE(func->function_def == f);
 
     free(f);
-    free(func);
+    mCc_ast_delete_pointer();
 }

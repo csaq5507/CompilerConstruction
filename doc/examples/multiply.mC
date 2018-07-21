@@ -15,7 +15,9 @@ int multiply(int num, int multiplicator)
 	    a = num/10;
 		arr[i]=num/10;
 		i = i + 1;
-		print_int(arr[i]);
+		print_int(num);
+		print(": ");
+		print_int(a);
 		print_nl();
 	}
 	

@@ -22,6 +22,30 @@ static void tac_parameter(struct mCc_ast_parameter *parameter, void *data);
 static void tac_argument(struct mCc_ast_argument *argument, void *data);
 
 
+static void set_tac_literal (tac_list *elem, struct mCc_ast_single_expression *expression);
+static void add_jump(struct mCc_tac_list *start, struct mCc_tac_list *end,
+                     struct mCc_tac_list *jump);
+static enum mCc_tac_operation_type ast_to_tac_op_type(enum mCc_ast_binary_op op);
+enum mCc_tac_operation_type get_inverse_operator (enum mCc_tac_operation_type type);
+static void remove_jump(struct mCc_tac_list *start, struct mCc_tac_list *end,
+                        const char *label);
+static void negate_or(struct mCc_ast_expression *expression);
+static void negate_and(struct mCc_ast_expression *expression);
+static void negate_tac (struct mCc_ast_expression *expression);
+static void negate_tac_single (struct mCc_ast_single_expression *expression);
+static void tac_single_expression_unary(struct mCc_ast_single_expression *expression,
+                                        struct mCc_tac_list *elem);
+static void generate_tac_operation_or(struct mCc_ast_expression *expression);
+static void generate_tac_operation_and(struct mCc_ast_expression *expression);
+static struct mCc_ast_compound_stmt *delete_stmt_from_list(struct mCc_ast_compound_stmt *c_stmt,
+                                                           int position);
+static void bool_operation_assignment(struct mCc_ast_assignment *stmt);
+static void bool_and_or_assignment(struct mCc_ast_assignment *stmt);
+static void bool_assignment(struct mCc_ast_assignment *stmt);
+static bool handle_empty_if_stmt(struct mCc_ast_if_stmt *stmt);
+
+
+
 static struct mCc_ast_visitor tac_visitor(void *out)
 {
 	assert(out);
@@ -187,55 +211,65 @@ static void remove_jump(struct mCc_tac_list *start, struct mCc_tac_list *end,
     }
 }
 
-static void negate_tac_single (struct mCc_ast_single_expression *expression);
+static void negate_or(struct mCc_ast_expression *expression) {
+    assert(expression);
+
+    struct mCc_tac_list *tac_end = expression->tac_end;
+    if (expression->rhs->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
+        negate_tac_single(expression->rhs->single_expr);
+        expression->tac_end = expression->rhs->single_expr->tac_end;
+    }
+    else {
+        negate_tac(expression->rhs);
+        expression->tac_end = expression->rhs->tac_end;
+    }
+    if (tac_end->type == MCC_TAC_ELEMENT_TYPE_LABEL) {
+        remove_jump(expression->tac_start, expression->tac_end,
+                    tac_end->identifier1);
+        expression->tac_end = tac_end->prev;
+        expression->rhs->tac_end = tac_end->prev;
+        tac_end->prev->next = tac_end->next;
+        if (expression->rhs->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
+            expression->rhs->single_expr->tac_end = expression->tac_end;
+        }
+        tac_end->prev = NULL;
+        tac_end->next = NULL;
+        mCc_tac_delete(tac_end);
+    }
+}
+
+static void negate_and(struct mCc_ast_expression *expression) {
+    assert(expression);
+
+    negate_tac(expression->rhs);
+    expression->tac_end = expression->rhs->tac_end;
+    struct mCc_tac_list *tac_end = expression->tac_end;
+    tac_list *label;
+    if (tac_end->type == MCC_TAC_ELEMENT_TYPE_LABEL) {
+        label = tac_end;
+    } else {
+        label = tac_new_list();
+        label->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+        label->identifier1 = new_string("L%d", l_counter++);
+        tac_end->next = label;
+        label->prev = tac_end;
+        label->next = NULL;
+        expression->tac_end = tac_end->next;
+        if (expression->rhs->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
+            expression->rhs->single_expr->tac_end = expression->tac_end;
+        }
+        expression->rhs->tac_end = expression->tac_end;
+    }
+    add_jump(expression->lhs->tac_start, expression->lhs->tac_end, label);
+}
 
 static void negate_tac (struct mCc_ast_expression *expression) {
     assert(expression);
 
     if (expression->op == MCC_AST_BINARY_OP_OR) {
-        struct mCc_tac_list *tac_end = expression->tac_end;
-        if (expression->rhs->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
-            negate_tac_single(expression->rhs->single_expr);
-            expression->tac_end = expression->rhs->single_expr->tac_end;
-        }
-        else {
-            negate_tac(expression->rhs);
-            expression->tac_end = expression->rhs->tac_end;
-        }
-        if (tac_end->type == MCC_TAC_ELEMENT_TYPE_LABEL) {
-            remove_jump(expression->tac_start, expression->tac_end,
-                        tac_end->identifier1);
-            expression->tac_end = tac_end->prev;
-            expression->rhs->tac_end = tac_end->prev;
-            tac_end->prev->next = tac_end->next;
-            if (expression->rhs->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
-                expression->rhs->single_expr->tac_end = expression->tac_end;
-            }
-            tac_end->prev = NULL;
-            tac_end->next = NULL;
-            mCc_tac_delete(tac_end);
-        }
+        negate_or(expression);
     } else if (expression->op == MCC_AST_BINARY_OP_AND) {
-        negate_tac(expression->rhs);
-        expression->tac_end = expression->rhs->tac_end;
-        struct mCc_tac_list *tac_end = expression->tac_end;
-        tac_list *label;
-        if (tac_end->type == MCC_TAC_ELEMENT_TYPE_LABEL) {
-            label = tac_end;
-        } else {
-            label = tac_new_list();
-            label->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-            label->identifier1 = new_string("L%d", l_counter++);
-            tac_end->next = label;
-            label->prev = tac_end;
-            label->next = NULL;
-            expression->tac_end = tac_end->next;
-            if (expression->rhs->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
-                expression->rhs->single_expr->tac_end = expression->tac_end;
-            }
-            expression->rhs->tac_end = expression->tac_end;
-        }
-        add_jump(expression->lhs->tac_start, expression->lhs->tac_end, label);
+        negate_and(expression);
     } else {
         tac_list *tmp = expression->tac_end;
         while (tmp->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP ||
@@ -270,6 +304,55 @@ static void negate_tac_single (struct mCc_ast_single_expression *expression) {
     }
 }
 
+static void tac_single_expression_unary(struct mCc_ast_single_expression *expression,
+                                        struct mCc_tac_list *elem) {
+    assert(expression);
+
+    if (expression->unary_operator == MCC_AST_UNARY_OP_NEGATION) {
+        elem->type = MCC_TAC_ELEMENT_TYPE_UNARY;
+        elem->unary_op_type = MCC_TAC_OPERATION_TYPE_MINUS;
+
+        tac_list *temp = expression->unary_expression->tac_end;
+
+        elem->unary_identifier = copy_string(temp->identifier1);
+
+        expression->tac_start = expression->unary_expression->tac_start;
+        elem->prev = temp;
+        temp->next = elem;
+        expression->tac_end = elem;
+    } else if (expression->unary_operator == MCC_AST_UNARY_OP_FAC &&
+               expression->unary_expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE &&
+               expression->unary_expression->single_expr->type != MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH){
+        elem->type = MCC_TAC_ELEMENT_TYPE_UNARY;
+        elem->unary_op_type = MCC_TAC_OPERATION_TYPE_FAC;
+
+        tac_list *temp = expression->unary_expression->tac_end;
+
+        elem->unary_identifier = copy_string(temp->identifier1);
+
+        expression->tac_start = expression->unary_expression->tac_start;
+        elem->prev = temp;
+        temp->next = elem;
+        expression->tac_end = elem;
+    } else {
+        if (expression->unary_expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
+            negate_tac_single(expression->unary_expression->single_expr);
+
+            expression->tac_start = expression->unary_expression->single_expr->expression->tac_start;
+            expression->tac_end = expression->unary_expression->single_expr->expression->tac_end;
+        } else {
+            negate_tac(expression->unary_expression);
+
+            expression->tac_start = expression->unary_expression->tac_start;
+            expression->tac_end = expression->unary_expression->tac_end;
+        }
+        free(elem->identifier1);
+        free(elem);
+    }
+
+
+}
+
 static void tac_single_expression(struct mCc_ast_single_expression *expression,
 				  void *data)
 {
@@ -291,7 +374,6 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 
 		elem->copy_identifier =
 			copy_string(expression->identifier->renamed);
-
 		expression->tac_start = elem;
 		expression->tac_end = elem;
 	} else if (expression->type
@@ -299,13 +381,9 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 		elem->type = MCC_TAC_ELEMENT_TYPE_LOAD;
 
         tac_list *temp = expression->identifier_expression->tac_end;
-
 		elem->identifier2 =
 			copy_string(expression->identifier->renamed);
-
-
 		elem->identifier3 = copy_string(temp->identifier1);
-
 		temp->next = elem;
 		elem->prev = temp;
 		expression->tac_start =
@@ -319,48 +397,7 @@ static void tac_single_expression(struct mCc_ast_single_expression *expression,
 		free(elem);
 	} else if (expression->type
 		   == MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP) {
-        if (expression->unary_operator == MCC_AST_UNARY_OP_NEGATION) {
-            elem->type = MCC_TAC_ELEMENT_TYPE_UNARY;
-            elem->unary_op_type = MCC_TAC_OPERATION_TYPE_MINUS;
-
-            tac_list *temp = expression->unary_expression->tac_end;
-
-            elem->unary_identifier = copy_string(temp->identifier1);
-
-            expression->tac_start = expression->unary_expression->tac_start;
-            elem->prev = temp;
-            temp->next = elem;
-            expression->tac_end = elem;
-        } else if (expression->unary_operator == MCC_AST_UNARY_OP_FAC &&
-                   expression->unary_expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE &&
-                   expression->unary_expression->single_expr->type != MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH){
-            elem->type = MCC_TAC_ELEMENT_TYPE_UNARY;
-            elem->unary_op_type = MCC_TAC_OPERATION_TYPE_FAC;
-
-            tac_list *temp = expression->unary_expression->tac_end;
-
-            elem->unary_identifier = copy_string(temp->identifier1);
-
-            expression->tac_start = expression->unary_expression->tac_start;
-            elem->prev = temp;
-            temp->next = elem;
-            expression->tac_end = elem;
-        } else {
-            if (expression->unary_expression->type == MCC_AST_EXPRESSION_TYPE_SINGLE) {
-                negate_tac_single(expression->unary_expression->single_expr);
-
-                expression->tac_start = expression->unary_expression->single_expr->expression->tac_start;
-                expression->tac_end = expression->unary_expression->single_expr->expression->tac_end;
-            } else {
-                negate_tac(expression->unary_expression);
-
-                expression->tac_start = expression->unary_expression->tac_start;
-                expression->tac_end = expression->unary_expression->tac_end;
-            }
-            free(elem->identifier1);
-            free(elem);
-        }
-
+        tac_single_expression_unary(expression, elem);
 	} else if (expression->type == MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH) {
 		expression->tac_start = expression->expression->tac_start;
 		expression->tac_end = expression->expression->tac_end;
@@ -431,6 +468,7 @@ static void generate_tac_operation_or(struct mCc_ast_expression *expression) {
 		jump_lhs->identifier1 = copy_string(((struct mCc_tac_list *) expression->lhs->tac_end)->identifier1);
 		jump_lhs->jump = label;
 	}
+
     expression->lhs->tac_end = lhs_last;
     if (expression->lhs->type == MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH) {
         expression->lhs->expression->tac_end = expression->lhs->tac_end;
@@ -804,55 +842,74 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
     tac_list *elem_return = tac_new_list();
     elem_return->type = MCC_TAC_ELEMENT_TYPE_RETURN;
 
-
-
 	if (stmt->expression != NULL) {
         tac_list *expression_end = stmt->expression->tac_end;
 
-        if (stmt->d_type == MCC_AST_TYPE_BOOL &&
+        if ((stmt->d_type == MCC_AST_TYPE_BOOL &&
+             (expression_end->type == MCC_TAC_ELEMENT_TYPE_BINARY ||
+              expression_end->type == MCC_TAC_ELEMENT_TYPE_UNARY)) ||
+                (expression_end->type == MCC_TAC_ELEMENT_TYPE_LABEL ||
+                   expression_end->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP)) {
+
+            tac_list *label_false = tac_new_list();
+            label_false->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+            label_false->identifier1 = new_string("L%d", l_counter++);
+            tac_list *label = tac_new_list();
+            label->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+            label->identifier1 = new_string("L%d", l_counter++);
+
+            tac_list *elem_false = tac_new_list();
+            tac_list *elem_true = tac_new_list();
+
+            elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
+            elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
+            elem_false->b_literal = false;
+            elem_false->identifier1 = new_string("reg%d", v_counter++);
+
+            elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
+            elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
+            elem_true->b_literal = true;
+            elem_true->identifier1 = copy_string(elem_false->identifier1);
+
+            if (stmt->d_type == MCC_AST_TYPE_BOOL &&
                 (expression_end->type == MCC_TAC_ELEMENT_TYPE_BINARY ||
-                expression_end->type == MCC_TAC_ELEMENT_TYPE_UNARY)) {
+                 expression_end->type == MCC_TAC_ELEMENT_TYPE_UNARY)) {
+                tac_list *jump_false = tac_new_list();
+                tac_list *jump = tac_new_list();
+                jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
+                jump_false->identifier1 = copy_string(expression_end->prev->identifier1);
+                jump_false->jump = label_false;
+                jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
+                jump->jump = label;
 
-            tac_list *label_false = tac_new_list();
-            label_false->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-            label_false->identifier1 = new_string("L%d", l_counter++);
-            tac_list *label = tac_new_list();
-            label->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-            label->identifier1 = new_string("L%d", l_counter++);
+                expression_end->next = jump_false;
+                jump_false->prev = expression_end;
+                jump_false->next = elem_true;
+                elem_true->prev = jump_false;
+                elem_true->next = jump;
+                jump->prev = elem_true;
+                jump->next = label_false;
+                label_false->prev = jump;
+                label_false->next = elem_false;
+                elem_false->prev = label_false;
+                elem_false->next = label;
+                label->prev = elem_false;
+            } else {
+                tac_list *jump = tac_new_list();
+                jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
+                jump->jump = label;
 
-            tac_list *jump_false = tac_new_list();
-            tac_list *jump = tac_new_list();
-            jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
-            jump_false->identifier1 = copy_string(expression_end->prev->identifier1);
-            jump_false->jump = label_false;
-            jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
-            jump->jump = label;
-
-            tac_list *elem_false = tac_new_list();
-            tac_list *elem_true = tac_new_list();
-
-            elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
-            elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
-            elem_false->b_literal = false;
-            elem_false->identifier1 = new_string("reg%d", v_counter++);
-
-            elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
-            elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
-            elem_true->b_literal = true;
-            elem_true->identifier1 = copy_string(elem_false->identifier1);
-
-            expression_end->next = jump_false;
-            jump_false->prev = expression_end;
-            jump_false->next = elem_true;
-            elem_true->prev = jump_false;
-            elem_true->next = jump;
-            jump->prev = elem_true;
-            jump->next = label_false;
-            label_false->prev = jump;
-            label_false->next = elem_false;
-            elem_false->prev = label_false;
-            elem_false->next = label;
-            label->prev = elem_false;
+                expression_end->next = elem_true;
+                elem_true->prev = expression_end;
+                elem_true->next = jump;
+                jump->prev = elem_true;
+                jump->next = label_false;
+                label_false->prev = jump;
+                label_false->next = elem_false;
+                elem_false->prev = label_false;
+                elem_false->next = label;
+                label->prev = elem_false;
+            }
 
             elem_return->type = MCC_TAC_ELEMENT_TYPE_RETURN;
             elem_return->identifier1 = copy_string(elem_false->identifier1);
@@ -862,57 +919,8 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
 
             stmt->tac_start = stmt->expression->tac_start;
             stmt->tac_end = elem_return;
-
-        } else if (expression_end->type == MCC_TAC_ELEMENT_TYPE_LABEL ||
-                expression_end->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {
-
-            tac_list *label_false = tac_new_list();
-            label_false->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-            label_false->identifier1 = new_string("L%d", l_counter++);
-            tac_list *label = tac_new_list();
-            label->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-            label->identifier1 = new_string("L%d", l_counter++);
-
-            tac_list *jump = tac_new_list();
-            jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
-            jump->jump = label;
-
-            tac_list *elem_false = tac_new_list();
-            tac_list *elem_true = tac_new_list();
-
-            elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
-            elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
-            elem_false->b_literal = false;
-            elem_false->identifier1 = new_string("reg%d", v_counter++);
-
-            elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
-            elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
-            elem_true->b_literal = true;
-            elem_true->identifier1 = copy_string(elem_false->identifier1);
-
-            expression_end->next = elem_true;
-            elem_true->prev = expression_end;
-            elem_true->next = jump;
-            jump->prev = elem_true;
-            jump->next = label_false;
-            label_false->prev = jump;
-            label_false->next = elem_false;
-            elem_false->prev = label_false;
-            elem_false->next = label;
-            label->prev = elem_false;
-
-            elem_return->type = MCC_TAC_ELEMENT_TYPE_RETURN;
-            elem_return->identifier1 = copy_string(elem_false->identifier1);
-
-            label->next = elem_return;
-            elem_return->prev = label;
-
-            stmt->tac_start = stmt->expression->tac_start;
-            stmt->tac_end = elem_return;
-            add_jump(stmt->tac_start, stmt->tac_end, label_false);
 
         } else {
-
 
             tac_list *temp = stmt->expression->tac_end;
 
@@ -923,6 +931,7 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
 
             stmt->tac_start = stmt->expression->tac_start;
             stmt->tac_end = elem_return;
+
         }
 
 	} else {
@@ -931,231 +940,254 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
 	}
 }
 
+static void bool_operation_assignment(struct mCc_ast_assignment *stmt) {
+    assert(stmt);
+
+    tac_list *expression_end = stmt->expression->tac_end;
+
+    tac_list *label_false = tac_new_list();
+    label_false->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+    label_false->identifier1 = new_string("L%d", l_counter++);
+    tac_list *label = tac_new_list();
+    label->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+    label->identifier1 = new_string("L%d", l_counter++);
+
+    tac_list *jump_false = tac_new_list();
+    tac_list *jump = tac_new_list();
+    jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
+    jump_false->identifier1 = copy_string(expression_end->prev->identifier1);
+    jump_false->jump = label_false;
+    jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
+    jump->jump = label;
+
+    if (stmt->numerator == NULL) {
+        tac_list *elem_false = tac_new_list();
+        tac_list *elem_true = tac_new_list();
+
+        elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
+        elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
+        elem_false->b_literal = false;
+        elem_false->identifier1 = copy_string(stmt->identifier->renamed);
+
+        elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
+        elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
+        elem_true->b_literal = true;
+        elem_true->identifier1 = copy_string(stmt->identifier->renamed);
+
+        expression_end->next = jump_false;
+        jump_false->prev = expression_end;
+        jump_false->next = elem_true;
+        elem_true->prev = jump_false;
+        elem_true->next = jump;
+        jump->prev = elem_true;
+        jump->next = label_false;
+        label_false->prev = jump;
+        label_false->next = elem_false;
+        elem_false->prev = label_false;
+        elem_false->next = label;
+        label->prev = elem_false;
+
+        stmt->tac_start = stmt->expression->tac_start;
+        stmt->tac_end = label;
+    } else {
+        tac_list *elem_false = tac_new_list();
+        tac_list *elem_true = tac_new_list();
+        tac_list *elem_store = tac_new_list();
+        tac_list *numerator_end = stmt->numerator->tac_end;
+        tac_list *expression_start = stmt->expression->tac_start;
+
+        elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
+        elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
+        elem_false->b_literal = false;
+        elem_false->identifier1 = new_string("reg%d", v_counter++);
+
+        elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
+        elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
+        elem_true->b_literal = true;
+        elem_true->identifier1 = copy_string(elem_false->identifier1);
+
+        elem_store->type = MCC_TAC_ELEMENT_TYPE_STORE;
+        elem_store->identifier1 = copy_string(stmt->identifier->renamed);
+        elem_store->identifier2 = copy_string(numerator_end->identifier1);
+        elem_store->identifier3 = copy_string(elem_false->identifier1);
+
+        numerator_end->next = expression_start;
+        expression_start->prev = numerator_end;
+        expression_end->next = jump_false;
+        jump_false->prev = expression_end;
+        jump_false->next = elem_true;
+        elem_true->prev = jump_false;
+        elem_true->next = jump;
+        jump->prev = elem_true;
+        jump->next = label_false;
+        label_false->prev = jump;
+        label_false->next = elem_false;
+        elem_false->prev = label_false;
+        elem_false->next = label;
+        label->prev = elem_false;
+
+        label->next = elem_store;
+        elem_store->prev = label;
+
+        stmt->tac_start = stmt->numerator->tac_start;
+        stmt->tac_end = elem_store;
+    }
+}
+
+static void bool_and_or_assignment(struct mCc_ast_assignment *stmt) {
+    assert(stmt);
+
+    tac_list *expression_end = stmt->expression->tac_end;
+
+    tac_list *label_false = tac_new_list();
+    label_false->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+    label_false->identifier1 = new_string("L%d", l_counter++);
+    tac_list *label = tac_new_list();
+    label->type = MCC_TAC_ELEMENT_TYPE_LABEL;
+    label->identifier1 = new_string("L%d", l_counter++);
+
+    tac_list *jump = tac_new_list();
+    jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
+    jump->jump = label;
+
+    if (stmt->numerator == NULL) {
+        tac_list *elem_false = tac_new_list();
+        tac_list *elem_true = tac_new_list();
+
+        elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
+        elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
+        elem_false->b_literal = false;
+        elem_false->identifier1 = copy_string(stmt->identifier->renamed);
+
+        elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
+        elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
+        elem_true->b_literal = true;
+        elem_true->identifier1 = copy_string(stmt->identifier->renamed);
+
+        expression_end->next = elem_true;
+        elem_true->prev = expression_end;
+        elem_true->next = jump;
+        jump->prev = elem_true;
+        jump->next = label_false;
+        label_false->prev = jump;
+        label_false->next = elem_false;
+        elem_false->prev = label_false;
+        elem_false->next = label;
+        label->prev = elem_false;
+
+        stmt->tac_start = stmt->expression->tac_start;
+        stmt->tac_end = label;
+        add_jump(stmt->tac_start, stmt->tac_end, label_false);
+    } else {
+        tac_list *elem_false = tac_new_list();
+        tac_list *elem_true = tac_new_list();
+        tac_list *elem_store = tac_new_list();
+        tac_list *numerator_end = stmt->numerator->tac_end;
+        tac_list *expression_start = stmt->expression->tac_start;
+
+        elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
+        elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
+        elem_false->b_literal = false;
+        elem_false->identifier1 = new_string("reg%d", v_counter++);
+
+        elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
+        elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
+        elem_true->b_literal = true;
+        elem_true->identifier1 = copy_string(elem_false->identifier1);
+
+        elem_store->type = MCC_TAC_ELEMENT_TYPE_STORE;
+        elem_store->identifier1 = copy_string(stmt->identifier->renamed);
+        elem_store->identifier2 = copy_string(numerator_end->identifier1);
+        elem_store->identifier3 = copy_string(elem_false->identifier1);
+
+        numerator_end->next = expression_start;
+        expression_start->prev = numerator_end;
+        expression_end->next = elem_true;
+        elem_true->prev = expression_end;
+        elem_true->next = jump;
+        jump->prev = elem_true;
+        jump->next = label_false;
+        label_false->prev = jump;
+        label_false->next = elem_false;
+        elem_false->prev = label_false;
+        elem_false->next = label;
+        label->prev = elem_false;
+
+        label->next = elem_store;
+        elem_store->prev = label;
+
+        stmt->tac_start = stmt->numerator->tac_start;
+        stmt->tac_end = elem_store;
+        add_jump(stmt->tac_start, stmt->tac_end, label_false);
+    }
+}
+
+static void bool_assignment(struct mCc_ast_assignment *stmt) {
+    assert(stmt);
+
+    tac_list *expression_end = stmt->expression->tac_end;
+
+    if (expression_end->type == MCC_TAC_ELEMENT_TYPE_BINARY ||
+        expression_end->type == MCC_TAC_ELEMENT_TYPE_UNARY) {
+        bool_operation_assignment(stmt);
+
+    } else if (expression_end->type == MCC_TAC_ELEMENT_TYPE_LABEL ||
+               expression_end->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {
+
+        bool_and_or_assignment(stmt);
+
+    } else {
+        if (stmt->numerator == NULL) {
+            tac_list *elem = tac_new_list();
+
+            elem->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
+
+            elem->identifier1 = copy_string(stmt->identifier->renamed);
+
+            tac_list *temp = stmt->expression->tac_end;
+
+            elem->copy_identifier = copy_string(temp->identifier1);
+
+            temp->next = elem;
+            elem->prev = temp;
+
+            stmt->tac_start = stmt->expression->tac_start;
+            stmt->tac_end = elem;
+        } else {
+            tac_list *elem = tac_new_list();
+
+            elem->type = MCC_TAC_ELEMENT_TYPE_STORE;
+
+            elem->identifier1 = copy_string(stmt->identifier->renamed);
+
+            tac_list *numerator_end = stmt->numerator->tac_end;
+
+            elem->identifier2 = copy_string(numerator_end->identifier1);
+
+            tac_list *expression_start = stmt->expression->tac_start;
+
+            elem->identifier3 = copy_string(expression_end->identifier1);
+
+            numerator_end->next = expression_start;
+            expression_start->prev = numerator_end;
+
+            expression_end->next = elem;
+            elem->prev = expression_end;
+
+            stmt->tac_start = stmt->numerator->tac_start;
+            stmt->tac_end = elem;
+        }
+    }
+
+}
+
 static void tac_ass_stmt(struct mCc_ast_assignment *stmt, void *data)
 {
 	assert(stmt);
 	assert(data);
 
     if (stmt->identifier->d_type == MCC_AST_TYPE_BOOL) {
-        tac_list *expression_end = stmt->expression->tac_end;
-
-       if (expression_end->type == MCC_TAC_ELEMENT_TYPE_BINARY ||
-               expression_end->type == MCC_TAC_ELEMENT_TYPE_UNARY) {
-           tac_list *label_false = tac_new_list();
-           label_false->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-           label_false->identifier1 = new_string("L%d", l_counter++);
-           tac_list *label = tac_new_list();
-           label->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-           label->identifier1 = new_string("L%d", l_counter++);
-
-           tac_list *jump_false = tac_new_list();
-           tac_list *jump = tac_new_list();
-           jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
-           jump_false->identifier1 = copy_string(expression_end->prev->identifier1);
-           jump_false->jump = label_false;
-           jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
-           jump->jump = label;
-
-           if (stmt->numerator == NULL) {
-               tac_list *elem_false = tac_new_list();
-               tac_list *elem_true = tac_new_list();
-
-               elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
-               elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
-               elem_false->b_literal = false;
-               elem_false->identifier1 = copy_string(stmt->identifier->renamed);
-
-               elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
-               elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
-               elem_true->b_literal = true;
-               elem_true->identifier1 = copy_string(stmt->identifier->renamed);
-
-               expression_end->next = jump_false;
-               jump_false->prev = expression_end;
-               jump_false->next = elem_true;
-               elem_true->prev = jump_false;
-               elem_true->next = jump;
-               jump->prev = elem_true;
-               jump->next = label_false;
-               label_false->prev = jump;
-               label_false->next = elem_false;
-               elem_false->prev = label_false;
-               elem_false->next = label;
-               label->prev = elem_false;
-
-               stmt->tac_start = stmt->expression->tac_start;
-               stmt->tac_end = label;
-           } else {
-               tac_list *elem_false = tac_new_list();
-               tac_list *elem_true = tac_new_list();
-               tac_list *elem_store = tac_new_list();
-               tac_list *numerator_end = stmt->numerator->tac_end;
-               tac_list *expression_start = stmt->expression->tac_start;
-
-               elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
-               elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
-               elem_false->b_literal = false;
-               elem_false->identifier1 = new_string("reg%d", v_counter++);
-
-               elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
-               elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
-               elem_true->b_literal = true;
-               elem_true->identifier1 = copy_string(elem_false->identifier1);
-
-               elem_store->type = MCC_TAC_ELEMENT_TYPE_STORE;
-               elem_store->identifier1 = copy_string(stmt->identifier->renamed);
-               elem_store->identifier2 = copy_string(numerator_end->identifier1);
-               elem_store->identifier3 = copy_string(elem_false->identifier1);
-
-               numerator_end->next = expression_start;
-               expression_start->prev = numerator_end;
-               expression_end->next = jump_false;
-               jump_false->prev = expression_end;
-               jump_false->next = elem_true;
-               elem_true->prev = jump_false;
-               elem_true->next = jump;
-               jump->prev = elem_true;
-               jump->next = label_false;
-               label_false->prev = jump;
-               label_false->next = elem_false;
-               elem_false->prev = label_false;
-               elem_false->next = label;
-               label->prev = elem_false;
-
-               label->next = elem_store;
-               elem_store->prev = label;
-
-               stmt->tac_start = stmt->numerator->tac_start;
-               stmt->tac_end = elem_store;
-           }
-
-       } else if (expression_end->type == MCC_TAC_ELEMENT_TYPE_LABEL ||
-               expression_end->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {
-
-           tac_list *label_false = tac_new_list();
-           label_false->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-           label_false->identifier1 = new_string("L%d", l_counter++);
-           tac_list *label = tac_new_list();
-           label->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-           label->identifier1 = new_string("L%d", l_counter++);
-
-           tac_list *jump = tac_new_list();
-           jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
-           jump->jump = label;
-
-           if (stmt->numerator == NULL) {
-               tac_list *elem_false = tac_new_list();
-               tac_list *elem_true = tac_new_list();
-
-               elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
-               elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
-               elem_false->b_literal = false;
-               elem_false->identifier1 = copy_string(stmt->identifier->renamed);
-
-               elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
-               elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
-               elem_true->b_literal = true;
-               elem_true->identifier1 = copy_string(stmt->identifier->renamed);
-
-               expression_end->next = elem_true;
-               elem_true->prev = expression_end;
-               elem_true->next = jump;
-               jump->prev = elem_true;
-               jump->next = label_false;
-               label_false->prev = jump;
-               label_false->next = elem_false;
-               elem_false->prev = label_false;
-               elem_false->next = label;
-               label->prev = elem_false;
-
-               stmt->tac_start = stmt->expression->tac_start;
-               stmt->tac_end = label;
-               add_jump(stmt->tac_start, stmt->tac_end, label_false);
-           } else {
-               tac_list *elem_false = tac_new_list();
-               tac_list *elem_true = tac_new_list();
-               tac_list *elem_store = tac_new_list();
-               tac_list *numerator_end = stmt->numerator->tac_end;
-               tac_list *expression_start = stmt->expression->tac_start;
-
-               elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
-               elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
-               elem_false->b_literal = false;
-               elem_false->identifier1 = new_string("reg%d", v_counter++);
-
-               elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
-               elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
-               elem_true->b_literal = true;
-               elem_true->identifier1 = copy_string(elem_false->identifier1);
-
-               elem_store->type = MCC_TAC_ELEMENT_TYPE_STORE;
-               elem_store->identifier1 = copy_string(stmt->identifier->renamed);
-               elem_store->identifier2 = copy_string(numerator_end->identifier1);
-               elem_store->identifier3 = copy_string(elem_false->identifier1);
-
-               numerator_end->next = expression_start;
-               expression_start->prev = numerator_end;
-               expression_end->next = elem_true;
-               elem_true->prev = expression_end;
-               elem_true->next = jump;
-               jump->prev = elem_true;
-               jump->next = label_false;
-               label_false->prev = jump;
-               label_false->next = elem_false;
-               elem_false->prev = label_false;
-               elem_false->next = label;
-               label->prev = elem_false;
-
-               label->next = elem_store;
-               elem_store->prev = label;
-
-               stmt->tac_start = stmt->numerator->tac_start;
-               stmt->tac_end = elem_store;
-               add_jump(stmt->tac_start, stmt->tac_end, label_false);
-           }
-
-       } else {
-           if (stmt->numerator == NULL) {
-               tac_list *elem = tac_new_list();
-
-               elem->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
-
-               elem->identifier1 = copy_string(stmt->identifier->renamed);
-
-               tac_list *temp = stmt->expression->tac_end;
-
-               elem->copy_identifier = copy_string(temp->identifier1);
-
-               temp->next = elem;
-               elem->prev = temp;
-
-               stmt->tac_start = stmt->expression->tac_start;
-               stmt->tac_end = elem;
-           } else {
-               tac_list *elem = tac_new_list();
-
-               elem->type = MCC_TAC_ELEMENT_TYPE_STORE;
-
-               elem->identifier1 = copy_string(stmt->identifier->renamed);
-
-               tac_list *numerator_end = stmt->numerator->tac_end;
-
-               elem->identifier2 = copy_string(numerator_end->identifier1);
-
-               tac_list *expression_start = stmt->expression->tac_start;
-
-               elem->identifier3 = copy_string(expression_end->identifier1);
-
-               numerator_end->next = expression_start;
-               expression_start->prev = numerator_end;
-
-               expression_end->next = elem;
-               elem->prev = expression_end;
-
-               stmt->tac_start = stmt->numerator->tac_start;
-               stmt->tac_end = elem;
-           }
-       }
+        bool_assignment(stmt);
     } else {
         if (stmt->numerator == NULL) {
             tac_list *elem = tac_new_list();
@@ -1202,10 +1234,8 @@ static void tac_ass_stmt(struct mCc_ast_assignment *stmt, void *data)
 
 }
 
-static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
-{
-	assert(stmt);
-	assert(data);
+static bool handle_empty_if_stmt(struct mCc_ast_if_stmt *stmt) {
+    assert(stmt);
 
     if (stmt->else_statement == NULL) {
         if (stmt->statement->tac_start == stmt->statement->tac_end) {
@@ -1216,11 +1246,11 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
             stmt->tac_end = labelHelp;
             mCc_tac_delete(stmt->expression->tac_start);
             mCc_tac_delete(stmt->statement->tac_start);
-            return;
+            return true;
         }
     } else {
         if (stmt->statement->tac_start == stmt->statement->tac_end &&
-                stmt->else_statement->tac_start == stmt->else_statement->tac_end) {
+            stmt->else_statement->tac_start == stmt->else_statement->tac_end) {
             tac_list *labelHelp = tac_new_list();
             labelHelp->type = MCC_TAC_ELEMENT_TYPE_LABEL;
             labelHelp->identifier1 = new_string("L%d", l_counter++);
@@ -1229,7 +1259,7 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
             mCc_tac_delete(stmt->expression->tac_start);
             mCc_tac_delete(stmt->statement->tac_start);
             mCc_tac_delete(stmt->else_statement->tac_start);
-            return;
+            return true;
         } else if (stmt->statement->tac_start == stmt->statement->tac_end) {
             mCc_tac_delete(stmt->statement->tac_start);
             if (stmt->else_statement->type != MCC_AST_IF_STMT) {
@@ -1243,7 +1273,7 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
                 stmt->expression = stmt->else_statement->if_stmt->expression;
                 stmt->statement = stmt->else_statement->if_stmt->statement;
                 stmt->else_statement = stmt->else_statement->if_stmt->else_statement;
-                return;
+                return true;
             }
         } else {
             if (stmt->else_statement->tac_start == stmt->else_statement->tac_end) {
@@ -1254,6 +1284,18 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
 
     }
 
+    return false;
+}
+
+static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
+{
+	assert(stmt);
+	assert(data);
+
+
+    if (handle_empty_if_stmt(stmt)) {
+        return;
+    }
 
     tac_list *temp_expression_end = stmt->expression->tac_end;
     if (temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_BINARY ||
@@ -1297,9 +1339,7 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
     jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
 
     stmt->tac_start = stmt->expression->tac_start;
-    if (stmt->else_statement != NULL
-        && stmt->else_statement->type == MCC_AST_COMPOUND_STMT) {
-
+    if (stmt->else_statement != NULL) {
 
         tac_list *label = tac_new_list();
         label->type = MCC_TAC_ELEMENT_TYPE_LABEL;
@@ -1329,42 +1369,6 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
         }
 
         stmt->tac_end = label_end;
-        add_jump(stmt->tac_start, stmt->tac_end,
-                 label);
-
-
-    } else if (stmt->else_statement != NULL
-               && stmt->else_statement->type != MCC_AST_COMPOUND_STMT) {
-
-        tac_list *label = tac_new_list();
-        label->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-        label->identifier1 = new_string("L%d", l_counter++);
-
-        tac_list *temp_else_stmt_start =
-                stmt->else_statement->tac_start;
-        tac_list *temp_else_stmt_end = stmt->else_statement->tac_end;
-        tac_list *temp_stmt_start = stmt->statement->tac_start;
-        tac_list *temp_stmt_end = stmt->statement->tac_end;
-        jump->jump = label_end;
-
-        temp_expression_end->next = temp_stmt_start;
-        temp_stmt_start->prev = temp_expression_end;
-
-        temp_stmt_end->next = jump;
-        jump->prev = temp_stmt_end;
-
-        jump->next = label;
-        label->prev = jump;
-        label->next = temp_else_stmt_start;
-        temp_else_stmt_start->prev = label;
-
-        if (temp_else_stmt_end != label_end) {
-            temp_else_stmt_end->next = label_end;
-            label_end->prev = temp_else_stmt_end;
-        }
-
-        stmt->tac_end = label_end;
-
         add_jump(stmt->tac_start, stmt->tac_end,
                  label);
     } else {
@@ -1413,11 +1417,9 @@ static void tac_while_stmt(struct mCc_ast_while_stmt *stmt, void *data)
 
 
         label_jump->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-
         label_jump->identifier1 = new_string("L%d", l_counter++);
 
         label_jump_false->type = MCC_TAC_ELEMENT_TYPE_LABEL;
-
         label_jump_false->identifier1 = new_string("L%d", l_counter++);
 
 
@@ -1832,7 +1834,6 @@ void print_tac_elem(FILE *out, tac_list *current)
 		break;
 	}
 }
-
 
 struct mCc_tac_list *get_at(struct mCc_tac_list *head, int index)
 {

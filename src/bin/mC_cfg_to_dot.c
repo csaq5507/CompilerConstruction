@@ -1,20 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <mCc/ast_print.h>
 #include <mCc/ast_symbol_table.h>
 #include <mCc/ast_semantic_checks.h>
 #include <mCc/tac.h>
 #include <mCc/utils.h>
 #include <mCc/cfg.h>
-
-#include <zconf.h>
-#include <mCc/code_generation.h>
-
-#include "mCc/ast.h"
-#include "mCc/parser.h"
-
-#define VERSION 0.2
 
 
 void print_usage(const char *prg)
@@ -76,9 +67,10 @@ int main(int argc, char *argv[])
     char *outputFileName;
 
     for (int i = 0; i < cfg->num_next_nodes; i++) {
-        outputFileName = copy_string(cfg->next_nodes[i].tac_start->prev->identifier1);
+        outputFileName = new_string("%s%s",
+                                    cfg->next_nodes[i].tac_start->prev->identifier1, ".cfg");
         out = fopen(outputFileName, "w");
-        mCc_cfg_print_single_function(out, &cfg->next_nodes[0]);
+        mCc_cfg_print_single_function(out, &cfg->next_nodes[i]);
         free(outputFileName);
         fclose(out);
     }

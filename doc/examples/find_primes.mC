@@ -1,22 +1,22 @@
-bool check_primes_(int y, int i)
+bool check_primes_(int i, int n)
 {
-    print("y: ");
-    print_int(y);
+    print("n: ");
+    print_int(n);
     print_nl();
     print("i: ");
     print_int(i);
     print_nl();
-    if (y == i) {
+    if (n == i) {
         return true;
-    } else if (0 == modulo(y, i)) {
+    } else if (0 == modulo(n, i)) {
         return false;
     }
     i = i + 1;
-    return check_primes_(y, i);
+    return check_primes_(n, i);
 }
 
-bool check_primes(int x) {
-	return check_primes_(x, 2);
+bool check_primes(int n) {
+	return check_primes_(n, 2);
 }
 
 int modulo(int a, int b)

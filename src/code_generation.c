@@ -696,6 +696,7 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac)
         get_var(temp_tac->identifier1)->type = temp_tac->decl_lit_type;
         temp_tac=temp_tac->prev;
     }*/
+    //wrong direction push
         while (temp_tac->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END) {
         if (temp_tac->type == MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP) {
             if(num_params>0)

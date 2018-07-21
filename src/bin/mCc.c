@@ -280,7 +280,7 @@ int main(int argc, char *argv[])
     system(command);
     free(command);
 
-	command = new_string("gcc -m32 %s -o executables/%s.mC.out",
+	command = new_string("gcc -m32 %s -o executables/%s",
                                assemblyFileName, outputFileName);
 
     system(command);

@@ -32,7 +32,7 @@ static void print_dot_edge(FILE *out, int src_node, int dst_node,
 			   const char *label);
 
 static cfg_list *generate_unconditional_jump(cfg_list *ret, cfg_list *g_head,
-                                        cfg_list *prev_head);
+                                        cfg_list *prev_head, tac_list* head);
 static cfg_list *generate_conditional_jump_left (cfg_list *ret, cfg_list *g_head,
                                                  cfg_list *prev_head, cfg_list *help,
                                                  tac_list* head);
@@ -198,7 +198,7 @@ static cfg_list* find_elem(cfg_list *head, tac_list *first_elem) {
 }
 
 static cfg_list *generate_unconditional_jump(cfg_list *ret, cfg_list *g_head,
-                                        cfg_list *prev_head) {
+                                        cfg_list *prev_head, tac_list* head) {
     assert(ret);
 
     tac_list *elem = head->jump;
@@ -342,7 +342,7 @@ static cfg_list *generate_block(tac_list *head, cfg_list *g_head,
 	} else if (head->type == MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP) {
         ret->tac_end = head->prev;
 
-        ret = generate_unconditional_jump(ret, g_head, prev_head);
+        ret = generate_unconditional_jump(ret, g_head, prev_head, head);
     } else if (head->next == NULL) {
 		ret->tac_end = head;
 	} else if (head->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {

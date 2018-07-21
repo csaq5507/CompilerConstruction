@@ -1835,7 +1835,6 @@ void print_tac_elem(FILE *out, tac_list *current)
 	}
 }
 
-
 struct mCc_tac_list *get_at(struct mCc_tac_list *head, int index)
 {
 	assert(head);

@@ -433,20 +433,22 @@ static void ast_symbol_table_func_type(struct mCc_ast_function_def *f,
 	}
 
 	if (f->params != NULL) {
+		if (f->identifier->param_types!= NULL)
+			free(f->identifier->param_types);
 		f->identifier->param_types =
-			malloc(sizeof(enum mCc_ast_type) * f->params->counter);
+				malloc(sizeof(enum mCc_ast_type) * f->params->counter);
 		enum mCc_ast_type h_param[f->params->counter];
 		for (int i = 0; i < f->params->counter; i++) {
 			if (f->params->declaration[i].type
-			    == MCC_AST_DECLARATION_TYPE_SINGLE) {
+				== MCC_AST_DECLARATION_TYPE_SINGLE) {
 				h_param[i] = literal_to_ast_type_single(f->params->declaration[i].literal);
 			} else if (f->params->declaration[i].type
-				   == MCC_AST_DECLARATION_TYPE_ARRAY) {
+					   == MCC_AST_DECLARATION_TYPE_ARRAY) {
 				h_param[i] = literal_to_ast_type_array(f->params->declaration[i].literal);
 			}
 		}
 		memcpy(f->identifier->param_types, h_param,
-		       sizeof(*h_param) * f->params->counter);
+			   sizeof(*h_param) * f->params->counter);
 	}
 
 	if (find_element_symbols(table, f->identifier->name) != NULL) {
@@ -941,6 +943,8 @@ ast_symbol_table_call_expression(struct mCc_ast_call_expr *expression,
 		int t_type_length = find_element_param_num(
 			table, expression->identifier->name);
 		if (t_type != NULL) {
+			if (expression->identifier->param_types!= NULL)
+				free(expression->identifier->param_types);
 			expression->identifier->param_types =
 				malloc(sizeof(*t_type) * t_type_length);
 			memcpy(expression->identifier->param_types, t_type,

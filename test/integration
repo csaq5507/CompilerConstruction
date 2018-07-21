@@ -56,7 +56,7 @@ print_header_csv()
 run_compiler()
 {
 	local input=$1
-	\time -f "%e %M %x" "$MCC" "$input" -o ../build/integration.out 2>&1 | tail -n1
+	\time -f "%e %M %x" "$MCC" "$input" -o ../build/a.out 2>&1 | tail -n1
 	return ${PIPESTATUS[0]}
 }
 
@@ -199,7 +199,7 @@ print_header
         else
             flawless=false
             stats="- - 1"
-            #echo "BINARY NOT FOUND"
+            echo "BINARY NOT FOUND"
 		fi
         rm -f a.out
 		print_run "$example" $stats

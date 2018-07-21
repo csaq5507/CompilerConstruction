@@ -157,7 +157,7 @@ struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac);
 struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *
-mCc_assembly_conditional_jump(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
+mCc_assembly_conditional_jump(struct mCc_tac_list *tac);
 
 struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac, struct mCc_assembly_line* current);
 /*
@@ -211,6 +211,8 @@ void add_lost_register(char* identifier);
 bool has_register(char *identifier);
 
 int negate_binary_op_type(enum mCc_tac_operation_type type);
+
+char *float_binary_op(struct mCc_tac_list *tac, char * operation);
 
 void swap_register(char *identifier1);
 

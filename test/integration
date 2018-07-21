@@ -56,7 +56,7 @@ print_header_csv()
 run_compiler()
 {
 	local input=$1
-	\time -f "%e %M %x" "$MCC" "$input" -o ../build/integration.out 2>&1 | tail -n1
+	\time -f "%e %M %x" "$MCC" "$input" 2>&1 | tail -n1
 	return ${PIPESTATUS[0]}
 }
 
@@ -172,7 +172,6 @@ print_header
 (
 	flawless=true
 	while read -r -d $'\0' example; do
-
 		# Run compiler with example input and obtain statistics.
 		if ! stats=$(run_compiler "$EXAMPLES_DIR/$example"); then
 			stats="- - 1"
@@ -183,26 +182,20 @@ print_header
 		fi
 
         # Execute the generated binary with the corresponding input and compare outputs
-		if [[ -e "$BUILD_DIR/./a.out" ]]; then
-		    #echo "$("$BUILD_DIR/./a.out" < "$EXAMPLES_DIR/$example.stdin")" > "$BUILD_DIR/./a.tmp"
-		    #echo "a" > "$BUILD_DIR/./a.tmp"
-            if [ "$("$BUILD_DIR/./a.out" < "$EXAMPLES_DIR/$example.stdin")" != "$(cat $EXAMPLES_DIR/$example.stdout)" ]; then
+		if [[ -e "$BUILD_DIR/executables/$example.out" ]]; then
+            if [ "$("$BUILD_DIR/executables/$example.out" < "$EXAMPLES_DIR/$example.stdin")" != "$(cat $EXAMPLES_DIR/$example.stdout)" ]; then
                 flawless=false
                 stats="- - 1"
                 echo "no match output"
-                #echo "$("$BUILD_DIR/./a.out" < "$EXAMPLES_DIR/$example.stdin")"
-                #echo "$(cat $EXAMPLES_DIR/$example.stdout)"
-                # echo "$(cat $BUILD_DIR/./integration.out.error)"
-                #$BUILD_DIR/./a.out < $EXAMPLES_DIR/$example.stdin | diff <(cat $EXAMPLES_DIR/$example.stdout) -
-                #$BUILD_DIR/./a.out < $EXAMPLES_DIR/$example.stdin > BUILD_DIR/./a.tmp
-            fi
+             fi
         else
             flawless=false
             stats="- - 1"
             #echo "BINARY NOT FOUND"
 		fi
-        rm -f a.out
+       # rm -f a.out
 		print_run "$example" $stats
+        echo "********************************************************************"
 
 	done
 	$flawless

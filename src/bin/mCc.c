@@ -9,10 +9,6 @@
 #include <mCc/cfg.h>
 #include <mCc/code_generation.h>
 
-#include <sys/wait.h>
-#include <unistd.h>
-#include <errno.h>
-
 #define VERSION 0.2
 
 
@@ -263,37 +259,47 @@ int main(int argc, char *argv[])
     struct mCc_tac_list *_tac;
     _tac = mCc_tac_generate(result.func_def);
 
-   cfg_list *_cfg = mCc_cfg_generate(_tac);
-
 
     if (print_tac) {
+        cfg_list *_cfg = mCc_cfg_generate(_tac);
         mCc_tac_print(tac, _tac);
-        mCc_tac_print_reverse(tac, _tac);
+        //mCc_tac_print_reverse(tac, _tac);
         mCc_cfg_print_complete(cfg, _cfg);
+        mCc_cfg_delete(_cfg);
     }
 
     struct mCc_assembly *ass = mCc_assembly_generate(_tac, outputFileName);
 
     mCc_delete_result(&result);
-    mCc_cfg_delete(_cfg);
 
     mCc_assembly_print(assembly, ass);
     fclose(assembly);
-	char *command = new_string("gcc -m32 %s -o %s", assemblyFileName,outputFileName);
+
+
+    char *command = new_string("mkdir -p executables");
+    system(command);
+    free(command);
+
+	command = new_string("gcc -m32 %s -o executables/%s.mC.out",
+                               assemblyFileName, outputFileName);
 
     system(command);
     free(command);
-    command=new_string("chmod 777 %s",outputFileName);
+    command=new_string("chmod 777 executables/%s",  outputFileName);
     system(command);
 	free(command);
+    //command=new_string("./a.out");
+    //system(command);
 
-    free(assemblyFileName);
 
     mCc_assembly_delete(ass);
 
     mCc_tac_delete(_tac);
 
+
     /* cleanup */
+
+    free(assemblyFileName);
     clean_up(error, graph, tac, file_std_err, output, cfg, outputFileName);
 
 

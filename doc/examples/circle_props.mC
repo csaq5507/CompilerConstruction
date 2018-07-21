@@ -1,6 +1,11 @@
 float calc_diameter(float radius)
 {
-	return 2.0 * radius;
+	return radius + radius;
+}
+
+float calc_small_r(float radius)
+{
+	return radius / 2.0;
 }
 
 float calc_circumference(float radius, float pi)
@@ -42,4 +47,8 @@ void main()
 	print("Area: ");
 	print_float(calc_area(radius, pi));
 	print_nl();
+
+		print("small_r: ");
+    	print_float(calc_small_r(radius));
+    	print_nl();
 }

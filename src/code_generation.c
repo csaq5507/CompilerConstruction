@@ -728,10 +728,21 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac, struc
 	switch (op) {
 	case MCC_TAC_OPERATION_TYPE_PLUS:
 		retval->type = MCC_ASSEMBLY_ADD;
-		if (is_float(tac->rhs))
-			retval->instruction = new_string(
-				"\tfaddp\t%s, %s", get_register(tac->lhs),
-				get_register(tac->rhs));
+        if (is_float(tac->rhs)) {
+            if (strcmp(get_register(tac->lhs), "%st") == 0) {
+                retval->instruction = new_string(
+                        "\tfaddp\t%s, %s", get_register(tac->lhs),
+                        get_register(tac->rhs));
+            } else {
+                retval->instruction = new_string(
+                        "\tfxch\t%s\n\tfaddp\t%s, %s", get_register(tac->lhs), "%st",
+                        get_register(tac->rhs));
+            }
+
+            swap_register(tac->lhs);
+            registers->st0 = tac->identifier1;
+            free_register(tac->rhs);
+        }
 		else
 			retval->instruction = new_string(
 				"\taddl\t%s, %s", get_register(tac->rhs),
@@ -758,11 +769,22 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac, struc
 			return retval;
 		} else {
 			retval->type = MCC_ASSEMBLY_SUB;
-			if (is_float(tac->rhs))
-				retval->instruction =
-					new_string("\tfsubrp\t%s, %s",
-						   get_register(tac->lhs),
-						   get_register(tac->rhs));
+            if (is_float(tac->rhs)) {
+                if (strcmp(get_register(tac->lhs), "%st") == 0) {
+                    retval->instruction =
+                            new_string("\tfsubrp\t%s, %s",
+                                       get_register(tac->lhs),
+                                       get_register(tac->rhs));
+                } else {
+                    retval->instruction = new_string(
+                            "\tfxch\t%s\n\tfsubrp\t%s, %s", get_register(tac->lhs), "%st",
+                            get_register(tac->rhs));
+                }
+
+                swap_register(tac->lhs);
+                registers->st0 = tac->identifier1;
+                free_register(tac->rhs);
+            }
 			else
 				retval->instruction =
 					new_string("\tsubl\t%s, %s",
@@ -794,10 +816,21 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac, struc
 		break;
 	case MCC_TAC_OPERATION_TYPE_DIVISION:
 		retval->type = MCC_ASSEMBLY_DIV;
-		if (is_float(tac->rhs))
-			retval->instruction = new_string(
-				"\tfdivrp\t%s, %s", get_register(tac->lhs),
-				get_register(tac->rhs));
+            if (is_float(tac->rhs)) {
+                if (strcmp(get_register(tac->lhs), "%st") == 0) {
+                    retval->instruction = new_string(
+                            "\tfdivrp\t%s, %s", get_register(tac->lhs),
+                            get_register(tac->rhs));
+                } else {
+                    retval->instruction = new_string(
+                            "\tfxch\t%s\n\tfdivrp\t%s, %s", get_register(tac->lhs), "%st",
+                            get_register(tac->rhs));
+                }
+
+                swap_register(tac->lhs);
+                registers->st0 = tac->identifier1;
+                free_register(tac->rhs);
+            }
 		else {
 			struct mCc_assembly_line *temp;
 			MALLOC(temp, sizeof(struct mCc_assembly_line))

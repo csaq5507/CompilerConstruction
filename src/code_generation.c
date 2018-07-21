@@ -754,9 +754,9 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac, struc
                     free_register(tac->identifier3);
                     set_float_register("temp");
                     set_float_register(tac->identifier3);
-                    retval->instruction = new_string("\tfxch\t%s",get_register(tac->identifier3));
+                    retval->instruction = new_string("\tfstp\t%s",get_register(tac->identifier3));
                     temp->instruction = new_string("\tfldz");
-                    temp1->instruction = new_string("\tfsubrp\t%s, %s",get_register("temp"),get_register(tac->identifier3));
+                    temp1->instruction = new_string("\tfsubp\t%s, %s",get_register("temp"),get_register(tac->identifier3));
                     free_register(tac->identifier3);
                     update_register("temp",tac->identifier1);
                     return retval;
@@ -765,7 +765,7 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac, struc
                     NEW_DOUBLE_LINE
                     set_float_register("temp");
                     retval->instruction = new_string("\tfldz");
-                    temp->instruction = new_string("\tfsubrp\t%s, %s",get_register("temp"),get_register(tac->identifier3));
+                    temp->instruction = new_string("\tfsubp\t%s, %s",get_register("temp"),get_register(tac->identifier3));
                     free_register(tac->identifier3);
                     update_register("temp",tac->identifier1);
                     return retval;
@@ -792,7 +792,7 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac, struc
 		} else {
 			retval->type = MCC_ASSEMBLY_SUB;
             if (is_float(tac->rhs)) {
-                retval->instruction = float_binary_op(tac,"fsubrp");
+                retval->instruction = float_binary_op(tac,"fsubp");
             }
 			else
 				retval->instruction =

@@ -7,7 +7,7 @@
 #include "mCc/ast_semantic_checks.h"
 #include "mCc/tac.h"
 #include "mCc/code_generation.h"
-
+/*
 TEST(code_generation, is_register)
 {
     char reg[] = "reg_43";
@@ -124,4 +124,4 @@ TEST(code_generation, register_) {
 
     free_all_registers();
 
-}
+}*/

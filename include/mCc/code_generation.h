@@ -25,6 +25,7 @@ int label_idx;
 int builtin;
 int skip;
 int push_vars;
+bool is_float_condition;
 
 struct label_identification {
 	char *key;
@@ -203,6 +204,10 @@ void set_float_register(char *identifier);
 void update_register(char *old_identifier, char *new_identifier);
 
 bool is_float(char *identifier);
+
+void
+move_2_lines_to_end(struct mCc_assembly_line *current, struct mCc_tac_list *tac, char *identifier, char *identifier2);
+
 
 void move_line_to_end(struct mCc_assembly_line *current, struct mCc_tac_list * tac, char *identifier);
 

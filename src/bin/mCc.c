@@ -278,12 +278,14 @@ int main(int argc, char *argv[])
 
     char *command = new_string("mkdir -p executables");
     system(command);
+
     free(command);
 
     command = new_string("gcc -m32 %s -o executables/%s.mC.out",
                          assemblyFileName, outputFileName);
 
     system(command);
+
     free(command);
     command=new_string("chmod 777 executables/%s.mC.out",  outputFileName);
     system(command);

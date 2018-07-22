@@ -268,7 +268,7 @@ int main(int argc, char *argv[])
         mCc_cfg_delete(_cfg);
     }
 
-   struct mCc_assembly *ass = mCc_assembly_generate(_tac, outputFileName);
+    struct mCc_assembly *ass = mCc_assembly_generate(_tac, outputFileName);
 
     mCc_delete_result(&result);
 
@@ -280,14 +280,14 @@ int main(int argc, char *argv[])
     system(command);
     free(command);
 
-	command = new_string("gcc -m32 %s -o executables/%s",
-                               assemblyFileName, outputFileName);
+    command = new_string("gcc -m32 %s -o executables/%s.mC.out",
+                         assemblyFileName, outputFileName);
 
     system(command);
     free(command);
-    command=new_string("chmod 777 executables/%s",  outputFileName);
+    command=new_string("chmod 777 executables/%s.mC.out",  outputFileName);
     system(command);
-	free(command);
+    free(command);
     //command=new_string("./a.out");
     //system(command);
 

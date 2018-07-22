@@ -77,8 +77,6 @@ TEST(parser_lexer, identifier)
     ASSERT_STREQ(identifier->name, test);
     ASSERT_STREQ(identifier->renamed, test);
 
-    free(identifier->name);
-    free(identifier->renamed);
     mCc_ast_delete_pointer();
 }
 
@@ -115,6 +113,7 @@ TEST(parser_lexer, array_declaration)
     ASSERT_EQ(declaration_bool->literal, MCC_AST_LITERAL_TYPE_BOOL);
     ASSERT_TRUE(declaration_bool->array_identifier == identifier);
 
+    free(identifier);
     mCc_ast_delete_pointer();
 }
 
@@ -148,7 +147,6 @@ TEST(parser_lexer, single_declaration)
     ASSERT_TRUE(declaration_bool->identifier == identifier);
 
     free(identifier);
-    mCc_ast_delete_pointer();
 }
 
 TEST(parser_lexer, array_assignment)

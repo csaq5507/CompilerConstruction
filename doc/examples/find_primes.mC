@@ -1,11 +1,5 @@
 bool check_primes_(int i, int n)
 {
-    print("n: ");
-    print_int(n);
-    print_nl();
-    print("i: ");
-    print_int(i);
-    print_nl();
     if (n == i) {
         return true;
     } else if (0 == modulo(n, i)) {

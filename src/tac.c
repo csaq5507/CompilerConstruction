@@ -1357,11 +1357,24 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
     }
 
     tac_list *temp_expression_end = stmt->expression->tac_end;
+    if (temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL) {
+
+        tac_list *unary_not = tac_new_list();
+        unary_not->type = MCC_TAC_ELEMENT_TYPE_UNARY;
+        unary_not->unary_op_type = MCC_TAC_OPERATION_TYPE_FAC;
+        unary_not->identifier1 = new_string("reg_%d", v_counter++);
+        unary_not->unary_identifier = copy_string(
+                temp_expression_end->identifier1);
+        temp_expression_end->next = unary_not;
+        unary_not->prev = temp_expression_end;
+        stmt->expression->tac_end = unary_not;
+    }
+
+    temp_expression_end = stmt->expression->tac_end;
     if (temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_BINARY ||
             temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_UNARY ||
             temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_COPY_LITERAL||
-            temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER ||
-            temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL) {
+            temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER) {
         tac_list *jump_false = tac_new_list();
 
         jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;

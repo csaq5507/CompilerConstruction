@@ -730,7 +730,7 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 				expression->arguments->expression[i].tac_start;
 		}
 		if (expression->d_type == MCC_AST_TYPE_VOID) {
-			for (int i = 0; i < expression->arguments->counter; i++) {
+			for (int i = expression->arguments->counter - 1; i >= 0; i--) {
 				tac_list *actual =
 						expression->arguments->expression[i].tac_end;
 				tac_list *ret_elem = tac_new_list();
@@ -747,7 +747,7 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 				temp_end->prev = ret_elem;
 			}
 		} else {
-			for (int i = 0; i < expression->arguments->counter; i++) {
+			for (int i = expression->arguments->counter - 1; i >= 0; i--) {
 				tac_list *actual =
 						expression->arguments->expression[i].tac_end;
 				tac_list *ret_elem = tac_new_list();

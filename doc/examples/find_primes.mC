@@ -1,4 +1,4 @@
-bool check_primes_(int i, int n)
+bool check_primes_(int n, int i)
 {
     if (n == i) {
         return true;

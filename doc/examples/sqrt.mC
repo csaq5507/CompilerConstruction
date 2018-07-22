@@ -1,23 +1,23 @@
 
 float abs(float a)
 {
+    print_float(a);
     if (a > 0.0)
     {
-    print_float(a);
-        print("A");
         return a;
     }
     else
     {
-
-        print("B");
         return -a;
     }
 }
 
 bool isDiffSmallerEpsilon(float a, float b, float eps)
 {
-print_float(a);print(":");print_float(b);print(":");print_float(eps);print("|");
+    print_float(a);
+    print(" - ");
+    print_float(b);
+    print(": ");
     return (abs(a - b) < eps);
 }
 
@@ -28,17 +28,23 @@ float betterGuess(float x, float guess)
 
 float sqrt(float x, float guess)
 {
-print_float(x);print(":");print_float(guess);print("|");
     if (isDiffSmallerEpsilon(x/guess, guess, 0.0001))
     {
 
-        print("C");
+        print("< ");
+        print_float(0.0001);
+        print("true");
+        print_nl();
         return guess;
     }
     else
     {
-
-        print("D");
+            print("< ");
+            print_float(0.0001);
+        print("false");
+        print_nl();
+        int d;
+        d=read_int();
         return sqrt(x, betterGuess(x, guess));
     }
 }
@@ -52,7 +58,6 @@ void main()
     guess = read_float();
     print_nl();
     print("The result is: ");
-print_float(n);print(":");print_float(guess);print("|");
     print_float(sqrt(n,guess));
     print_nl();
 }

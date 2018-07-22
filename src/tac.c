@@ -923,7 +923,7 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
             elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
             elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
             elem_false->b_literal = false;
-            elem_false->identifier1 = new_string("reg%d", v_counter++);
+            elem_false->identifier1 = new_string("reg_%d", v_counter++);
 
             elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
             elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
@@ -1058,7 +1058,7 @@ static void bool_operation_assignment(struct mCc_ast_assignment *stmt) {
         elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
         elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
         elem_false->b_literal = false;
-        elem_false->identifier1 = new_string("reg%d", v_counter++);
+        elem_false->identifier1 = new_string("reg_%d", v_counter++);
 
         elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
         elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
@@ -1147,7 +1147,7 @@ static void bool_and_or_assignment(struct mCc_ast_assignment *stmt) {
         elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
         elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
         elem_false->b_literal = false;
-        elem_false->identifier1 = new_string("reg%d", v_counter++);
+        elem_false->identifier1 = new_string("reg_%d", v_counter++);
 
         elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
         elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;

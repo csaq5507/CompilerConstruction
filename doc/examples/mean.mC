@@ -1,8 +1,6 @@
 float calc_mean(float a, float b){
 	float c;
-	float add;
-	add = a+b;
-	c = add / 2.0;
+	c = (a+b) / 2.0;
 	return c;
 }
 
@@ -43,8 +41,11 @@ void main(){
 				arr_a[count+1] = calc_mean(arr_b[count], arr_b[count+2]);
 				change = change + (arr_a[count+1] - arr_b[count+1]);
 			}
-			count = count + 1;	
+			print(", ");
+			count = count + 1;
 		}
+		print_float(change);
+		print(", ");
 		swap = !swap;
 	}
 

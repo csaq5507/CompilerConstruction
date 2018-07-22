@@ -923,7 +923,7 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
             elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
             elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
             elem_false->b_literal = false;
-            elem_false->identifier1 = new_string("reg%d", v_counter++);
+            elem_false->identifier1 = new_string("reg_%d", v_counter++);
 
             elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
             elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
@@ -979,6 +979,8 @@ static void tac_ret_stmt(struct mCc_ast_ret_stmt *stmt, void *data)
             stmt->tac_start = stmt->expression->tac_start;
             stmt->tac_end = elem_return;
 
+            add_jump(stmt->tac_start, stmt->tac_end, label_false);
+
         } else {
 
             tac_list *temp = stmt->expression->tac_end;
@@ -1014,7 +1016,12 @@ static void bool_operation_assignment(struct mCc_ast_assignment *stmt) {
     tac_list *jump_false = tac_new_list();
     tac_list *jump = tac_new_list();
     jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;
-    jump_false->identifier1 = copy_string(expression_end->prev->identifier1);
+    if (expression_end->type == MCC_TAC_ELEMENT_TYPE_UNARY ||
+            expression_end->type == MCC_TAC_ELEMENT_TYPE_BINARY) {
+        jump_false->identifier1 = copy_string(expression_end->identifier1);
+    } else {
+        jump_false->identifier1 = copy_string(expression_end->prev->identifier1);
+    }
     jump_false->jump = label_false;
     jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
     jump->jump = label;
@@ -1058,7 +1065,7 @@ static void bool_operation_assignment(struct mCc_ast_assignment *stmt) {
         elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
         elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
         elem_false->b_literal = false;
-        elem_false->identifier1 = new_string("reg%d", v_counter++);
+        elem_false->identifier1 = new_string("reg_%d", v_counter++);
 
         elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
         elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
@@ -1147,7 +1154,7 @@ static void bool_and_or_assignment(struct mCc_ast_assignment *stmt) {
         elem_false->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
         elem_false->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
         elem_false->b_literal = false;
-        elem_false->identifier1 = new_string("reg%d", v_counter++);
+        elem_false->identifier1 = new_string("reg_%d", v_counter++);
 
         elem_true->type = MCC_TAC_ELEMENT_TYPE_COPY_LITERAL;
         elem_true->literal_type = MCC_TAC_LITERAL_TYPE_BOOL;
@@ -1399,6 +1406,7 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
     jump->type = MCC_TAC_ELEMENT_TYPE_UNCONDITIONAL_JUMP;
 
     stmt->tac_start = stmt->expression->tac_start;
+
     if (stmt->else_statement != NULL) {
 
         tac_list *label = tac_new_list();

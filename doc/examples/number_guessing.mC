@@ -5,25 +5,29 @@ void guessNumber(int number, int max) {
     while(!success) {
         print("Enter a number between 0 and ");
         print_int(max);
-	print("\n");
+	    print_nl();
         int guess;
         guess = read_int();
         success = guess == number;
-        if(success) 
+        if(success)
             print("you guessed correct");
         else {
-            if(guess < number)
-                print("the number is bigger\n");
-            else
-                print("the number is smaller\n");
+            if(guess < number) {
+                print("the number is bigger");
+            	print_nl();
+            }
+            else {
+                print("the number is smaller");
+	            print_nl();
+            }
         }
     }
     print_nl();
 }
-    
+
 void main() {
     int test;
     test = 3;
     guessNumber(test, 10);
 }
-    
+

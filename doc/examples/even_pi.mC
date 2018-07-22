@@ -17,16 +17,6 @@ float calculate_pi(float n){
     bool flag;
     flag = true;
     val = 4.0;
-
-        print("val       | tmp       | i");
-        print_nl();
-
-        print_float(val);
-        print(" | ");
-        print_float(0);
-        print(" | ");
-        print_float(i);
-        print_nl();
     while(i < n) {
         if (flag == true) {
             float tmp;
@@ -37,18 +27,10 @@ float calculate_pi(float n){
             tmp = val;
             val = tmp + (4.0/i);
         }
-
         flag = !flag;
         float tmp;
         tmp = i;
-
         i = tmp + 2.0;
-                print_float(val);
-                print(" | ");
-                print_float(tmp);
-                print(" | ");
-                print_float(i);
-                print_nl();
     }
     return val;
 }

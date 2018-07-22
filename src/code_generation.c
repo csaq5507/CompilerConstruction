@@ -7,8 +7,6 @@
 #include <stdlib.h>
 #include <mCc/code_generation.h>
 #include <mCc/utils.h>
-#include <math.h>
-#include <assert.h>
 
 #define MALLOC(ptr, size)                                                      \
 	ptr = malloc(size);                                                    \
@@ -79,6 +77,8 @@
 	temp2->prev = temp1;                                                   \
 	temp2->next = NULL;
 
+static enum mCc_tac_literal_type ast_to_tac_literal_type
+        (enum mCc_ast_literal_type type);
 
 struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
                                            char *filename)
@@ -618,7 +618,7 @@ mCc_assembly_create_string_label(struct mCc_tac_list *tac)
 	retval->instruction = new_string(".LC%d:", string_label_idx);
 	set_label(tac->identifier1, new_string(".LC%d", string_label_idx++));
 	temp->type = MCC_ASSEMBLY_CONSTANT;
-	temp->instruction = new_string("\t.string \"%s\"", tac->s_literal);
+	temp->instruction = new_string("\t.string \"%s\"", replace(tac->s_literal, "\n", "\\n"));
 	temp1->type = MCC_ASSEMBLY_DIRECTIVE;
 	temp1->instruction = new_string("\t.text");
 	return retval;
@@ -698,7 +698,8 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac)
     while (temp_tac->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_START) {
         set_param_var(get_literal_size(temp_tac->decl_lit_type),
                       temp_tac->identifier1);
-        get_var(temp_tac->identifier1)->type = temp_tac->decl_lit_type;
+        get_var(temp_tac->identifier1)->type =
+                ast_to_tac_literal_type(temp_tac->decl_lit_type);
         temp_tac=temp_tac->prev;
     }
     //wrong direction push
@@ -739,10 +740,11 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac, struc
         if (is_float(tac->rhs)) {
             retval->instruction = float_binary_op(tac,"faddp");
         }
-		else
-			retval->instruction = new_string(
-				"\taddl\t%s, %s", get_register(tac->rhs),
-				get_register(tac->lhs));
+        else {
+            retval->instruction = new_string(
+                    "\taddl\t%s, %s", get_register(tac->rhs),
+                    get_register(tac->lhs));
+        }
 		break;
 	case MCC_TAC_OPERATION_TYPE_MINUS:
 		if (tac->type == MCC_TAC_ELEMENT_TYPE_UNARY) {
@@ -794,11 +796,12 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac, struc
             if (is_float(tac->rhs)) {
                 retval->instruction = float_binary_op(tac,"fsubp");
             }
-			else
+            else {
 				retval->instruction =
-					new_string("\tsubl\t%s, %s",
-						   get_register(tac->rhs),
-						   get_register(tac->lhs));
+						new_string("\tsubl\t%s, %s",
+								   get_register(tac->rhs),
+								   get_register(tac->lhs));
+			}
 			break;
 		}
 	case MCC_TAC_OPERATION_TYPE_MULTIPLY:
@@ -1216,28 +1219,45 @@ bool is_register(char *identifier)
 }
 
 void swap_register(char *identifier1) {
-    if(strcmp(registers->st0,identifier1))
+    if(strcmp(registers->st0,identifier1) == 0)
     {
         return;
-    } else if(strcmp(registers->st1,identifier1))
+    } else if(strcmp(registers->st1,identifier1) == 0)
     {
         char  * st0 = registers->st0;
         registers->st0 = registers->st1;
         registers->st1 = st0;
         return;
-    }else if(strcmp(registers->st2,identifier1))
+    }else if(strcmp(registers->st2,identifier1) == 0)
     {
         char  * st0 = registers->st0;
         registers->st0 = registers->st2;
         registers->st2 = st0;
         return;
-    }else if(strcmp(registers->st3,identifier1))
+    }else if(strcmp(registers->st3,identifier1) == 0)
     {
         char  * st0 = registers->st0;
         registers->st0 = registers->st3;
         registers->st3 = st0;
         return;
     }
+}
+
+
+static enum mCc_tac_literal_type ast_to_tac_literal_type
+        (enum mCc_ast_literal_type type) {
+
+    switch (type) {
+        case (MCC_AST_LITERAL_TYPE_INT):
+            return MCC_TAC_LITERAL_TYPE_INT;
+        case (MCC_AST_LITERAL_TYPE_STRING):
+            return MCC_TAC_LITERAL_TYPE_STRING;
+        case (MCC_AST_LITERAL_TYPE_FLOAT):
+            return MCC_TAC_LITERAL_TYPE_FLOAT;
+        case (MCC_AST_LITERAL_TYPE_BOOL):
+            return MCC_TAC_LITERAL_TYPE_BOOL;
+    }
+    return MCC_TAC_LITERAL_TYPE_INT;
 }
 
 

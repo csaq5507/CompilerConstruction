@@ -11,5 +11,7 @@
 char * new_string(const char * pattern, ...);
 char * copy_string(const char * src);
 char * copy_string_realloc(char * dest, const char * src);
+char *replace(char const *const original, char const *const pattern,
+              char const *const replacement);
 
 #endif //MINICOMPILER_UTILS_H

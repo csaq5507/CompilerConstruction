@@ -1,4 +1,4 @@
-//
+    //
 // Created by ivan on 23.05.18.
 //
 
@@ -114,6 +114,8 @@ struct mCc_assembly {
 enum copy { COPY_PUSHL, COPY_MOVL, COPY_PUSHL_ARRAY };
 
 /**********************************************GENERATE*/
+
+void *init_globals();
 
 struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
 					   char *filename);

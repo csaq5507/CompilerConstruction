@@ -81,25 +81,31 @@ static enum mCc_tac_literal_type ast_to_tac_literal_type
         (enum mCc_ast_literal_type type);
 
 
-struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
-                                           char *filename)
-{
-	// init vars
-	struct mCc_assembly *assembly;
-	string_label_idx = 0;
-	float_label_idx = 0;
-	label_idx = 0;
+void *init_globals() {
+    string_label_idx = 0;
+    float_label_idx = 0;
+    label_idx = 0;
     is_float_condition=false;
     jump_cond = -1;
     skip=0;
     MALLOC(lost_registers, sizeof(struct lost_regs))
     lost_registers->counter = 0;
     lost_registers->reg = NULL;
-	MALLOC(label, sizeof(struct labels))
-	label->counter = 0;
-	label->l = NULL;
-	MALLOC(registers, sizeof(struct regs))
-	free_all_registers();
+    MALLOC(label, sizeof(struct labels))
+    label->counter = 0;
+    label->l = NULL;
+    MALLOC(registers, sizeof(struct regs))
+    free_all_registers();
+    return NULL;
+}
+
+struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
+                                           char *filename)
+{
+	// init vars
+    init_globals();
+
+    struct mCc_assembly *assembly;
 	MALLOC(assembly, sizeof(struct mCc_assembly));
 	// generate labels, builtins, first line etc.
 	assembly->head = mcc_assembly_generate_labels(tac,filename);
@@ -351,6 +357,7 @@ void mCc_assembly_delete(struct mCc_assembly *assembly)
 		free(current->prev);
 	}
 	free(assembly);
+    delete_stack();
 }
 
 void mCc_assembly_print(FILE *out, struct mCc_assembly *ass)
@@ -621,7 +628,9 @@ mCc_assembly_create_string_label(struct mCc_tac_list *tac)
 	retval->instruction = new_string(".LC%d:", string_label_idx);
 	set_label(tac->identifier1, new_string(".LC%d", string_label_idx++));
 	temp->type = MCC_ASSEMBLY_CONSTANT;
-	temp->instruction = new_string("\t.string \"%s\"", replace(tac->s_literal, "\n", "\\n"));
+    char *tmp = replace(tac->s_literal, "\n", "\\n");
+	temp->instruction = new_string("\t.string \"%s\"", tmp);
+    free(tmp);
 	temp1->type = MCC_ASSEMBLY_DIRECTIVE;
 	temp1->instruction = new_string("\t.text");
 	return retval;
@@ -693,6 +702,7 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac)
 	temp3->type = MCC_ASSEMBLY_MOV;
 	temp3->instruction = new_string("\tmovl\t%s, %s", "%esp", "%ebp");
     struct mCc_tac_list *temp_tac = tac;
+    delete_stack();
     new_stack();
     set_param_var(8,"ebp");
     /*for (int i = 0; i < num_params; ++i) {
@@ -1446,11 +1456,19 @@ void new_stack()
 
 void delete_stack()
 {
-    free(stack->variables);
-    free(stack);
+    if (stack != NULL) {
+        if (stack->variables != NULL) {
+            free(stack->variables);
+        }
+        free(stack);
+    }
 
-    free(param_stack->variables);
-    free(param_stack);
+    if (param_stack != NULL) {
+        if (param_stack->variables != NULL) {
+            free(param_stack->variables);
+        }
+        free(param_stack);
+    }
 }
 
 int get_stack_size() {

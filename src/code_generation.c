@@ -88,6 +88,7 @@ struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
 	string_label_idx = 0;
 	float_label_idx = 0;
 	label_idx = 0;
+    jump_cond = -1;
     skip=0;
     MALLOC(lost_registers, sizeof(struct lost_regs))
     lost_registers->counter = 0;

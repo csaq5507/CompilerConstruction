@@ -1360,7 +1360,8 @@ static void tac_if_stmt(struct mCc_ast_if_stmt *stmt, void *data)
     if (temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_BINARY ||
             temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_UNARY ||
             temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_COPY_LITERAL||
-            temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER) {
+            temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER ||
+            temp_expression_end->type == MCC_TAC_ELEMENT_TYPE_PROCEDURE_CALL) {
         tac_list *jump_false = tac_new_list();
 
         jump_false->type = MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP;

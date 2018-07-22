@@ -1,4 +1,4 @@
-void lucas_number (int x, int y, int num){
+void lucas_number (int num, int x, int y){
  int z;
  z=0;
  while(num >= x)
@@ -23,9 +23,8 @@ void main()
     y=1;
     num= read_int();
     print("The Lucas numbers are: ");
-    lucas_number(x, y, num);
+    lucas_number(num, x, y);
     print_nl();
-
 
 }
 

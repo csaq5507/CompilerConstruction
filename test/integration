@@ -178,11 +178,13 @@ print_header
 		else
 			if [[ -e "$BUILD_DIR/executables/$example.out" ]]; then
 			    if ! diff -w -q <(cat $EXAMPLES_DIR/$example.stdin | $BUILD_DIR/executables/$example.out) <(cat $EXAMPLES_DIR/$example.stdout); then
+                    echo "********************************************************************"
 			        echo "$(diff -w <(cat $EXAMPLES_DIR/$example.stdin | $BUILD_DIR/executables/$example.out) <(cat $EXAMPLES_DIR/$example.stdout))"
 			        stats="- - 1"
 			    fi
 			else
 			    stats="- - 1"
+                echo "********************************************************************"
 			    echo "no binary created"
 			fi
 		fi
@@ -194,7 +196,6 @@ print_header
 
        # rm -f a.out
 		print_run "$example" $stats
-        echo "********************************************************************"
 
 	done
 	$flawless

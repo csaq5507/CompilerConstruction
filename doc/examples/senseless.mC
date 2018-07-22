@@ -12,7 +12,7 @@ void main() {
     print("Enter a number"); print_nl();
     value = read_int();
 
-    if((x == y) || (x != y)) {
+    if((x && y && z) || (x || y || z) || (x == y) || (x != y)) {
         /* should always go there */
         print("Cool program "); print_int(value); print_nl();
     } else {
@@ -25,7 +25,10 @@ void main() {
 
     {
         string test;
-        test = "This is a string overseveral lines";
+        test = "
+            This is a string over
+
+            several lines";
 
         print(test);
         print_nl();

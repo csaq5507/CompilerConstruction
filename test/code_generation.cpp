@@ -8,127 +8,120 @@
 #include "mCc/tac.h"
 #include "mCc/code_generation.h"
 
-TEST(code_generation, create_label)
-{
-    // mCc_assembly_create_label
-}
-
-TEST(code_generation, store)
-{
-    // mCc_assembly_store
-}
-
-TEST(code_generation, generate_labels)
-{
-    // mcc_assembly_generate_labels
-}
-
-TEST(code_generation, call_param)
-{
-    // mCc_assembly_call_param
-}
-
-TEST(code_generation, load)
-{
-    // mCc_assembly_load
-}
-
-TEST(code_generation, function_return)
-{
-    // mCc_assembly_function_return
-}
-
-TEST(code_generation, procedure_call)
-{
-    // mCc_assembly_procedure_call
-}
-
-TEST(code_generation, create_builtin_func)
-{
-    // mCc_assembly_create_builtin_func
-}
-
-TEST(code_generation, create_string_label)
-{
-    // mCc_assembly_create_string_label
-}
-
-TEST(code_generation, create_float_label)
-{
-    // mCc_assembly_create_float_label
-}
-
-TEST(code_generation, function_end)
-{
-    // mCc_assembly_function_end
-}
-
-TEST(code_generation, function_start)
-{
-    // mCc_assembly_function_start
-}
-
-TEST(code_generation, operation)
-{
-    // mCc_assembly_operation
-}
-
-TEST(code_generation, is_float)
-{
-    // is_float
-}
-
-TEST(code_generation, factorial)
-{
-    // mCc_assembly_factorial
-}
-
-TEST(code_generation, condition)
-{
-    // mCc_assembly_condition
-}
-
-TEST(code_generation, nested_condition)
-{
-    // mCc_assembly_nested_condition
-}
-
-TEST(code_generation, conditional_jump)
-{
-    // mCc_assembly_conditional_jump
-}
-
-TEST(code_generation, jump)
-{
-    // mCc_assembly_jump
-}
-
-TEST(code_generation, copy_identifier)
-{
-    // mCc_assembly_copy_identifier
-}
-
-TEST(code_generation, copy_literal)
-{
-    // mCc_assembly_copy_literal
-}
-
 TEST(code_generation, is_register)
 {
-    // is_register
+    char reg[] = "reg_43";
+    char not_reg[] = "a";
+    ASSERT_TRUE(is_register(reg));
+    ASSERT_FALSE(is_register(not_reg));
 }
 
-TEST(code_generation, get_literal_size)
-{
-    // get_literal_size
+TEST(code_generation, get_literal_size) {
+
+    ASSERT_EQ(get_literal_size(MCC_AST_LITERAL_TYPE_STRING),
+              4);
+
+    ASSERT_EQ(get_literal_size(MCC_AST_LITERAL_TYPE_INT),
+              4);
+
+    ASSERT_EQ(get_literal_size(MCC_AST_LITERAL_TYPE_FLOAT),
+              8);
+
+    ASSERT_EQ(get_literal_size(MCC_AST_LITERAL_TYPE_BOOL),
+              4);
+
 }
 
-TEST(code_generation, is_builtin)
-{
-    // is_builtin
+TEST(code_generation, is_builtin) {
+
+    char print[] = "print";
+    char print_nl[] = "print_nl";
+    char print_int[] = "print_int";
+    char print_float[] = "print_float";
+    char read_int[] = "read_int";
+    char read_float[] = "read_float";
+    char other[] = "main";
+
+    ASSERT_TRUE(is_builtin(print));
+    ASSERT_TRUE(is_builtin(print_nl));
+    ASSERT_TRUE(is_builtin(print_int));
+    ASSERT_TRUE(is_builtin(print_float));
+    ASSERT_TRUE(is_builtin(read_int));
+    ASSERT_TRUE(is_builtin(read_float));
+    ASSERT_FALSE(is_builtin(other));
 }
 
-TEST(code_generation, negate_binary_op_type)
-{
-    // negate_binary_op_type
+TEST(code_generation, label) {
+    init_globals();
+    new_stack();
+
+    char key[] = "key";
+    char value[] = "value";
+    set_label(key, value);
+    ASSERT_STREQ(get_label(key), value);
+    delete_stack();
+    free_all_registers();
+}
+
+TEST(code_generation, var) {
+    init_globals();
+    new_stack();
+
+    char value[] = "value";
+    set_var(4, value);
+    ASSERT_EQ(get_var(value)->size, 4);
+    delete_stack();
+    free_all_registers();
+}
+
+TEST(code_generation, param_var) {
+    init_globals();
+    new_stack();
+
+    char value[] = "value";
+    set_param_var(4, value);
+    ASSERT_EQ(get_var(value)->size, 4);
+    delete_stack();
+    free_all_registers();
+}
+
+TEST(code_generation, register_) {
+    init_globals();
+
+    char value_1[] = "value_1";
+    char value_2[] = "value_2";
+    char value_3[] = "value_3";
+    char value_4[] = "value_4";
+    char value_5[] = "value_5";
+    char value_6[] = "value_6";
+    char eax[] = "%eax";
+    char ebx[] = "%ebx";
+    char st0[] = "%st";
+    char st1[] = "%st(1)";
+    ASSERT_STREQ(get_register(value_1), eax);
+    ASSERT_STREQ(get_register(value_2), ebx);
+    ASSERT_STREQ(get_register(value_2), ebx);
+
+    ASSERT_TRUE(has_register(value_1));
+    ASSERT_FALSE(has_register(value_3));
+
+    set_float_register(value_4);
+    set_float_register(value_6);
+    ASSERT_STREQ(get_register(value_2), ebx);
+
+    ASSERT_STREQ(get_register(value_4), st0);
+    ASSERT_STREQ(get_register(value_6), st1);
+
+    swap_register(value_6);
+    ASSERT_STREQ(get_register(value_6), st0);
+    ASSERT_STREQ(get_register(value_4), st1);
+
+    update_register(value_1, value_5);
+    ASSERT_STREQ(get_register(value_5), eax);
+
+    ASSERT_TRUE(is_float(value_4));
+    ASSERT_FALSE(is_float(value_5));
+
+    free_all_registers();
+
 }

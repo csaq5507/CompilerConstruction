@@ -693,25 +693,26 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac)
     struct mCc_tac_list *temp_tac = tac;
     new_stack();
     set_param_var(8,"ebp");
-    for (int i = 0; i < num_params; ++i) {
+    /*for (int i = 0; i < num_params; ++i) {
         temp_tac=temp_tac->next;
     }
+
     while (temp_tac->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_START) {
         set_param_var(get_literal_size(temp_tac->decl_lit_type),
                       temp_tac->identifier1);
         get_var(temp_tac->identifier1)->type =
                 ast_to_tac_literal_type(temp_tac->decl_lit_type);
         temp_tac=temp_tac->prev;
-    }
+    }*/
     //wrong direction push
         while (temp_tac->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END) {
         if (temp_tac->type == MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP) {
             if(num_params>0)
             {
-            /*    set_param_var(get_literal_size(temp_tac->decl_lit_type),
+                set_param_var(get_literal_size(temp_tac->decl_lit_type),
                               temp_tac->identifier1);
-                get_var(temp_tac->identifier1)->type = temp_tac->decl_lit_type;
-               */ num_params--;
+                get_var(temp_tac->identifier1)->type = ast_to_tac_literal_type(temp_tac->decl_lit_type);
+                num_params--;
             } else {
                 set_var(get_literal_size(temp_tac->decl_lit_type)
                         * temp_tac->param_size,
@@ -829,17 +830,24 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac, struc
 			temp->next = temp1;
 			temp1->next = NULL;
 			temp1->prev = temp;
-			if(strcmp(get_register(tac->rhs),"%eax") == 0   ) {
-				free_register(tac->rhs);
-				char * old_lhs = get_register(tac->lhs);
-				get_register(tac->lhs);
-				retval->instruction = new_string("\tmovl\t%s, %s\n\tmovl\t%s, %s","%eax",get_register(tac->rhs),old_lhs,get_register(tac->rhs));
-			}
-			retval->instruction = new_string("\tmovl\t%s, %s",get_register(tac->lhs),"%eax");
+            if(strcmp(registers->eax,tac->lhs) == 0)
+            {
+                retval->instruction = new_string("\tnop");
+            } else
+            {
+                add_lost_register(registers->eax);
+                free_register(registers->eax);
+                char* old_lhs = get_register(tac->lhs);
+                free_register(tac->lhs);
+                get_register(tac->lhs);
+                retval->instruction = new_string("\tmovl\t%s, %s",old_lhs,"%eax");
+
+            }
 			temp->instruction = new_string(
 					"\tcltd\n\tidivl\t%s", get_register(tac->rhs));
 			temp1->instruction = new_string("\tmovl\t%s, %s","%eax",get_register(tac->identifier1));
-			free_register(tac->lhs);
+
+            free_register(tac->lhs);
 			free_register(tac->rhs);
 		}
 		break;
@@ -922,7 +930,6 @@ char *float_binary_op(struct mCc_tac_list *tac, char* operation) {
 
 struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac, struct mCc_assembly_line* current)
 {
-
     jump_cond = tac->binary_op_type;
 	if (tac->next->type == MCC_TAC_ELEMENT_TYPE_CONDITIONAL_JUMP) {
 		if(is_float(tac->rhs)) {
@@ -1064,6 +1071,7 @@ mCc_assembly_conditional_jump(struct mCc_tac_list *tac)
 
         NEW_DOUBLE_LINE
         retval->instruction = new_string("\tcmpl\t$0, %s", get_register(tac->identifier1));
+		free_register(tac->identifier1);
         if (jump_cond < -1)
             temp->instruction = new_string("\tjne\t%s", get_label(identifier));
         else

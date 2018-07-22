@@ -12,13 +12,9 @@ int multiply(int num, int multiplicator)
 	while (i < 10)
 	{
 	    int a;
-	    a = num/10;
-		arr[i]=num/10;
+	    a = num / 10;
+		arr[i]= num / 10;
 		i = i + 1;
-		print_int(num);
-		print(": ");
-		print_int(a);
-		print_nl();
 	}
 	
 	i = 0;

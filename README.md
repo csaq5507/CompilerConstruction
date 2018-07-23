@@ -105,16 +105,11 @@ Where in this example no memleak occurs:
     
 The reason for that is that in the lexer a malloc is done which is never forwarded to the parser.y file.
 
-### Issue #2a
-
-Memory leak for code generation
-
 ### Issue #3
 
 For some reason by running 'valgrind' over ninja test some unknown errors are printed. 
 This errors are always there even if the tests are empty. This seams to be a problem of the google test.
-The same happens also for the integration test. By running the test with the mCc binary no other memory leaks are 
-shown if they are not listed inside this Known Issues section.
+By running the test with the mCc binary no other memory leaks are shown if they are not listed inside this Known Issues section.
 
 ### Issue #4
 

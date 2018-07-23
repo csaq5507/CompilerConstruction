@@ -7,7 +7,7 @@
 #include "mCc/ast_semantic_checks.h"
 #include "mCc/tac.h"
 #include "mCc/code_generation.h"
-/*
+
 TEST(code_generation, is_register)
 {
     char reg[] = "reg_43";
@@ -90,32 +90,39 @@ TEST(code_generation, register_) {
 
     char value_1[] = "value_1";
     char value_2[] = "value_2";
-    char value_3[] = "value_3";
+    //char value_3[] = "value_3";
     char value_4[] = "value_4";
     char value_5[] = "value_5";
     char value_6[] = "value_6";
     char eax[] = "%eax";
     char ebx[] = "%ebx";
-    char st0[] = "%st";
+    char st0[] = "%st(0)";
     char st1[] = "%st(1)";
     ASSERT_STREQ(get_register(value_1), eax);
     ASSERT_STREQ(get_register(value_2), ebx);
     ASSERT_STREQ(get_register(value_2), ebx);
-
+/*
     ASSERT_TRUE(has_register(value_1));
     ASSERT_FALSE(has_register(value_3));
-
-    set_float_register(value_4);
-    set_float_register(value_6);
-    ASSERT_STREQ(get_register(value_2), ebx);
-
+*/
+    push_float_register(value_4);
+    ASSERT_STREQ(get_register(value_4), st0);
+    push_float_register(value_6);
+    ASSERT_STREQ(get_register(value_6), st0);
+    ASSERT_STREQ(get_register(value_4), st1);
+    ASSERT_STREQ(pop_float_register(), value_6);
+    push_float_register(value_6);
+    fxch(value_4);
     ASSERT_STREQ(get_register(value_4), st0);
     ASSERT_STREQ(get_register(value_6), st1);
 
-    swap_register(value_6);
+    ASSERT_STREQ(get_register(value_2), ebx);
+
+
+    /*swap_register(value_6);
     ASSERT_STREQ(get_register(value_6), st0);
     ASSERT_STREQ(get_register(value_4), st1);
-
+*/
     update_register(value_1, value_5);
     ASSERT_STREQ(get_register(value_5), eax);
 
@@ -124,4 +131,5 @@ TEST(code_generation, register_) {
 
     free_all_registers();
 
-}*/
+}
+/**/

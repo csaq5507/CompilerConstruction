@@ -22,6 +22,9 @@ static void tac_parameter(struct mCc_ast_parameter *parameter, void *data);
 static void tac_argument(struct mCc_ast_argument *argument, void *data);
 
 
+static void push_tac_end_single_expression (struct mCc_ast_single_expression *expression,
+                                            tac_list *tac_end);
+static void push_tac_end_expression (struct mCc_ast_expression *expression, tac_list *tac_end);
 static void set_tac_literal (tac_list *elem, struct mCc_ast_single_expression *expression);
 static void add_jump(struct mCc_tac_list *start, struct mCc_tac_list *end,
                      struct mCc_tac_list *jump);
@@ -621,6 +624,47 @@ static void generate_tac_operation_and(struct mCc_ast_expression *expression) {
 
 }
 
+static void push_tac_end_single_expression (struct mCc_ast_single_expression *expression,
+                                            tac_list *tac_end) {
+    assert(expression);
+    assert(tac_end);
+
+    switch (expression->type) {
+        case (MCC_AST_SINGLE_EXPRESSION_TYPE_LITERAL):
+        case (MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER):
+            break;
+        case (MCC_AST_SINGLE_EXPRESSION_TYPE_IDENTIFIER_EX):
+            push_tac_end_expression(expression->identifier_expression, tac_end);
+            break;
+        case (MCC_AST_SINGLE_EXPRESSION_TYPE_CALL_EXPR):
+            expression->call_expr->tac_end = tac_end;
+            break;
+        case (MCC_AST_SINGLE_EXPRESSION_TYPE_UNARY_OP):
+            push_tac_end_expression(expression->unary_expression, tac_end);
+            break;
+        case (MCC_AST_SINGLE_EXPRESSION_TYPE_PARENTH):
+            push_tac_end_expression(expression->expression, tac_end);
+            break;
+    }
+    expression->tac_end = tac_end;
+}
+
+static void push_tac_end_expression (struct mCc_ast_expression *expression, tac_list *tac_end) {
+    assert(expression);
+    assert(tac_end);
+
+    switch (expression->type) {
+        case (MCC_AST_EXPRESSION_TYPE_SINGLE):
+            push_tac_end_single_expression(expression->single_expr, tac_end);
+            break;
+        case (MCC_AST_EXPRESSION_TYPE_BINARY):
+            push_tac_end_expression(expression->rhs, tac_end);
+            push_tac_end_single_expression(expression->lhs, tac_end);
+            break;
+    }
+    expression->tac_end = tac_end;
+}
+
 static void tac_expression(struct mCc_ast_expression *expression, void *data)
 {
 	assert(expression);
@@ -648,6 +692,19 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data)
 			tac_list *temp_lhs_star = expression->lhs->tac_start;
             tac_list *temp_rhs_end = expression->rhs->tac_end;
             tac_list *temp_rhs_start = expression->rhs->tac_start;
+
+            if (strcmp(temp_lhs_end->identifier1, temp_rhs_end->identifier1) == 0) {
+                tac_list *new_copy = tac_new_list();
+                new_copy->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
+                new_copy->identifier1 = new_string("reg_%d", v_counter++);
+                new_copy->copy_identifier = copy_string(temp_lhs_end->identifier1);
+                new_copy->next = temp_lhs_end->next;
+                temp_lhs_end->next = new_copy;
+                new_copy->prev = temp_lhs_end;
+                expression->lhs->tac_end = new_copy;
+                push_tac_end_expression(expression, new_copy);
+                temp_lhs_end = expression->lhs->tac_end;
+            }
 
             elem->lhs = copy_string(temp_lhs_end->identifier1);
             elem->rhs = copy_string(temp_rhs_end->identifier1);
@@ -679,6 +736,58 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data)
 		}
 
 	}
+}
+
+static void generate_parameter_calls(struct mCc_ast_call_expr *expression) {
+    assert(expression);
+
+    if (expression->arguments != NULL) {
+        for (int i = expression->arguments->counter - 1; i >= 0; i--) {
+            tac_list *temp_end =
+                    expression->arguments->expression[i].tac_end;
+            tac_list *temp_start = expression->tac_start;
+            temp_end->next = expression->tac_start;
+            temp_start->prev = temp_end;
+            expression->tac_start =
+                    expression->arguments->expression[i].tac_start;
+        }
+        if (expression->d_type == MCC_AST_TYPE_VOID) {
+            for (int i = expression->arguments->counter - 1; i >= 0; i--) {
+                tac_list *actual =
+                        expression->arguments->expression[i].tac_end;
+                tac_list *ret_elem = tac_new_list();
+                ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP_CALL;
+
+                ret_elem->identifier1 = copy_string(actual->identifier1);
+                ret_elem->param_size =
+                        1; // default only arrays have another size
+                tac_list *temp_end = expression->tac_end;
+                tac_list *temp_end1 = temp_end->prev;
+                temp_end1->next = ret_elem;
+                ret_elem->prev = temp_end1;
+                ret_elem->next = temp_end;
+                temp_end->prev = ret_elem;
+            }
+        } else {
+            for (int i = expression->arguments->counter - 1; i >= 0; i--) {
+                tac_list *actual =
+                        expression->arguments->expression[i].tac_end;
+                tac_list *ret_elem = tac_new_list();
+                ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP_CALL;
+
+                ret_elem->identifier1 = copy_string(actual->identifier1);
+                ret_elem->param_size =
+                        1; // default only arrays have another size
+                tac_list *temp_end = expression->tac_end;
+                temp_end = temp_end->prev;
+                tac_list *temp_end1 = temp_end->prev;
+                temp_end1->next = ret_elem;
+                ret_elem->prev = temp_end1;
+                ret_elem->next = temp_end;
+                temp_end->prev = ret_elem;
+            }
+        }
+    }
 }
 
 static void tac_call_expression(struct mCc_ast_call_expr *expression,
@@ -719,53 +828,8 @@ static void tac_call_expression(struct mCc_ast_call_expr *expression,
 				expression->arguments->counter;
 	}
 
-	if (expression->arguments != NULL) {
-		for (int i = expression->arguments->counter - 1; i >= 0; i--) {
-			tac_list *temp_end =
-				expression->arguments->expression[i].tac_end;
-			tac_list *temp_start = expression->tac_start;
-			temp_end->next = expression->tac_start;
-			temp_start->prev = temp_end;
-			expression->tac_start =
-				expression->arguments->expression[i].tac_start;
-		}
-		if (expression->d_type == MCC_AST_TYPE_VOID) {
-			for (int i = expression->arguments->counter - 1; i >= 0; i--) {
-				tac_list *actual =
-						expression->arguments->expression[i].tac_end;
-				tac_list *ret_elem = tac_new_list();
-				ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP_CALL;
+    generate_parameter_calls(expression);
 
-				ret_elem->identifier1 = copy_string(actual->identifier1);
-				ret_elem->param_size =
-						1; // default only arrays have another size
-				tac_list *temp_end = expression->tac_end;
-				tac_list *temp_end1 = temp_end->prev;
-				temp_end1->next = ret_elem;
-				ret_elem->prev = temp_end1;
-				ret_elem->next = temp_end;
-				temp_end->prev = ret_elem;
-			}
-		} else {
-			for (int i = expression->arguments->counter - 1; i >= 0; i--) {
-				tac_list *actual =
-						expression->arguments->expression[i].tac_end;
-				tac_list *ret_elem = tac_new_list();
-				ret_elem->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP_CALL;
-
-				ret_elem->identifier1 = copy_string(actual->identifier1);
-				ret_elem->param_size =
-						1; // default only arrays have another size
-				tac_list *temp_end = expression->tac_end;
-				temp_end = temp_end->prev;
-				tac_list *temp_end1 = temp_end->prev;
-				temp_end1->next = ret_elem;
-				ret_elem->prev = temp_end1;
-				ret_elem->next = temp_end;
-				temp_end->prev = ret_elem;
-			}
-		}
-	}
 }
 
 static void tac_function_def(struct mCc_ast_function_def *f, void *data)

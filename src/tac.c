@@ -1837,23 +1837,6 @@ void mCc_tac_delete(struct mCc_tac_list *head)
 	}
 }
 
-void mCc_tac_print_reverse(FILE *out, struct mCc_tac_list *head)
-{
-    assert(out);
-    assert(head);
-
-    struct mCc_tac_list *current = head;
-    while (current->next != NULL) {
-        current = current->next;
-    }
-
-    while (current != NULL) {
-        print_tac_elem(out, current);
-        fprintf(out, "\n");
-        current = current->prev;
-    }
-}
-
 void mCc_tac_print(FILE *out, struct mCc_tac_list *head)
 {
 	assert(out);

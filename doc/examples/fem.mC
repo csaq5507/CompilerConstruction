@@ -25,7 +25,7 @@ void main()
 	print("Capictor value: ");
 	C = read_float();
 
-	if ((R < 0.0) || (C < 0.0)) {
+	if ( (R < 0.0) || (C < 0.0)) {
 		print("Part values must be positive");
 		print_nl();
 		return;

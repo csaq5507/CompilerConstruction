@@ -4,11 +4,7 @@ int fib(int n)
 		return n;
 	}
 
-    int left;
-    int right;
-    left  = fib(n - 1);
-    right = fib(n - 2);
-	return left + right;
+	return fib(n - 1) + fib(n - 2);
 }
 
 void main()

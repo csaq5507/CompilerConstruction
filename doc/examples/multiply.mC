@@ -11,9 +11,7 @@ int multiply(int num, int multiplicator)
 	
 	while (i < 10)
 	{
-	    int a;
-	    a = num / 10;
-		arr[i]= num / 10;
+		arr[i]=num/10;
 		i = i + 1;
 	}
 	

@@ -5,7 +5,7 @@ void main() {
     /* First we declare some arrays */
     int[5] first_array;
     bool[5] processed;
-    first_array[0] = 2;
+
     processed[0] = false;
     processed[4] = false;
 
@@ -16,6 +16,7 @@ void main() {
 void run_calculation(int[5] first_array, bool[5] processed) {
     int i;
     i = 1;
+
     while (i < 4) {
         first_array[i] = extreme_function(i);
         processed[i] = true;

@@ -174,7 +174,7 @@ ast_literal *mCc_ast_new_literal_bool(char * value)
 
 ast_literal *mCc_ast_new_literal_string(char *value)
 {
-	char *t = replace(value, "\\n", "enter");
+	char *t = replace(value, "\\n", "#enter#");
 	char *temp = replace(t, "\"", "");
 	free(t);
 	ast_literal *lit;

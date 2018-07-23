@@ -26,7 +26,7 @@ int builtin;
 int skip;
 int push_vars;
 bool is_float_condition;
-int addl;
+bool no_more_registers;
 
 struct label_identification {
 	char *key;
@@ -119,12 +119,9 @@ struct mCc_assembly {
 	struct mCc_assembly_line *head;
 };
 
-enum copy { COPY_PUSHL, COPY_MOVL, COPY_PUSHL_ARRAY };
 
 /**********************************************GENERATE*/
-
-void *init_globals();
-
+void init_globals();
 struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
 					   char *filename);
 
@@ -173,6 +170,9 @@ mCc_assembly_conditional_jump(struct mCc_tac_list *tac, struct mCc_assembly_line
 struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
 
 struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
+
+struct mCc_assembly_line *consume_registers(struct mCc_tac_list *tc, struct mCc_assembly_line *current);
+
 
 /***************************************/
 /***************************************/

@@ -30,7 +30,7 @@ float calculate_pi(float n){
         flag = !flag;
         float tmp;
         tmp = i;
-        i = tmp + 2.0;
+        i = tmp + 2.0; 
     }
     return val;
 }

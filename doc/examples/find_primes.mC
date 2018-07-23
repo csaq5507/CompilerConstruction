@@ -9,7 +9,8 @@ bool check_primes_(int n, int i)
     return check_primes_(n, i);
 }
 
-bool check_primes(int n) {
+bool check_primes(int n)
+{
 	return check_primes_(n, 2);
 }
 

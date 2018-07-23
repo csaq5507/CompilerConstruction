@@ -21,11 +21,11 @@ void main()
 		arr[i]=read_int();
 		i = i + 1;
 	}
-
+	
 	i = 0;
 	while (i < (num-1)) {
 		j = 0;
-		while (j < ((num - 1) - i) ) {
+		while (j < (num-1-i)) {
 			/* For decreasing order, use < */
 			if (arr[j] > arr[j+1])
 	    	{

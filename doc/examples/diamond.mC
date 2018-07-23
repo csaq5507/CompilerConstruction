@@ -22,7 +22,7 @@ void main() {
       print("*");
       c = c + 1;
     }
-    print_nl();
+    print("\n");
     k = k + 1;
   }
 
@@ -37,11 +37,11 @@ void main() {
     }
     space = space + 1;
     c = 1;
-    while (c <= ((2*(n-k))-1)) {
+    while (c <= (2 * (n-k)) - 1) {
       print("*");
       c = c + 1;
     }
-    print_nl();
+    print("\n");
     k = k + 1;
   }
 }

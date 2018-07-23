@@ -80,9 +80,6 @@
 static enum mCc_tac_literal_type ast_to_tac_literal_type
         (enum mCc_ast_literal_type type);
 
-
-void lose_all_registers();
-
 void *init_globals() {
 
     string_label_idx = 0;
@@ -467,7 +464,7 @@ struct mCc_assembly_line *mCc_assembly_function_return(struct mCc_tac_list *tac,
 
 struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac, struct mCc_assembly_line * current)
 {
-    //  lose_all_registers();
+      lose_all_registers();
 
     if (tac->ret_type != MCC_AST_TYPE_VOID) {
         if(tac->ret_type == MCC_AST_TYPE_FLOAT)
@@ -480,7 +477,7 @@ struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac, 
         NEW_DOUBLE_LINE
         retval->type = MCC_ASSEMBLY_CALL;
         retval->instruction = new_string("\tcall\t%s", tac->identifier1);
-        temp->instruction = new_string("\taddl\t$8, %s","%esp");
+        temp->instruction = new_string("\taddl\t$%d, %s",addl,"%esp");
         temp->type=MCC_ASSEMBLY_ADD;
         addl=0;
         return retval;
@@ -789,18 +786,17 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac, struc
             break;
         case MCC_TAC_OPERATION_TYPE_MINUS:
             if (tac->type == MCC_TAC_ELEMENT_TYPE_UNARY) {
-                if(is_float(tac->identifier3))
+                if(is_float(tac->unary_identifier))
                 {
-                    free(retval);
-                    NEW_DOUBLE_LINE
-                    retval->instruction = new_string("\tfldz");
-                    if(top_float_register(tac->identifier3,current)) {
-                        new_string("\tfsubp\t%s, %s",get_register("temp"),get_register(tac->identifier3));
-                        pop_float_register();
-                        update_register("temp",tac->identifier1);
-                    }else {
-                        printf("strange in unary minus");
-                    }
+                    MALLOC(current->next, sizeof(struct mCc_assembly_line))
+                    current->next->instruction = new_string("\tfldz");
+                    current->next->type=MCC_ASSEMBLY_FLD;
+                    current->next->prev=current;
+                    current->next->next=NULL;
+                    push_float_register("temp");
+                    retval->instruction = new_string("\tfsubp\t%s, %s",get_register("temp"),get_register(tac->unary_identifier));
+                    pop_float_register();
+                    update_register(tac->unary_identifier,tac->identifier1);
 
                     return retval;
                 } else {
@@ -1000,7 +996,7 @@ mCc_assembly_conditional_jump(struct mCc_tac_list *tac, struct mCc_assembly_line
         case MCC_TAC_OPERATION_TYPE_EQ:
             if(is_float_condition)
             {
-                retval->instruction = new_string("\tje\t%s",get_label(identifier));
+                retval->instruction = new_string("\tjne\t%s",get_label(identifier));
             } else {
                 retval->instruction =
                         new_string("\tjne\t%s", get_label(identifier));
@@ -1009,7 +1005,7 @@ mCc_assembly_conditional_jump(struct mCc_tac_list *tac, struct mCc_assembly_line
         case MCC_TAC_OPERATION_TYPE_NE:
             if(is_float_condition)
             {
-                retval->instruction = new_string("\tjne\t%s",get_label(identifier));
+                retval->instruction = new_string("\tje\t%s",get_label(identifier));
             } else {
                 retval->instruction =
                         new_string("\tje\t%s", get_label(identifier));
@@ -1018,7 +1014,7 @@ mCc_assembly_conditional_jump(struct mCc_tac_list *tac, struct mCc_assembly_line
         case MCC_TAC_OPERATION_TYPE_LT:
             if(is_float_condition)
             {
-                retval->instruction = new_string("\tjb\t%s",get_label(identifier));
+                retval->instruction = new_string("\tjae\t%s",get_label(identifier));
             } else {
                 retval->instruction =
                         new_string("\tjge\t%s", get_label(identifier));
@@ -1027,7 +1023,7 @@ mCc_assembly_conditional_jump(struct mCc_tac_list *tac, struct mCc_assembly_line
         case MCC_TAC_OPERATION_TYPE_GT:
             if(is_float_condition)
             {
-                retval->instruction = new_string("\tja\t%s",get_label(identifier));
+                retval->instruction = new_string("\tjbe\t%s",get_label(identifier));
             } else {
                 retval->instruction =
                         new_string("\tjle\t%s", get_label(identifier));
@@ -1036,7 +1032,7 @@ mCc_assembly_conditional_jump(struct mCc_tac_list *tac, struct mCc_assembly_line
         case MCC_TAC_OPERATION_TYPE_LE:
             if(is_float_condition)
             {
-                retval->instruction = new_string("\tjbe\t%s",get_label(identifier));
+                retval->instruction = new_string("\tja\t%s",get_label(identifier));
             } else {
                 retval->instruction =
                         new_string("\tjg\t%s", get_label(identifier));
@@ -1045,7 +1041,7 @@ mCc_assembly_conditional_jump(struct mCc_tac_list *tac, struct mCc_assembly_line
         case MCC_TAC_OPERATION_TYPE_GE:
             if(is_float_condition)
             {
-                retval->instruction = new_string("\tjae\t%s",get_label(identifier));
+                retval->instruction = new_string("\tjb\t%s",get_label(identifier));
             } else {
                 retval->instruction =
                         new_string("\tjl\t%s", get_label(identifier));

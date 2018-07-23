@@ -105,7 +105,7 @@ Where in this example no memleak occurs:
     
 The reason for that is that in the lexer a malloc is done which is never forwarded to the parser.y file.
 
-### Issue #4
+### Issue #3
 
 Our parser does not support certain expressions e.g.:
     
@@ -118,7 +118,7 @@ To get a correct result the expression must be changed:
 
     (a < b) || (b == 10)
 
-### Issue #5
+### Issue #4
 
 For some reason the statement:
 

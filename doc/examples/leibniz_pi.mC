@@ -2,7 +2,7 @@
 float kth(float k)
 {
 
-    return 1.0 / (2.0 * k + 1.0);
+    return 1.0 / ((2.0 * k) + 1.0);
 }
 
 

@@ -51,7 +51,7 @@ void main(){
 		print("a[0] = ");
 		print_int(a[0]);
 		print_nl();
-		print("b[0] = ");	
+		print("b[0] = ");
 		print_float(b[0]);
 		print_nl();
 	}

@@ -101,10 +101,7 @@ TEST(code_generation, register_) {
     ASSERT_STREQ(get_register(value_1), eax);
     ASSERT_STREQ(get_register(value_2), ebx);
     ASSERT_STREQ(get_register(value_2), ebx);
-/*
-    ASSERT_TRUE(has_register(value_1));
-    ASSERT_FALSE(has_register(value_3));
-*/
+
     push_float_register(value_4);
     ASSERT_STREQ(get_register(value_4), st0);
     push_float_register(value_6);
@@ -118,11 +115,6 @@ TEST(code_generation, register_) {
 
     ASSERT_STREQ(get_register(value_2), ebx);
 
-
-    /*swap_register(value_6);
-    ASSERT_STREQ(get_register(value_6), st0);
-    ASSERT_STREQ(get_register(value_4), st1);
-*/
     update_register(value_1, value_5);
     ASSERT_STREQ(get_register(value_5), eax);
 
@@ -132,4 +124,3 @@ TEST(code_generation, register_) {
     free_all_registers();
 
 }
-/**/

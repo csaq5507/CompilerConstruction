@@ -46,6 +46,7 @@ static void bool_operation_assignment(struct mCc_ast_assignment *stmt);
 static void bool_and_or_assignment(struct mCc_ast_assignment *stmt);
 static void bool_assignment(struct mCc_ast_assignment *stmt);
 static bool handle_empty_if_stmt(struct mCc_ast_if_stmt *stmt);
+static void handle_equal_identifier_name(struct mCc_ast_expression *expression);
 
 
 
@@ -665,6 +666,48 @@ static void push_tac_end_expression (struct mCc_ast_expression *expression, tac_
     expression->tac_end = tac_end;
 }
 
+static void handle_equal_identifier_name(struct mCc_ast_expression *expression)
+{
+    assert(expression);
+
+    tac_list *temp_lhs_end = expression->lhs->tac_end;
+    tac_list *temp_rhs_end = expression->rhs->tac_end;
+
+    tac_list *new_param_lhs = tac_new_list();
+    new_param_lhs->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
+    new_param_lhs->identifier1 = new_string("var_tmp_%d", v_counter++);
+    new_param_lhs->param_size = 1;
+    tac_list *new_copy_lhs = tac_new_list();
+    new_copy_lhs->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
+    new_copy_lhs->identifier1 = copy_string(new_param_lhs->identifier1);
+    new_copy_lhs->copy_identifier = copy_string(temp_lhs_end->identifier1);
+
+    tac_list *new_param_rhs = tac_new_list();
+    new_param_rhs->type = MCC_TAC_ELEMENT_TYPE_PARAMETER_SETUP;
+    new_param_rhs->identifier1 = new_string("var_tmp_%d", v_counter++);
+    new_param_rhs->param_size = 1;
+    tac_list *new_copy_rhs = tac_new_list();
+    new_copy_rhs->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
+    new_copy_rhs->identifier1 = copy_string(new_param_rhs->identifier1);
+    new_copy_rhs->copy_identifier = copy_string(temp_rhs_end->identifier1);
+
+    new_param_lhs->next = new_copy_lhs;
+    new_copy_lhs->prev = new_copy_lhs;
+    new_copy_lhs->next = temp_lhs_end->next;
+    temp_lhs_end->next = new_param_lhs;
+    new_param_lhs->prev = temp_lhs_end;
+    expression->lhs->tac_end = new_param_lhs;
+    push_tac_end_single_expression(expression->lhs, new_copy_lhs);
+
+    new_param_rhs->next = new_copy_rhs;
+    new_copy_rhs->prev = new_copy_rhs;
+    new_copy_rhs->next = temp_rhs_end->next;
+    temp_rhs_end->next = new_param_rhs;
+    new_param_rhs->prev = temp_rhs_end;
+    expression->rhs->tac_end = new_param_rhs;
+    push_tac_end_expression(expression->rhs, new_copy_rhs);
+}
+
 static void tac_expression(struct mCc_ast_expression *expression, void *data)
 {
 	assert(expression);
@@ -694,28 +737,8 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data)
             tac_list *temp_rhs_start = expression->rhs->tac_start;
 
             if (strcmp(temp_lhs_end->identifier1, temp_rhs_end->identifier1) == 0) {
-                tac_list *new_copy_lhs = tac_new_list();
-                new_copy_lhs->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
-                new_copy_lhs->identifier1 = new_string("reg_%d", v_counter++);
-                new_copy_lhs->copy_identifier = copy_string(temp_lhs_end->identifier1);
-
-                tac_list *new_copy_rhs = tac_new_list();
-                new_copy_rhs->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
-                new_copy_rhs->identifier1 = new_string("reg_%d", v_counter++);
-                new_copy_rhs->copy_identifier = copy_string(temp_rhs_end->identifier1);
-
-                new_copy_lhs->next = temp_lhs_end->next;
-                temp_lhs_end->next = new_copy_lhs;
-                new_copy_lhs->prev = temp_lhs_end;
-                expression->lhs->tac_end = new_copy_lhs;
-                push_tac_end_single_expression(expression->lhs, new_copy_lhs);
+                handle_equal_identifier_name(expression);
                 temp_lhs_end = expression->lhs->tac_end;
-
-                new_copy_rhs->next = temp_rhs_end->next;
-                temp_rhs_end->next = new_copy_rhs;
-                new_copy_rhs->prev = temp_rhs_end;
-                expression->rhs->tac_end = new_copy_rhs;
-                push_tac_end_expression(expression->rhs, new_copy_rhs);
                 temp_rhs_end = expression->rhs->tac_end;
             }
 

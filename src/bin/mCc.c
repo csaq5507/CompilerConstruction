@@ -16,7 +16,7 @@ void print_usage(const char *prg)
 {
     printf("usage: %s <FILE> \n\n", prg);
     printf("\t<FILE>\t\t\t\t\tInput filepath or '-' for stdin\n");
-    printf("\t-t || -tac\t\t\t\tCreate TAC file\n");
+    printf("\t-t || --tac\t\t\t\tCreate TAC file\n");
     printf("\t-g || --graph\t\t\t\tCreate graph file in DOT format\n");
     printf("\t-o || --output <FILE>\t\t\tOutput filepath or '-' for "
                    "stdout\n");

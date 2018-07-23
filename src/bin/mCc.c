@@ -289,8 +289,6 @@ int main(int argc, char *argv[])
     command=new_string("chmod 777 executables/%s.mC.out",  outputFileName);
     system(command);
     free(command);
-    //command=new_string("./a.out");
-    //system(command);
 
 
     mCc_assembly_delete(ass);

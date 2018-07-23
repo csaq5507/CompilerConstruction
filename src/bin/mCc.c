@@ -263,7 +263,6 @@ int main(int argc, char *argv[])
     if (print_tac) {
         cfg_list *_cfg = mCc_cfg_generate(_tac);
         mCc_tac_print(tac, _tac);
-        //mCc_tac_print_reverse(tac, _tac);
         mCc_cfg_print_complete(cfg, _cfg);
         mCc_cfg_delete(_cfg);
     }

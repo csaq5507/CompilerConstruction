@@ -210,8 +210,6 @@ void push_float_register(char *identifier);
 
 char * pop_float_register();
 
-void pop_float_stack();
-
 void update_register(char *old_identifier, char *new_identifier);
 
 bool is_float(char *identifier);
@@ -226,6 +224,7 @@ char *float_binary_op(struct mCc_tac_list *tac, char* operation, struct mCc_asse
 
 void fxch(char *identifier1);
 
+void lose_all_registers();
 
 #ifdef __cplusplus
 }

@@ -107,6 +107,12 @@ The reason for that is that in the lexer a malloc is done which is never forward
 
 ### Issue #3
 
+For some reason by running 'valgrind' over ninja test some unknown errors are printed. 
+This errors are always there even if the tests are empty. This seams to be a problem of the google test.
+By running the test with the mCc binary no other memory leaks are shown if they are not listed inside this Known Issues section.
+
+### Issue #4
+
 Our parser does not support certain expressions e.g.:
     
     a < b || b == 10
@@ -118,7 +124,7 @@ To get a correct result the expression must be changed:
 
     (a < b) || (b == 10)
 
-### Issue #4
+### Issue #5
 
 For some reason the statement:
 

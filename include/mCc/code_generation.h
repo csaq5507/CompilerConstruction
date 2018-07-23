@@ -1,4 +1,4 @@
-    //
+//
 // Created by ivan on 23.05.18.
 //
 
@@ -42,31 +42,31 @@ struct labels *label;
 
 
 struct variable {
-    int stack_diff;
-    int array_size;
-    int size;
-    enum mCc_tac_literal_type type;
-    char *identifier;
+	int stack_diff;
+	int array_size;
+	int size;
+	enum mCc_tac_literal_type type;
+	char *identifier;
 };
 
 struct stack_helper {
-    int counter;
-    struct variable *variables;
+	int counter;
+	struct variable *variables;
 };
 
 struct stack_helper *stack;
 struct stack_helper *param_stack;
 
-struct my_reg{
-char * identifier;
+struct my_reg {
+	char *identifier;
 };
 
 struct lost_regs {
-    int counter;
-    struct my_reg* reg;
+	int counter;
+	struct my_reg *reg;
 };
 
-struct lost_regs* lost_registers;
+struct lost_regs *lost_registers;
 
 struct regs {
 	char *eax;
@@ -116,7 +116,7 @@ struct mCc_assembly_line {
 };
 
 struct mCc_assembly {
-    int counter;
+	int counter;
 	struct mCc_assembly_line *head;
 };
 
@@ -130,49 +130,76 @@ void mCc_assembly_print(FILE *out, struct mCc_assembly *ass);
 
 void mCc_assembly_delete(struct mCc_assembly *assembly);
 
-struct mCc_assembly_line *mcc_assembly_generate_labels(struct mCc_tac_list *tac, char * filename);
+struct mCc_assembly_line *mcc_assembly_generate_labels(struct mCc_tac_list *tac,
+						       char *filename);
 
 struct mCc_assembly_line *
-mCc_assembly_function_return(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
+mCc_assembly_function_return(struct mCc_tac_list *tac,
+			     struct mCc_assembly_line *current);
 
 struct mCc_assembly_line *
-mCc_assembly_create_string_label(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
+mCc_assembly_create_string_label(struct mCc_tac_list *tac,
+				 struct mCc_assembly_line *current);
 
 struct mCc_assembly_line *
-mCc_assembly_create_float_label(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
+mCc_assembly_create_float_label(struct mCc_tac_list *tac,
+				struct mCc_assembly_line *current);
 
 struct mCc_assembly_line *
-mCc_assembly_create_builtin_func(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
-
-struct mCc_assembly_line *mCc_assembly_copy_literal(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
-
-struct mCc_assembly_line *
-mCc_assembly_copy_identifier(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
-
-struct mCc_assembly_line *mCc_assembly_store(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
-
-struct mCc_assembly_line *mCc_assembly_create_label(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
-
-struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
-
-struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
-
-struct mCc_assembly_line *mCc_assembly_function_end(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
-
-struct mCc_assembly_line *mCc_assembly_jump(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
-
-struct mCc_assembly_line *mCc_assembly_procedure_call(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
-
-struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
+mCc_assembly_create_builtin_func(struct mCc_tac_list *tac,
+				 struct mCc_assembly_line *current);
 
 struct mCc_assembly_line *
-mCc_assembly_conditional_jump(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
+mCc_assembly_copy_literal(struct mCc_tac_list *tac,
+			  struct mCc_assembly_line *current);
 
-struct mCc_assembly_line *mCc_assembly_condition(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
+struct mCc_assembly_line *
+mCc_assembly_copy_identifier(struct mCc_tac_list *tac,
+			     struct mCc_assembly_line *current);
 
-struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac, struct mCc_assembly_line * current);
+struct mCc_assembly_line *mCc_assembly_store(struct mCc_tac_list *tac,
+					     struct mCc_assembly_line *current);
 
-struct mCc_assembly_line *consume_registers(struct mCc_tac_list *tc, struct mCc_assembly_line *current);
+struct mCc_assembly_line *
+mCc_assembly_create_label(struct mCc_tac_list *tac,
+			  struct mCc_assembly_line *current);
+
+struct mCc_assembly_line *
+mCc_assembly_operation(struct mCc_tac_list *tac,
+		       struct mCc_assembly_line *current);
+
+struct mCc_assembly_line *
+mCc_assembly_function_start(struct mCc_tac_list *tac,
+			    struct mCc_assembly_line *current);
+
+struct mCc_assembly_line *
+mCc_assembly_function_end(struct mCc_tac_list *tac,
+			  struct mCc_assembly_line *current);
+
+struct mCc_assembly_line *mCc_assembly_jump(struct mCc_tac_list *tac,
+					    struct mCc_assembly_line *current);
+
+struct mCc_assembly_line *
+mCc_assembly_procedure_call(struct mCc_tac_list *tac,
+			    struct mCc_assembly_line *current);
+
+struct mCc_assembly_line *
+mCc_assembly_call_param(struct mCc_tac_list *tac,
+			struct mCc_assembly_line *current);
+
+struct mCc_assembly_line *
+mCc_assembly_conditional_jump(struct mCc_tac_list *tac,
+			      struct mCc_assembly_line *current);
+
+struct mCc_assembly_line *
+mCc_assembly_condition(struct mCc_tac_list *tac,
+		       struct mCc_assembly_line *current);
+
+struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac,
+					    struct mCc_assembly_line *current);
+
+struct mCc_assembly_line *consume_registers(struct mCc_tac_list *tc,
+					    struct mCc_assembly_line *current);
 
 
 /***************************************/
@@ -187,11 +214,11 @@ void set_label(char *key, char *value);
 
 char *get_label(char *key);
 
-void set_var(int size,int array_size, char *identifier);
+void set_var(int size, int array_size, char *identifier);
 
-void set_param_var(int size,int array_size, char *identifier);
+void set_param_var(int size, int array_size, char *identifier);
 
-int get_pos(char * identifier);
+int get_pos(char *identifier);
 
 struct variable *get_var(char *identifier);
 
@@ -209,19 +236,21 @@ char *get_register(char *identifier);
 
 void push_float_register(char *identifier);
 
-char * pop_float_register();
+char *pop_float_register();
 
 void update_register(char *old_identifier, char *new_identifier);
 
 bool is_float(char *identifier);
 
-void move_line_to_end(struct mCc_assembly_line *current, struct mCc_tac_list * tac, char *identifier);
+void move_line_to_end(struct mCc_assembly_line *current,
+		      struct mCc_tac_list *tac, char *identifier);
 
-void add_lost_register(char* identifier);
+void add_lost_register(char *identifier);
 
-bool top_float_register(char *identifier, struct mCc_assembly_line* current);
+bool top_float_register(char *identifier, struct mCc_assembly_line *current);
 
-char *float_binary_op(struct mCc_tac_list *tac, char* operation, struct mCc_assembly_line * current) ;
+char *float_binary_op(struct mCc_tac_list *tac, char *operation,
+		      struct mCc_assembly_line *current);
 
 void fxch(char *identifier1);
 

@@ -68,7 +68,7 @@ TEST(code_generation, var) {
     new_stack();
 
     char value[] = "value";
-    set_var(4, value);
+    set_var(4,1, value);
     ASSERT_EQ(get_var(value)->size, 4);
     delete_stack();
     free_all_registers();
@@ -79,7 +79,7 @@ TEST(code_generation, param_var) {
     new_stack();
 
     char value[] = "value";
-    set_param_var(4, value);
+    set_param_var(4,1, value);
     ASSERT_EQ(get_var(value)->size, 4);
     delete_stack();
     free_all_registers();

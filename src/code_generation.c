@@ -359,16 +359,20 @@ struct mCc_assembly_line *mCc_assembly_store(struct mCc_tac_list *tac,
                                        get_pos(tac->identifier1),
                                        "%ebp", get_register("temp"));
         temp->type = MCC_ASSEMBLY_MUL;
-        temp->instruction = new_string("\timull\t$4, %s",get_register(tac->identifier2));
+        temp->instruction = new_string("\timull\t$%d, %s",
+                                       get_var(tac->identifier1)->size,
+                                       get_register(tac->identifier2));
         temp1->type = MCC_ASSEMBLY_ADD;
         temp1->instruction = new_string("\taddl\t%s, %s",
-                                        get_register(tac->identifier2),get_register("temp"));
+                                        get_register(tac->identifier2),
+                                        get_register("temp"));
         temp2->type = MCC_ASSEMBLY_MOV;
         if(is_float(tac->identifier3))
         {
             if(top_float_register(tac->identifier3,current))
             {
-                temp2->instruction = new_string("\tfstp\t(%s)",get_register("temp"));
+                temp2->instruction = new_string("\tfstp\t(%s)",
+                                                get_register("temp"));
                 free_register("temp");
                 free_register(tac->identifier2);
                 pop_float_register();
@@ -377,7 +381,8 @@ struct mCc_assembly_line *mCc_assembly_store(struct mCc_tac_list *tac,
         } else
         {
             temp2->instruction = new_string("\tmovl\t%s, (%s)",
-                                            get_register(tac->identifier3),get_register("temp"));
+                                            get_register(tac->identifier3),
+                                            get_register("temp"));
             free_register("temp");
             free_register(tac->identifier2);
             free_register(tac->identifier3);
@@ -388,9 +393,11 @@ struct mCc_assembly_line *mCc_assembly_store(struct mCc_tac_list *tac,
         if(is_float(tac->identifier3))
         {
             if(top_float_register(tac->identifier3,current)) {
-                retval->instruction = new_string("\tfstps\t%d(%s,%s,4)",
+                retval->instruction = new_string("\tfstps\t%d(%s,%s,%d)",
                                                  get_pos(tac->identifier1),
-                                                 "%ebp", get_register(tac->identifier2));
+                                                 "%ebp",
+                                                 get_register(tac->identifier2),
+                                                 get_var(tac->identifier1)->size);
                 pop_float_register();
             }
             else{
@@ -399,10 +406,11 @@ struct mCc_assembly_line *mCc_assembly_store(struct mCc_tac_list *tac,
             }
         } else
             retval->instruction = new_string(
-                    "\tmovl\t%s, %d(%s,%s,4)",
+                    "\tmovl\t%s, %d(%s,%s,%d)",
                     get_register(tac->identifier3),
                     get_pos(tac->identifier1),
-                    "%ebp", get_register(tac->identifier2));
+                    "%ebp", get_register(tac->identifier2),
+                    get_var(tac->identifier1)->size);
 
         retval->type = MCC_ASSEMBLY_MOV;
         free_register(tac->identifier2);
@@ -420,14 +428,19 @@ struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac,
     {
         NEW_QUADRUPLE_LINE
         retval->type = MCC_ASSEMBLY_MOV;
+
         retval->instruction=new_string("\tmovl\t%d(%s), %s",
                                        get_pos(tac->identifier2),
                                        "%ebp", get_register(tac->identifier1));
         temp->type = MCC_ASSEMBLY_MUL;
-        temp->instruction = new_string("\timull\t$4, %s",get_register(tac->identifier3));
+
+        temp->instruction = new_string("\timull\t$%d, %s",
+                                       get_var(tac->identifier2)->size,
+                                       get_register(tac->identifier3));
         temp1->type = MCC_ASSEMBLY_ADD;
         temp1->instruction = new_string("\taddl\t%s, %s",
-                                        get_register(tac->identifier3),get_register(tac->identifier1));
+                                        get_register(tac->identifier3),
+                                        get_register(tac->identifier1));
         temp2->type = MCC_ASSEMBLY_MOV;
         if(get_var(tac->identifier2)->type==MCC_TAC_LITERAL_TYPE_FLOAT)
         {
@@ -447,15 +460,17 @@ struct mCc_assembly_line *mCc_assembly_load(struct mCc_tac_list *tac,
                 get_var(tac->identifier2)->type == MCC_TAC_LITERAL_TYPE_FLOAT) {
             push_float_register(tac->identifier1);
             retval->instruction =
-                    new_string("\tflds\t%d(%s,%s,4)",
+                    new_string("\tflds\t%d(%s,%s,%d)",
                                get_pos(tac->identifier2),
-                               "%ebp",get_register(tac->identifier3));
+                               "%ebp",get_register(tac->identifier3),
+                               get_var(tac->identifier2)->size);
 
         } else {
             retval->instruction =
-                    new_string("\tmovl\t%d(%s,%s,4), %s",
+                    new_string("\tmovl\t%d(%s,%s,%d), %s",
                                get_pos(tac->identifier2),
                                "%ebp", get_register(tac->identifier3),
+                               get_var(tac->identifier2)->size,
                                get_register(tac->identifier1));
         }
         free_register(tac->identifier3);
@@ -531,7 +546,7 @@ struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac,
                 retval->instruction = new_string("\tsubl\t$8, %s","%esp");
                 temp->type=MCC_ASSEMBLY_PUSH;
                 char * temp_push_var = new_string("temp_push_var%d",push_vars++);
-                set_var(8,temp_push_var);
+                set_var(8,1,temp_push_var);
                 get_var(temp_push_var)->type = MCC_TAC_LITERAL_TYPE_FLOAT;
                 temp->instruction = new_string("\tfstps\t(%s)","%esp");
                 pop_float_register();
@@ -544,7 +559,7 @@ struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac,
             retval->type=MCC_ASSEMBLY_PUSH;
             retval->instruction = new_string("\tpushl\t%s",get_register(tac->identifier1));
             char * temp_push_var= new_string("temp_push_var%d",push_vars++);
-            set_var(4,temp_push_var);
+            set_var(4,1,temp_push_var);
             free_register(tac->identifier1);
             return retval;
         }
@@ -876,7 +891,7 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac,
     }
     struct mCc_tac_list *temp_tac = tac;
     new_stack();
-    set_param_var(8,"ebp");
+    set_param_var(8,1,"ebp");
 
     //wrong direction push
     while (temp_tac->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END) {
@@ -884,11 +899,12 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac,
             if(num_params>0)
             {
                 set_param_var(get_literal_size(temp_tac->decl_lit_type),
-                              temp_tac->identifier1);
+                                  temp_tac->param_size,
+                                  temp_tac->identifier1);
                 num_params--;
             } else {
-                set_var(get_literal_size(temp_tac->decl_lit_type)
-                        * temp_tac->param_size,
+                set_var(get_literal_size(temp_tac->decl_lit_type),
+                        temp_tac->param_size,
                         temp_tac->identifier1);
             }
             get_var(temp_tac->identifier1)->type = ast_to_tac_literal_type(temp_tac->decl_lit_type);
@@ -1037,7 +1053,8 @@ struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac,
     int op = (tac->type == MCC_TAC_ELEMENT_TYPE_UNARY)
              ? tac->unary_op_type
              : tac->binary_op_type;
-    switch (op) {
+
+        switch (op) {
         case MCC_TAC_OPERATION_TYPE_PLUS:
             retval = operation_plus(retval, tac, current);
             retval->type = MCC_ASSEMBLY_ADD;
@@ -1267,7 +1284,7 @@ struct mCc_assembly_line *mCc_assembly_copy_identifier(struct mCc_tac_list *tac,
     retval->type = MCC_ASSEMBLY_MOV;
 
     if (is_register(tac->identifier1)) {
-        if(get_var(tac->copy_identifier) != NULL && get_var(tac->copy_identifier)->size>8)
+        if(get_var(tac->copy_identifier) != NULL && get_var(tac->copy_identifier)->array_size>1)
         {
             retval->instruction = new_string("\tleal\t%d(%s), %s",
                                              get_pos(tac->copy_identifier),
@@ -1441,7 +1458,7 @@ char *get_label(char *key)
     return NULL;
 }
 
-void set_var(int size, char *identifier)
+void set_var(int size,int array_size, char *identifier)
 {
     for (int i = 0; i < stack->counter; ++i) {
         if (stack->variables[i].identifier == NULL)
@@ -1451,20 +1468,23 @@ void set_var(int size, char *identifier)
     }
     if (stack->counter == 0) {
         MALLOC_((stack->variables), (sizeof(struct variable)))
-        stack->variables[stack->counter].stack_diff = -size;
+        stack->variables[stack->counter].stack_diff = -(size*array_size);
         stack->variables[stack->counter].size = size;
+        stack->variables[stack->counter].array_size = array_size;
     } else {
         REALLOC_((stack->variables),
                  ((stack->counter + 1) * sizeof(struct variable)))
         stack->variables[stack->counter].stack_diff = (
-                stack->variables[stack->counter - 1].stack_diff - size);
+                stack->variables[stack->counter - 1].stack_diff - (size*array_size));
         stack->variables[stack->counter].size = size;
+        stack->variables[stack->counter].array_size = array_size;
     }
     stack->variables[stack->counter].identifier = identifier;
+    struct variable* as = &stack->variables[stack->counter];
     stack->counter++;
 }
 
-void set_param_var(int size, char *identifier)
+void set_param_var(int size, int array_size, char *identifier)
 {
     for (int i = 0; i < param_stack->counter; ++i) {
         if (param_stack->variables[i].identifier == NULL)
@@ -1476,13 +1496,20 @@ void set_param_var(int size, char *identifier)
         MALLOC_((param_stack->variables), (sizeof(struct variable)))
         param_stack->variables[param_stack->counter].stack_diff = 0;
         param_stack->variables[param_stack->counter].size = size;
+        param_stack->variables[param_stack->counter].array_size = array_size;
     } else {
         REALLOC_((param_stack->variables),
                  ((param_stack->counter + 1) * sizeof(struct variable)))
-        param_stack->variables[param_stack->counter].stack_diff =
+        if(param_stack->variables[param_stack->counter - 1].array_size>1)
+            param_stack->variables[param_stack->counter].stack_diff =
+                    param_stack->variables[param_stack->counter - 1].stack_diff + 4;
+
+        else
+            param_stack->variables[param_stack->counter].stack_diff =
                 param_stack->variables[param_stack->counter - 1].stack_diff +
                         param_stack->variables[param_stack->counter - 1].size;
         param_stack->variables[param_stack->counter].size = size;
+        param_stack->variables[param_stack->counter].array_size = array_size;
     }
     param_stack->variables[param_stack->counter].identifier = identifier;
     param_stack->counter++;

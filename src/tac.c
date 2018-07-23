@@ -694,16 +694,29 @@ static void tac_expression(struct mCc_ast_expression *expression, void *data)
             tac_list *temp_rhs_start = expression->rhs->tac_start;
 
             if (strcmp(temp_lhs_end->identifier1, temp_rhs_end->identifier1) == 0) {
-                tac_list *new_copy = tac_new_list();
-                new_copy->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
-                new_copy->identifier1 = new_string("reg_%d", v_counter++);
-                new_copy->copy_identifier = copy_string(temp_lhs_end->identifier1);
-                new_copy->next = temp_lhs_end->next;
-                temp_lhs_end->next = new_copy;
-                new_copy->prev = temp_lhs_end;
-                expression->lhs->tac_end = new_copy;
-                push_tac_end_expression(expression, new_copy);
+                tac_list *new_copy_lhs = tac_new_list();
+                new_copy_lhs->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
+                new_copy_lhs->identifier1 = new_string("reg_%d", v_counter++);
+                new_copy_lhs->copy_identifier = copy_string(temp_lhs_end->identifier1);
+
+                tac_list *new_copy_rhs = tac_new_list();
+                new_copy_rhs->type = MCC_TAC_ELEMENT_TYPE_COPY_IDENTIFIER;
+                new_copy_rhs->identifier1 = new_string("reg_%d", v_counter++);
+                new_copy_rhs->copy_identifier = copy_string(temp_rhs_end->identifier1);
+
+                new_copy_lhs->next = temp_lhs_end->next;
+                temp_lhs_end->next = new_copy_lhs;
+                new_copy_lhs->prev = temp_lhs_end;
+                expression->lhs->tac_end = new_copy_lhs;
+                push_tac_end_single_expression(expression->lhs, new_copy_lhs);
                 temp_lhs_end = expression->lhs->tac_end;
+
+                new_copy_rhs->next = temp_rhs_end->next;
+                temp_rhs_end->next = new_copy_rhs;
+                new_copy_rhs->prev = temp_rhs_end;
+                expression->rhs->tac_end = new_copy_rhs;
+                push_tac_end_expression(expression->rhs, new_copy_rhs);
+                temp_rhs_end = expression->rhs->tac_end;
             }
 
             elem->lhs = copy_string(temp_lhs_end->identifier1);

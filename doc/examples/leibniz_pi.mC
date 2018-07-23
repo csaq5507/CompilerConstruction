@@ -24,8 +24,10 @@ void main()
 
     while (i < n)
     {
-        sign = sign * (-1.0);
-        pi = pi + sign * kth(i);
+        sign = -sign;
+        float temp;
+        temp = kth(i);
+        pi = pi + (sign * temp);
         i = i + 1.0;
     }
 

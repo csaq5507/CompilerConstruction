@@ -317,6 +317,9 @@ void mCc_assembly_delete(struct mCc_assembly *assembly)
         free(current->prev);
     }
     free(assembly);
+    for(int i=0;i<label->counter;i++)
+        free(label->l[i].value);
+    free(label->l);
 }
 
 void mCc_assembly_print(FILE *out, struct mCc_assembly *ass)
@@ -499,8 +502,7 @@ struct mCc_assembly_line *mcc_assembly_generate_labels(struct mCc_tac_list *temp
                         mCc_assembly_create_string_label(
                                 temp_tac,current);
                 current->next->prev = current;
-            }
-            if (temp_tac->literal_type
+            }else if (temp_tac->literal_type
                 == MCC_TAC_LITERAL_TYPE_FLOAT) {
                 current->next = mCc_assembly_create_float_label(
                         temp_tac,current);
@@ -544,8 +546,10 @@ struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac,
             {
                 retval->type = MCC_ASSEMBLY_SUB;
                 retval->instruction = new_string("\tsubl\t$8, %s","%esp");
+
                 temp->type=MCC_ASSEMBLY_PUSH;
-                char * temp_push_var = new_string("temp_push_var%d",push_vars++);
+                char temp_push_var[10] = "123456";
+                temp_push_var[6] = (char)push_vars++;
                 set_var(8,1,temp_push_var);
                 get_var(temp_push_var)->type = MCC_TAC_LITERAL_TYPE_FLOAT;
                 temp->instruction = new_string("\tfstps\t(%s)","%esp");
@@ -558,7 +562,9 @@ struct mCc_assembly_line *mCc_assembly_call_param(struct mCc_tac_list *tac,
             NEW_SINGLE_LINE
             retval->type=MCC_ASSEMBLY_PUSH;
             retval->instruction = new_string("\tpushl\t%s",get_register(tac->identifier1));
-            char * temp_push_var= new_string("temp_push_var%d",push_vars++);
+
+            char temp_push_var[10] = "123456";
+            temp_push_var[6] = (char)push_vars++;
             set_var(4,1,temp_push_var);
             free_register(tac->identifier1);
             return retval;
@@ -796,8 +802,9 @@ mCc_assembly_create_string_label(struct mCc_tac_list *tac,
     set_label(tac->identifier1, new_string(".LC%d", string_label_idx++));
     temp->type = MCC_ASSEMBLY_CONSTANT;
     char *tmp = replace(tac->s_literal, "\n", "\\n");
-    tmp = replace(tmp, "#enter#", "\\n");
-    temp->instruction = new_string("\t.string \"%s\"", tmp);
+    char *tmp1 = replace(tmp, "#enter#", "\\n");
+    temp->instruction = new_string("\t.string \"%s\"", tmp1);
+    free(tmp1);
     free(tmp);
     temp1->type = MCC_ASSEMBLY_DIRECTIVE;
     temp1->instruction = new_string("\t.text");
@@ -891,7 +898,7 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac,
     }
     struct mCc_tac_list *temp_tac = tac;
     new_stack();
-    set_param_var(8,1,"ebp");
+    set_param_var(8,1,"#temp_ebp");
 
     //wrong direction push
     while (temp_tac->type != MCC_TAC_ELEMENT_TYPE_FUNCTION_END) {
@@ -1480,7 +1487,6 @@ void set_var(int size,int array_size, char *identifier)
         stack->variables[stack->counter].array_size = array_size;
     }
     stack->variables[stack->counter].identifier = identifier;
-    struct variable* as = &stack->variables[stack->counter];
     stack->counter++;
 }
 
@@ -1547,6 +1553,7 @@ void new_stack()
 
 void delete_stack()
 {
+
     if(stack!=NULL) {
         free(stack->variables);
         free(stack);

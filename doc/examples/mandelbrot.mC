@@ -28,8 +28,8 @@ bool is_in_set(float pX, float pY)
 	i = 0;
 
 	while ((((x * x) + (y * y)) <= 4.0) && (i < 30)) {
-		temp = (x * x) - (y * y) + pX;
-		y = (2.0 * x * y) + pY;
+		temp = ((x * x) - (y * y)) + pX;
+		y = ((2.0 * x) * y) + pY;
 		x = temp;
 		i = i + 1;
 	}

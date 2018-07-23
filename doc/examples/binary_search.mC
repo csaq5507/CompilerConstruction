@@ -34,7 +34,6 @@ void main()
     int n;
     n = read_int();
     print_nl();
-
     if (binary_search(arr,n)) {
         print("Value was found!");
     }

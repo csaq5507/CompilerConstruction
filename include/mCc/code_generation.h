@@ -43,6 +43,7 @@ struct labels *label;
 
 struct variable {
     int stack_diff;
+    int array_size;
     int size;
     enum mCc_tac_literal_type type;
     char *identifier;
@@ -186,9 +187,9 @@ void set_label(char *key, char *value);
 
 char *get_label(char *key);
 
-void set_var(int size, char *identifier);
+void set_var(int size,int array_size, char *identifier);
 
-void set_param_var(int size, char *identifier);
+void set_param_var(int size,int array_size, char *identifier);
 
 int get_pos(char * identifier);
 

@@ -42,6 +42,13 @@ option_csv=false
 
 # ------------------------------------------------------------------- FUNCTIONS
 
+run_compiler()
+{
+	local input=$1
+	\time -f "%e %M %x" "$MCC" "$input" 2>&1 | tail -n1
+	return ${PIPESTATUS[0]}
+}
+
 print_header_md()
 {
 	echo "Input                                             Time        Memory  Status"
@@ -51,13 +58,6 @@ print_header_md()
 print_header_csv()
 {
 	echo "Input,Time [s],Memory [kB],Status"
-}
-
-run_compiler()
-{
-	local input=$1
-	\time -f "%e %M %x" "$MCC" "$input" 2>&1 | tail -n1
-	return ${PIPESTATUS[0]}
 }
 
 print_run_md()
@@ -174,18 +174,18 @@ print_header
 	while read -r -d $'\0' example; do
 		# Run compiler with example input and obtain statistics.
 		if ! stats=$(run_compiler "$EXAMPLES_DIR/$example"); then
+		    #executing the compiler return a exit failure
 			stats="- - 1"
 		else
 			if [[ -e "$BUILD_DIR/executables/$example.out" ]]; then
-			    if ! diff -w -q <(cat $EXAMPLES_DIR/$example.stdin | $BUILD_DIR/executables/$example.out) <(cat $EXAMPLES_DIR/$example.stdout); then
-                    echo "********************************************************************"
-			        echo "$(diff -w <(cat $EXAMPLES_DIR/$example.stdin | $BUILD_DIR/executables/$example.out) <(cat $EXAMPLES_DIR/$example.stdout))"
+			    if ! diff -q <(cat $EXAMPLES_DIR/$example.stdin |
+			                $BUILD_DIR/executables/$example.out) <(cat $EXAMPLES_DIR/$example.stdout) ; then
+			        #output is not the same as expected
 			        stats="- - 1"
 			    fi
 			else
+			    #no executable was created
 			    stats="- - 1"
-                echo "********************************************************************"
-			    echo "no binary created"
 			fi
 		fi
 
@@ -193,8 +193,6 @@ print_header
 			flawless=false
 		fi
 
-
-       # rm -f a.out
 		print_run "$example" $stats
 
 	done

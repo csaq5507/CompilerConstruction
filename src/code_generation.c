@@ -80,6 +80,20 @@
 
 static enum mCc_tac_literal_type ast_to_tac_literal_type
         (enum mCc_ast_literal_type type);
+static struct mCc_assembly_line *operation_plus(struct mCc_assembly_line *retval,
+                                                struct mCc_tac_list *tac,
+                                                struct mCc_assembly_line * current);
+static struct mCc_assembly_line *operation_minus(struct mCc_assembly_line *retval,
+                                                 struct mCc_tac_list *tac,
+                                                 struct mCc_assembly_line * current);
+static struct mCc_assembly_line *operation_mul(struct mCc_assembly_line *retval,
+                                               struct mCc_tac_list *tac,
+                                               struct mCc_assembly_line * current);
+static struct mCc_assembly_line *operation_div(struct mCc_assembly_line *retval,
+                                               struct mCc_tac_list *tac,
+                                               struct mCc_assembly_line * current);
+
+
 
 void init_globals() {
 
@@ -888,122 +902,156 @@ struct mCc_assembly_line *mCc_assembly_function_start(struct mCc_tac_list *tac,
     return retval;
 }
 
+static struct mCc_assembly_line *operation_plus(struct mCc_assembly_line *retval,
+                           struct mCc_tac_list *tac,
+                    struct mCc_assembly_line * current) {
+    retval->type = MCC_ASSEMBLY_ADD;
+    if (is_float(tac->rhs)) {
+        retval->instruction = float_binary_op(tac,"faddp",current);
+    }
+    else {
+        retval->instruction = new_string(
+                "\taddl\t%s, %s", get_register(tac->rhs),
+                get_register(tac->lhs));
+    }
+    return retval;
+}
+
+static struct mCc_assembly_line *operation_minus(struct mCc_assembly_line *retval,
+                                                struct mCc_tac_list *tac,
+                                                struct mCc_assembly_line * current)
+{
+    if (tac->type == MCC_TAC_ELEMENT_TYPE_UNARY) {
+        if(is_float(tac->unary_identifier))
+        {
+            MALLOC(current->next, sizeof(struct mCc_assembly_line))
+            current->next->instruction = new_string("\tfldz");
+            current->next->type=MCC_ASSEMBLY_FLD;
+            current->next->prev=current;
+            current->next->next=NULL;
+            push_float_register("temp");
+            retval->instruction = new_string("\tfsubp\t%s, %s",
+                                             get_register("temp"),
+                                             get_register(tac->unary_identifier));
+            pop_float_register();
+            update_register(tac->unary_identifier,tac->identifier1);
+
+            return retval;
+        } else {
+            struct mCc_assembly_line *temp;
+            MALLOC(temp, sizeof(struct mCc_assembly_line))
+            retval->next = temp;
+            temp->next = NULL;
+            temp->prev = retval;
+            retval->type = MCC_ASSEMBLY_MOV;
+            retval->instruction = new_string("\tmovl\t$0, %s",
+                                             get_register("temp"));
+            temp->type = MCC_ASSEMBLY_SUB;
+            temp->instruction =
+                    new_string("\tsubl\t%s, %s",
+                               get_register(tac->identifier3),
+                               get_register("temp"));
+
+            free_register(tac->identifier3);
+            update_register("temp", tac->identifier1);
+            return retval;
+        }
+    } else {
+        retval->type = MCC_ASSEMBLY_SUB;
+        if (is_float(tac->rhs)) {
+            retval->instruction = float_binary_op(tac,"fsubp",current);
+        }
+        else {
+            retval->instruction =
+                    new_string("\tsubl\t%s, %s",
+                               get_register(tac->rhs),
+                               get_register(tac->lhs));
+        }
+        return NULL;
+    }
+    return NULL;
+}
+
+static struct mCc_assembly_line *operation_mul(struct mCc_assembly_line *retval,
+                                                 struct mCc_tac_list *tac,
+                                                 struct mCc_assembly_line * current) {
+    retval->type = MCC_ASSEMBLY_MUL;
+    if (is_float(tac->rhs)) {
+        retval->instruction = float_binary_op(tac,"fmulp",current);
+    }
+    else
+        retval->instruction = new_string(
+                "\timull\t%s, %s", get_register(tac->rhs),
+                get_register(tac->lhs));
+    return retval;
+}
+
+static struct mCc_assembly_line *operation_div(struct mCc_assembly_line *retval,
+                                                 struct mCc_tac_list *tac,
+                                                 struct mCc_assembly_line * current) {
+    retval->type = MCC_ASSEMBLY_DIV;
+    if (is_float(tac->rhs)) {
+        retval->instruction = float_binary_op(tac,"fdivp",current);
+    } else {
+        struct mCc_assembly_line *temp;
+        MALLOC(temp, sizeof(struct mCc_assembly_line))
+        retval->next = temp;
+        temp->prev = retval;
+        struct mCc_assembly_line *temp1;
+        MALLOC(temp1, sizeof(struct mCc_assembly_line))
+        temp->next = temp1;
+        temp1->next = NULL;
+        temp1->prev = temp;
+        if(strcmp(registers->eax,tac->lhs) == 0)
+        {
+            retval->instruction = new_string("\tnop");
+        } else
+        {
+            add_lost_register(registers->eax);
+            free_register(registers->eax);
+            char* old_lhs = get_register(tac->lhs);
+            free_register(tac->lhs);
+            get_register(tac->lhs);
+            retval->instruction = new_string("\tmovl\t%s, %s",old_lhs,"%eax");
+
+        }
+        temp->instruction = new_string(
+                "\tcltd\n\tidivl\t%s", get_register(tac->rhs));
+        temp1->instruction = new_string("\tmovl\t%s, %s","%eax",
+                                        get_register(tac->identifier1));
+
+        free_register(tac->lhs);
+        free_register(tac->rhs);
+    }
+    return retval;
+}
+
 struct mCc_assembly_line *mCc_assembly_operation(struct mCc_tac_list *tac,
                                                  struct mCc_assembly_line * current)
 {
     assert(current);
 
     NEW_SINGLE_LINE
+    struct mCc_assembly_line *tmp;
 
     int op = (tac->type == MCC_TAC_ELEMENT_TYPE_UNARY)
              ? tac->unary_op_type
              : tac->binary_op_type;
     switch (op) {
         case MCC_TAC_OPERATION_TYPE_PLUS:
+            retval = operation_plus(retval, tac, current);
             retval->type = MCC_ASSEMBLY_ADD;
-            if (is_float(tac->rhs)) {
-                retval->instruction = float_binary_op(tac,"faddp",current);
-            }
-            else {
-                retval->instruction = new_string(
-                        "\taddl\t%s, %s", get_register(tac->rhs),
-                        get_register(tac->lhs));
-            }
             break;
         case MCC_TAC_OPERATION_TYPE_MINUS:
-            if (tac->type == MCC_TAC_ELEMENT_TYPE_UNARY) {
-                if(is_float(tac->unary_identifier))
-                {
-                    MALLOC(current->next, sizeof(struct mCc_assembly_line))
-                    current->next->instruction = new_string("\tfldz");
-                    current->next->type=MCC_ASSEMBLY_FLD;
-                    current->next->prev=current;
-                    current->next->next=NULL;
-                    push_float_register("temp");
-                    retval->instruction = new_string("\tfsubp\t%s, %s",
-                                                     get_register("temp"),
-                                                     get_register(tac->unary_identifier));
-                    pop_float_register();
-                    update_register(tac->unary_identifier,tac->identifier1);
-
-                    return retval;
-                } else {
-                    struct mCc_assembly_line *temp;
-                    MALLOC(temp, sizeof(struct mCc_assembly_line))
-                    retval->next = temp;
-                    temp->next = NULL;
-                    temp->prev = retval;
-                    retval->type = MCC_ASSEMBLY_MOV;
-                    retval->instruction = new_string("\tmovl\t$0, %s",
-                                                     get_register("temp"));
-                    temp->type = MCC_ASSEMBLY_SUB;
-                    temp->instruction =
-                            new_string("\tsubl\t%s, %s",
-                                       get_register(tac->identifier3),
-                                       get_register("temp"));
-
-                    free_register(tac->identifier3);
-                    update_register("temp", tac->identifier1);
-                    return retval;
-                }
-            } else {
-                retval->type = MCC_ASSEMBLY_SUB;
-                if (is_float(tac->rhs)) {
-                    retval->instruction = float_binary_op(tac,"fsubp",current);
-                }
-                else {
-                    retval->instruction =
-                            new_string("\tsubl\t%s, %s",
-                                       get_register(tac->rhs),
-                                       get_register(tac->lhs));
-                }
-                break;
-            }
+            tmp = operation_minus(retval, tac, current);
+            if (tmp != NULL)
+                retval = tmp;
+            break;
         case MCC_TAC_OPERATION_TYPE_MULTIPLY:
-            retval->type = MCC_ASSEMBLY_MUL;
-            if (is_float(tac->rhs)) {
-                retval->instruction = float_binary_op(tac,"fmulp",current);
-            }
-            else
-                retval->instruction = new_string(
-                        "\timull\t%s, %s", get_register(tac->rhs),
-                        get_register(tac->lhs));
+            retval = operation_mul(retval, tac, current);
             break;
         case MCC_TAC_OPERATION_TYPE_DIVISION:
-            retval->type = MCC_ASSEMBLY_DIV;
-            if (is_float(tac->rhs)) {
-                retval->instruction = float_binary_op(tac,"fdivp",current);
-            } else {
-                struct mCc_assembly_line *temp;
-                MALLOC(temp, sizeof(struct mCc_assembly_line))
-                retval->next = temp;
-                temp->prev = retval;
-                struct mCc_assembly_line *temp1;
-                MALLOC(temp1, sizeof(struct mCc_assembly_line))
-                temp->next = temp1;
-                temp1->next = NULL;
-                temp1->prev = temp;
-                if(strcmp(registers->eax,tac->lhs) == 0)
-                {
-                    retval->instruction = new_string("\tnop");
-                } else
-                {
-                    add_lost_register(registers->eax);
-                    free_register(registers->eax);
-                    char* old_lhs = get_register(tac->lhs);
-                    free_register(tac->lhs);
-                    get_register(tac->lhs);
-                    retval->instruction = new_string("\tmovl\t%s, %s",old_lhs,"%eax");
-
-                }
-                temp->instruction = new_string(
-                        "\tcltd\n\tidivl\t%s", get_register(tac->rhs));
-                temp1->instruction = new_string("\tmovl\t%s, %s","%eax",
-                                                get_register(tac->identifier1));
-
-                free_register(tac->lhs);
-                free_register(tac->rhs);
-            }
+            retval = operation_div(retval, tac, current);
             break;
         case MCC_TAC_OPERATION_TYPE_EQ:
         case MCC_TAC_OPERATION_TYPE_NE:

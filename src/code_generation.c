@@ -122,12 +122,14 @@ struct mCc_assembly *mCc_assembly_generate(struct mCc_tac_list *tac,
 {
 	// init vars
 	init_globals();
-	struct mCc_assembly *assembly;
+
+    struct mCc_assembly *assembly;
 	MALLOC(assembly, sizeof(struct mCc_assembly));
 	assembly->counter = 0;
-	// generate labels, builtins, first line etc.
-	assembly->head = mcc_assembly_generate_labels(tac, filename);
-	struct mCc_assembly_line *current = assembly->head;
+    struct mCc_assembly_line *current = assembly->head;
+
+    // generate labels, builtins, first line etc.
+    assembly->head = mcc_assembly_generate_labels(tac, filename);
 	// generate code
 
 	do {
@@ -373,14 +375,13 @@ struct mCc_assembly_line *mCc_assembly_store(struct mCc_tac_list *tac,
 						get_register("temp"));
 		temp2->type = MCC_ASSEMBLY_MOV;
 		if (is_float(tac->identifier3)) {
-			if (top_float_register(tac->identifier3, current)) {
-				temp2->instruction = new_string(
-					"\tfstp\t(%s)", get_register("temp"));
-				free_register("temp");
-				free_register(tac->identifier2);
-				pop_float_register();
-			} else
-				printf("fahls dir total");
+			top_float_register(tac->identifier3, current);
+                temp2->instruction = new_string(
+                        "\tfstp\t(%s)", get_register("temp"));
+                free_register("temp");
+                free_register(tac->identifier2);
+                pop_float_register();
+
 		} else {
 			temp2->instruction =
 				new_string("\tmovl\t%s, (%s)",
@@ -394,16 +395,13 @@ struct mCc_assembly_line *mCc_assembly_store(struct mCc_tac_list *tac,
 	} else {
 		NEW_SINGLE_LINE
 		if (is_float(tac->identifier3)) {
-			if (top_float_register(tac->identifier3, current)) {
-				retval->instruction = new_string(
-					"\tfstps\t%d(%s,%s,%d)",
-					get_pos(tac->identifier1), "%ebp",
-					get_register(tac->identifier2),
-					get_var(tac->identifier1)->size);
-				pop_float_register();
-			} else {
-				printf("soll i di unkotzen?");
-			}
+			top_float_register(tac->identifier3, current);
+            retval->instruction = new_string(
+                "\tfstps\t%d(%s,%s,%d)",
+                get_pos(tac->identifier1), "%ebp",
+                get_register(tac->identifier2),
+                get_var(tac->identifier1)->size);
+            pop_float_register();
 		} else
 			retval->instruction =
 				new_string("\tmovl\t%s, %d(%s,%s,%d)",
@@ -595,10 +593,8 @@ mCc_assembly_function_return(struct mCc_tac_list *tac,
 		}
 	} else {
 		if (is_float(tac->identifier1)) {
-			if (top_float_register(tac->identifier1, current))
-				retval->instruction = new_string("\tnop");
-			else
-				printf("der fehler isch komisch");
+			top_float_register(tac->identifier1, current);
+            retval->instruction = new_string("\tnop");
 		} else {
 			if (registers->eax != NULL
 			    && strcmp(registers->eax, tac->identifier1) == 0)
@@ -1109,7 +1105,7 @@ mCc_assembly_operation(struct mCc_tac_list *tac,
 		retval = NULL;
 		break;
 	default:
-		printf("error");
+		retval=NULL;
 		break;
 	}
 	if (tac->type != MCC_TAC_ELEMENT_TYPE_UNARY) {
@@ -1140,8 +1136,7 @@ char *float_binary_op(struct mCc_tac_list *tac, char *operation,
 		pop_float_register();
 		update_register(tac->rhs, tac->identifier1);
 	} else {
-		printf("strange error in float binary op");
-		retval = new_string("nop");
+		retval = new_string("\tnop");
 	}
 	return retval;
 }
@@ -1156,7 +1151,7 @@ mCc_assembly_condition(struct mCc_tac_list *tac,
 	if (is_float(tac->rhs) || is_float(tac->lhs)) {
 		is_float_condition = true;
 		NEW_DOUBLE_LINE
-		if (top_float_register(tac->lhs, current)) {
+		top_float_register(tac->lhs, current);
 			retval->instruction = new_string(
 				"\tfcomip\t%s, %s", get_register(tac->rhs),
 				get_register(tac->lhs));
@@ -1167,9 +1162,6 @@ mCc_assembly_condition(struct mCc_tac_list *tac,
 			temp->instruction = new_string("\tfstp\t%s",
 						       get_register(tac->rhs));
 			pop_float_register();
-		} else {
-			printf("strange error in condition");
-		}
 		retval->type = MCC_ASSEMBLY_CMP;
 		temp->type = MCC_ASSEMBLY_FSTP;
 		return retval;
@@ -1260,7 +1252,6 @@ mCc_assembly_conditional_jump(struct mCc_tac_list *tac,
 		}
 		break;
 	default:
-		printf("error");
 		break;
 	}
 	is_float_condition = false;
@@ -1318,15 +1309,14 @@ mCc_assembly_copy_identifier(struct mCc_tac_list *tac,
 		}
 	} else {
 		if (is_float(tac->copy_identifier)) {
-			if (top_float_register(tac->copy_identifier, current)) {
+			top_float_register(tac->copy_identifier, current);
 				retval->instruction = new_string(
 					"\tfstps\t%d(%s)",
 					get_pos(tac->identifier1), "%ebp");
 				get_var(tac->identifier1)->type =
 					MCC_TAC_LITERAL_TYPE_FLOAT;
 				pop_float_register();
-			} else
-				printf("another strange error");
+
 
 
 		} else {

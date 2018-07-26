@@ -32,7 +32,6 @@ aux_source_directory(src/ SRC_FILES)
 
 # Add an executable
 add_executable(${PROJECT_NAME} ${SRC_FILES} src/bin/mCc.c ${HEADER_FILES} ${PARSER_FILES} include/mCc/cfg.h)
-#add_executable(${PROJECT_NAME} ${SRC_FILES} src/bin/mC_cfg_to_dot.c ${HEADER_FILES} ${PARSER_FILES} include/mCc/cfg.h)
 target_include_directories(${PROJECT_NAME} PUBLIC include)
 target_link_libraries(${PROJECT_NAME} m)
 if (test)
